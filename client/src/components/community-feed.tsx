@@ -138,6 +138,7 @@ export default function CommunityFeed() {
     },
     onMutate: async (messageId) => {
       await queryClient.cancelQueries({ queryKey: ["/api/community-messages"] });
+      const prev = queryClient.getQueryData(["/api/community-messages"]);
       queryClient.setQueryData(["/api/community-messages"], (old: unknown) => {
         if (!old || typeof old !== "object" || !("pages" in old)) return old;
         const inf = old as { pages: FeedMessage[][]; pageParams: unknown[] };
@@ -152,6 +153,10 @@ export default function CommunityFeed() {
           ),
         };
       });
+      return { prev };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.prev) queryClient.setQueryData(["/api/community-messages"], context.prev);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/community-messages"] });

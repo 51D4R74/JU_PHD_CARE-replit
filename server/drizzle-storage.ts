@@ -355,6 +355,10 @@ export class DrizzleStorage extends BaseStorage {
 
   async toggleMessageLike(messageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
     const db = getDb();
+
+    const msg = await this.getCommunityMessageById(messageId);
+    if (!msg) throw new Error("Mensagem não encontrada");
+
     const existing = await db
       .select()
       .from(messageLikes)
@@ -362,7 +366,7 @@ export class DrizzleStorage extends BaseStorage {
       .limit(1);
 
     if (existing.length > 0) {
-      await db.delete(messageLikes).where(eq(messageLikes.id, existing[0].id));
+      await db.delete(messageLikes).where(and(eq(messageLikes.messageId, messageId), eq(messageLikes.userId, userId)));
       const updated = await db
         .update(communityMessages)
         .set({ likeCount: sql`GREATEST(0, ${communityMessages.likeCount} - 1)` })
@@ -371,7 +375,7 @@ export class DrizzleStorage extends BaseStorage {
       return { liked: false, likeCount: updated[0]?.likeCount ?? 0 };
     }
 
-    await db.insert(messageLikes).values({ id: randomUUID(), messageId, userId, createdAt: new Date() });
+    await db.insert(messageLikes).values({ messageId, userId, createdAt: new Date() });
     const updated = await db
       .update(communityMessages)
       .set({ likeCount: sql`${communityMessages.likeCount} + 1` })

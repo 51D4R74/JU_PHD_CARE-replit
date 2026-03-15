@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, boolean, integer, real, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, boolean, integer, real, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -132,12 +132,11 @@ export const communityMessages = pgTable("community_messages", {
 });
 
 export const messageLikes = pgTable("message_likes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   messageId: varchar("message_id").notNull(),
   userId: varchar("user_id").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
-  uniqueIndex("idx_message_likes_user_message").on(table.messageId, table.userId),
+  primaryKey({ columns: [table.messageId, table.userId] }),
 ]);
 
 // ── Insert schemas ────────────────────────────────
@@ -274,7 +273,7 @@ export const insertPulseResponseSchema = createInsertSchema(pulseResponses).pick
 export const insertCommunityMessageSchema = createInsertSchema(communityMessages).pick({
   userId: true,
   authorName: true,
-  anonymous: true,
+  isAnonymous: true,
   content: true,
   audioUrl: true,
   mediaType: true,

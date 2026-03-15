@@ -1052,20 +1052,19 @@ export class MemStorage extends BaseStorage {
   }
 
   async toggleMessageLike(messageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
-    const existing = Array.from(this.messageLikesMap.values()).find(
-      (l) => l.messageId === messageId && l.userId === userId,
-    );
+    const compositeKey = `${messageId}:${userId}`;
+    const existing = this.messageLikesMap.get(compositeKey);
     const msg = this.communityMessagesMap.get(messageId);
     if (!msg) throw new Error("Mensagem não encontrada");
 
     if (existing) {
-      this.messageLikesMap.delete(existing.id);
+      this.messageLikesMap.delete(compositeKey);
       msg.likeCount = Math.max(0, msg.likeCount - 1);
       return { liked: false, likeCount: msg.likeCount };
     }
 
-    const like: MessageLike = { id: randomUUID(), messageId, userId, createdAt: devNow() };
-    this.messageLikesMap.set(like.id, like);
+    const like: MessageLike = { messageId, userId, createdAt: devNow() };
+    this.messageLikesMap.set(compositeKey, like);
     msg.likeCount += 1;
     return { liked: true, likeCount: msg.likeCount };
   }
