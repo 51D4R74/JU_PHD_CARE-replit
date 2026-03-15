@@ -8,7 +8,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { GearSix, Bell, Moon, CaretLeft } from "@phosphor-icons/react";
+import {
+  GearSix, Bell, Moon, CaretLeft,
+  Drop, Sparkle, ChatCircleDots, SunHorizon, Handshake,
+  type Icon as PhosphorIcon,
+} from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -71,12 +75,12 @@ export function saveSettings(settings: AppSettings): void {
 
 // ── Notification type labels ──────────────────────
 
-const TYPE_META: Record<NotificationType, { label: string; description: string; icon: string }> = {
-  care: { label: "Cuidado", description: "Lembretes leves pra você (água, pausas)", icon: "💧" },
-  mission: { label: "Pra Você", description: "Novas atividades de autocuidado", icon: "⭐" },
-  microcheck: { label: "Micro check-in", description: "Leituras rápidas ao longo do dia", icon: "💬" },
-  closure: { label: "Fechamento", description: "Convite pra encerrar o dia", icon: "🌅" },
-  support: { label: "Apoio", description: "Mensagens de suporte quando fizer sentido", icon: "🤝" },
+const TYPE_META: Record<NotificationType, { label: string; description: string; Icon: PhosphorIcon; color: string }> = {
+  care:       { label: "Cuidado",        description: "Lembretes leves pra você (água, pausas)",    Icon: Drop,            color: "text-brand-teal" },
+  mission:    { label: "Pra Você",       description: "Novas atividades de autocuidado",            Icon: Sparkle,         color: "text-brand-gold" },
+  microcheck: { label: "Micro check-in", description: "Leituras rápidas ao longo do dia",           Icon: ChatCircleDots,  color: "text-brand-navy" },
+  closure:    { label: "Fechamento",     description: "Convite pra encerrar o dia",                 Icon: SunHorizon,      color: "text-score-attention" },
+  support:    { label: "Apoio",          description: "Mensagens de suporte quando fizer sentido",  Icon: Handshake,       color: "text-score-good" },
 };
 
 // ── Component ─────────────────────────────────────
@@ -225,9 +229,7 @@ export default function SettingsPage() {
                 return (
                   <div key={type} className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <span role="img" aria-label={meta.label} className="text-sm">
-                        {meta.icon}
-                      </span>
+                      <meta.Icon className={`w-4 h-4 flex-shrink-0 ${meta.color}`} weight="fill" />
                       <div>
                         <p className="text-xs font-medium">{meta.label}</p>
                         <p className="text-[10px] text-muted-foreground">{meta.description}</p>
