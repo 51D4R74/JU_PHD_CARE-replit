@@ -595,8 +595,8 @@ export async function registerRoutes(
       content: msg.content,
       audioUrl: msg.audioUrl,
       mediaType: msg.mediaType,
-      authorName: msg.anonymous ? null : msg.authorName,
-      anonymous: msg.anonymous,
+      authorName: msg.isAnonymous ? null : msg.authorName,
+      isAnonymous: msg.isAnonymous,
       category: msg.category,
       likeCount: msg.likeCount,
       likedByMe: likedSet.has(msg.id),
@@ -635,14 +635,16 @@ export async function registerRoutes(
       const data = submitCommunityMessageSchema.parse(req.body);
       const userId = req.userId!;
       const user = await storage.getUser(userId);
-      const authorName = data.anonymous ? null : (user?.name ?? null);
+      const fullName = user?.name ?? null;
+      const firstName = fullName ? fullName.split(" ")[0] : null;
+      const authorName = data.isAnonymous ? null : firstName;
 
       const msg = await storage.createCommunityMessage({
         userId,
         content: data.content ?? null,
         audioUrl: data.audioUrl ?? null,
         mediaType: data.mediaType,
-        anonymous: data.anonymous,
+        isAnonymous: data.isAnonymous,
         authorName,
         category: data.category ?? null,
       });
@@ -652,8 +654,8 @@ export async function registerRoutes(
         content: msg.content,
         audioUrl: msg.audioUrl,
         mediaType: msg.mediaType,
-        authorName: msg.anonymous ? null : msg.authorName,
-        anonymous: msg.anonymous,
+        authorName: msg.isAnonymous ? null : msg.authorName,
+        isAnonymous: msg.isAnonymous,
         category: msg.category,
         likeCount: msg.likeCount,
         likedByMe: false,

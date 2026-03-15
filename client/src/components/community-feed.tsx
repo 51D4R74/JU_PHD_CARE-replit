@@ -10,7 +10,7 @@ interface FeedMessage {
   audioUrl: string | null;
   mediaType: string;
   authorName: string | null;
-  anonymous: boolean;
+  isAnonymous: boolean;
   category: string | null;
   likeCount: number;
   likedByMe: boolean;
@@ -202,7 +202,7 @@ export default function CommunityFeed() {
               {msg._pending && (
                 <span className="flex items-center gap-0.5 text-[10px] font-medium text-amber-600 bg-amber-50 rounded px-1.5 py-0.5">
                   <Clock className="w-3 h-3" weight="bold" />
-                  Enviando...
+                  Em revisão
                 </span>
               )}
             </div>
@@ -215,7 +215,7 @@ export default function CommunityFeed() {
 
             <div className="flex items-center justify-between mt-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                {msg.anonymous ? (
+                {msg.isAnonymous ? (
                   <span className="flex items-center gap-1">
                     <UserCircle className="w-3.5 h-3.5" />
                     Anônimo

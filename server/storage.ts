@@ -1024,7 +1024,7 @@ export class MemStorage extends BaseStorage {
     const msg: CommunityMessage = {
       ...insert,
       id,
-      anonymous: insert.anonymous ?? true,
+      isAnonymous: insert.isAnonymous ?? true,
       authorName: insert.authorName ?? null,
       content: insert.content ?? null,
       audioUrl: insert.audioUrl ?? null,

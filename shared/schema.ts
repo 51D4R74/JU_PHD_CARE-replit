@@ -122,7 +122,7 @@ export const communityMessages = pgTable("community_messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
   authorName: text("author_name"),
-  anonymous: boolean("anonymous").notNull().default(true),
+  isAnonymous: boolean("is_anonymous").notNull().default(true),
   content: text("content"),
   audioUrl: text("audio_url"),
   mediaType: text("media_type").notNull().default("text"),
@@ -285,7 +285,7 @@ export const submitCommunityMessageSchema = z.object({
   content: z.string().trim().min(10).max(280).nullable().optional(),
   audioUrl: z.string().max(2000).nullable().optional(),
   mediaType: z.enum(["text", "audio"]).default("text"),
-  anonymous: z.boolean(),
+  isAnonymous: z.boolean(),
   category: z.string().max(40).nullable().optional(),
 }).refine(
   (d) => (d.mediaType === "text" && d.content && d.content.length >= 10) || (d.mediaType === "audio" && d.audioUrl),

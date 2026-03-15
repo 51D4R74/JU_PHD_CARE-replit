@@ -105,7 +105,7 @@ export default function SupportCenterPage() {
   }, []);
 
   const submitMessageMutation = useMutation({
-    mutationFn: async (payload: { content?: string; audioUrl?: string; mediaType: "text" | "audio"; anonymous: boolean }) => {
+    mutationFn: async (payload: { content?: string; audioUrl?: string; mediaType: "text" | "audio"; isAnonymous: boolean }) => {
       const res = await apiRequest("POST", "/api/community-messages", payload);
       return res.json();
     },
@@ -117,8 +117,8 @@ export default function SupportCenterPage() {
         content: payload.content ?? null,
         audioUrl: payload.audioUrl ?? null,
         mediaType: payload.mediaType,
-        authorName: payload.anonymous ? null : null,
-        anonymous: payload.anonymous,
+        authorName: payload.isAnonymous ? null : null,
+        isAnonymous: payload.isAnonymous,
         category: null,
         likeCount: 0,
         likedByMe: false,
@@ -528,7 +528,7 @@ export default function SupportCenterPage() {
                               submitMessageMutation.mutate({
                                 content: authorText.trim(),
                                 mediaType: "text",
-                                anonymous: authorAnonymous,
+                                isAnonymous: authorAnonymous,
                               });
                             } else {
                               if (!audioBlob) {
@@ -547,7 +547,7 @@ export default function SupportCenterPage() {
                                   submitMessageMutation.mutate({
                                     audioUrl: data.audioUrl,
                                     mediaType: "audio",
-                                    anonymous: authorAnonymous,
+                                    isAnonymous: authorAnonymous,
                                   });
                                 })
                                 .catch(() => {
