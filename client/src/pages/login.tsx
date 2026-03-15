@@ -169,6 +169,7 @@ export default function LoginPage() {
                     <Input
                       id="email"
                       type="email"
+                      autoComplete="email"
                       placeholder="seu@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -185,6 +186,7 @@ export default function LoginPage() {
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -271,6 +273,7 @@ export default function LoginPage() {
                     <Input
                       id="reg-name"
                       type="text"
+                      autoComplete="name"
                       placeholder="Maria Silva"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -287,6 +290,7 @@ export default function LoginPage() {
                     <Input
                       id="reg-email"
                       type="email"
+                      autoComplete="email"
                       placeholder="seu@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -319,6 +323,7 @@ export default function LoginPage() {
                     <Input
                       id="reg-password"
                       type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
