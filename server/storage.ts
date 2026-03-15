@@ -1026,6 +1026,9 @@ export class MemStorage extends BaseStorage {
       id,
       anonymous: insert.anonymous ?? true,
       authorName: insert.authorName ?? null,
+      content: insert.content ?? null,
+      audioUrl: insert.audioUrl ?? null,
+      mediaType: insert.mediaType ?? "text",
       category: insert.category ?? null,
       likeCount: 0,
       createdAt: devNow(),
@@ -1036,7 +1039,11 @@ export class MemStorage extends BaseStorage {
 
   async getCommunityMessages(limit: number, offset: number): Promise<CommunityMessage[]> {
     return Array.from(this.communityMessagesMap.values())
-      .toSorted((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0))
+      .toSorted((a, b) => {
+        const likeDiff = b.likeCount - a.likeCount;
+        if (likeDiff !== 0) return likeDiff;
+        return (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0);
+      })
       .slice(offset, offset + limit);
   }
 

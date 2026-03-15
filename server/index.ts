@@ -48,6 +48,9 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
+import path from "node:path";
+app.use("/uploads", express.static(path.resolve("uploads")));
+
 const isProd = process.env.NODE_ENV === "production";
 const sessionSecret = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
 

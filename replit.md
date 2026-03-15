@@ -47,10 +47,12 @@ Corporate mental health platform focused on employee well-being (prevention and 
 - Sub-route mapping: `/report` → Sua Jornada active, `/team-challenge` → Pra Você active, `/checkin` → Início active
 
 ## Community Messages
-- **Tables**: `community_messages` (id, userId, authorName, anonymous, body, category, likeCount, createdAt) + `message_likes` (id, messageId, userId, createdAt)
-- **API**: `GET /api/community-messages?limit=20&offset=0`, `POST /api/community-messages` (body, anonymous, category?), `POST /api/community-messages/:id/like` (toggle)
-- **Frontend**: `CommunityFeed` component renders message cards with like buttons, ranking (top message), sort by recent/popular
-- **Location**: Wired into the "Deixar" tab of the Apoio (Support) page with anonymous toggle
+- **Tables**: `community_messages` (id, userId, authorName, anonymous, content, audioUrl, mediaType, category, likeCount, createdAt) + `message_likes` (id, messageId, userId, createdAt)
+- **API**: `GET /api/community-messages?page=0&limit=20`, `POST /api/community-messages` (content/audioUrl, mediaType, anonymous), `POST /api/community-messages/:id/like` (toggle), `POST /api/upload-audio` (multipart audio file)
+- **Frontend**: `CommunityFeed` component with infinite pagination (`useInfiniteQuery`), audio player, rank badges (#1-3), like toggle with optimistic updates
+- **Compose**: Escrever/Gravar toggle in "Deixar" tab — text textarea or hold-to-record MediaRecorder with upload
+- **Location**: Feed is always visible below LuminaCard on support page; compose form is in "Deixar" tab
+- **Audio uploads**: Saved to `uploads/` directory, served at `/uploads/<filename>`
 
 ## User Flows
 1. **Login** → Dashboard (collaborator) or RH Dashboard (hr role)

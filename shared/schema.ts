@@ -123,7 +123,9 @@ export const communityMessages = pgTable("community_messages", {
   userId: varchar("user_id").notNull(),
   authorName: text("author_name"),
   anonymous: boolean("anonymous").notNull().default(true),
-  body: text("body").notNull(),
+  content: text("content"),
+  audioUrl: text("audio_url"),
+  mediaType: text("media_type").notNull().default("text"),
   category: text("category"),
   likeCount: integer("like_count").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
@@ -271,15 +273,22 @@ export const insertCommunityMessageSchema = createInsertSchema(communityMessages
   userId: true,
   authorName: true,
   anonymous: true,
-  body: true,
+  content: true,
+  audioUrl: true,
+  mediaType: true,
   category: true,
 });
 
 export const submitCommunityMessageSchema = z.object({
-  body: z.string().trim().min(10).max(280),
+  content: z.string().trim().min(10).max(280).nullable().optional(),
+  audioUrl: z.string().max(2000).nullable().optional(),
+  mediaType: z.enum(["text", "audio"]).default("text"),
   anonymous: z.boolean(),
   category: z.string().max(40).nullable().optional(),
-});
+}).refine(
+  (d) => (d.mediaType === "text" && d.content && d.content.length >= 10) || (d.mediaType === "audio" && d.audioUrl),
+  { message: "Forneça conteúdo de texto (min 10 chars) ou áudio" },
+);
 
 export const pulseAnswerValueSchema = z.enum(["never", "rarely", "often", "always"]);
 

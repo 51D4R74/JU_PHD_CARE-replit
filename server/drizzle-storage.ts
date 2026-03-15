@@ -343,7 +343,7 @@ export class DrizzleStorage extends BaseStorage {
     return getDb()
       .select()
       .from(communityMessages)
-      .orderBy(desc(communityMessages.createdAt))
+      .orderBy(desc(communityMessages.likeCount), desc(communityMessages.createdAt))
       .limit(limit)
       .offset(offset);
   }

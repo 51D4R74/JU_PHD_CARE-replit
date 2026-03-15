@@ -1,19 +1,23 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useRef, useCallback } from "react";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, UserCircle, Trophy, ChatCircleDots } from "@phosphor-icons/react";
+import { Heart, UserCircle, Trophy, ChatCircleDots, Waveform, Play, Pause } from "@phosphor-icons/react";
 import { apiRequest } from "@/lib/queryClient";
 
 interface FeedMessage {
   id: string;
-  body: string;
+  content: string | null;
+  audioUrl: string | null;
+  mediaType: string;
   authorName: string | null;
   anonymous: boolean;
   category: string | null;
   likeCount: number;
-  liked: boolean;
+  likedByMe: boolean;
   createdAt: string | null;
 }
+
+const PAGE_SIZE = 20;
 
 function timeAgo(iso: string | null): string {
   if (!iso) return "";
@@ -27,47 +31,122 @@ function timeAgo(iso: string | null): string {
   return `${days}d`;
 }
 
+function AudioPlayer({ src }: Readonly<{ src: string }>) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
+
+  const toggle = useCallback(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (playing) {
+      el.pause();
+    } else {
+      el.play();
+    }
+    setPlaying(!playing);
+  }, [playing]);
+
+  return (
+    <div className="flex items-center gap-2 py-1">
+      <button
+        onClick={toggle}
+        className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-teal/10 text-brand-teal transition-colors hover:bg-brand-teal/20"
+      >
+        {playing ? <Pause className="w-4 h-4" weight="fill" /> : <Play className="w-4 h-4" weight="fill" />}
+      </button>
+      <div className="flex-1 flex items-center gap-0.5 h-5">
+        {Array.from({ length: 24 }).map((_, i) => (
+          <div
+            key={i}
+            className="flex-1 rounded-full bg-brand-teal/20"
+            style={{ height: `${20 + Math.sin(i * 0.8) * 60 + Math.random() * 20}%` }}
+          />
+        ))}
+      </div>
+      <audio
+        ref={audioRef}
+        src={src}
+        onEnded={() => setPlaying(false)}
+        preload="metadata"
+      />
+    </div>
+  );
+}
+
+function RankBadge({ rank }: Readonly<{ rank: number }>) {
+  if (rank > 3) return null;
+  const colors = ["text-brand-gold", "text-muted-foreground", "text-amber-700"];
+  return (
+    <span className={`flex items-center gap-0.5 text-[10px] font-bold ${colors[rank - 1]}`}>
+      <Trophy className="w-3 h-3" weight="fill" />
+      #{rank}
+    </span>
+  );
+}
+
+function MediaBadge({ type }: Readonly<{ type: string }>) {
+  if (type === "audio") {
+    return (
+      <span className="flex items-center gap-0.5 text-[10px] font-medium text-brand-teal bg-brand-teal/8 rounded px-1.5 py-0.5">
+        <Waveform className="w-3 h-3" weight="bold" />
+        Áudio
+      </span>
+    );
+  }
+  return null;
+}
+
 export default function CommunityFeed() {
   const queryClient = useQueryClient();
-  const [sortBy, setSortBy] = useState<"recent" | "popular">("recent");
 
-  const { data: messages = [], isLoading } = useQuery<FeedMessage[]>({
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<FeedMessage[]>({
     queryKey: ["/api/community-messages"],
+    queryFn: async ({ pageParam }) => {
+      const res = await fetch(`/api/community-messages?page=${pageParam}&limit=${PAGE_SIZE}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Falha ao carregar mensagens");
+      return res.json();
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < PAGE_SIZE) return undefined;
+      return allPages.length;
+    },
   });
+
+  const messages = data?.pages.flat() ?? [];
 
   const likeMutation = useMutation({
     mutationFn: async (messageId: string) => {
       const res = await apiRequest("POST", `/api/community-messages/${messageId}/like`);
-      return res.json() as Promise<{ liked: boolean; likeCount: number }>;
+      return { messageId, ...(await res.json() as { liked: boolean; likeCount: number }) };
     },
     onMutate: async (messageId) => {
       await queryClient.cancelQueries({ queryKey: ["/api/community-messages"] });
-      const prev = queryClient.getQueryData<FeedMessage[]>(["/api/community-messages"]);
-      queryClient.setQueryData<FeedMessage[]>(["/api/community-messages"], (old) =>
-        (old ?? []).map((m) =>
-          m.id === messageId
-            ? { ...m, liked: !m.liked, likeCount: m.liked ? m.likeCount - 1 : m.likeCount + 1 }
-            : m,
-        ),
-      );
-      return { prev };
-    },
-    onError: (_err, _id, context) => {
-      if (context?.prev) queryClient.setQueryData(["/api/community-messages"], context.prev);
+      queryClient.setQueryData(["/api/community-messages"], (old: unknown) => {
+        if (!old || typeof old !== "object" || !("pages" in old)) return old;
+        const inf = old as { pages: FeedMessage[][]; pageParams: unknown[] };
+        return {
+          ...inf,
+          pages: inf.pages.map((page) =>
+            page.map((m) =>
+              m.id === messageId
+                ? { ...m, likedByMe: !m.likedByMe, likeCount: m.likedByMe ? m.likeCount - 1 : m.likeCount + 1 }
+                : m,
+            ),
+          ),
+        };
+      });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/community-messages"] });
     },
   });
-
-  const sorted = [...messages].sort((a, b) => {
-    if (sortBy === "popular") return b.likeCount - a.likeCount;
-    return (b.createdAt ?? "").localeCompare(a.createdAt ?? "");
-  });
-
-  const topMessage = messages.length > 0
-    ? [...messages].sort((a, b) => b.likeCount - a.likeCount)[0]
-    : null;
 
   if (isLoading) {
     return (
@@ -93,65 +172,31 @@ export default function CommunityFeed() {
 
   return (
     <section className="space-y-4">
-      {topMessage && topMessage.likeCount > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-brand-gold/20 bg-brand-gold/5 p-4"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <Trophy className="w-4 h-4 text-brand-gold" weight="fill" />
-            <span className="text-xs font-medium text-brand-gold">Mais curtida</span>
-          </div>
-          <p className="text-sm leading-relaxed">{topMessage.body}</p>
-          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Heart className="w-3 h-3" weight="fill" />
-              {topMessage.likeCount}
-            </span>
-            {!topMessage.anonymous && topMessage.authorName && (
-              <span className="flex items-center gap-1">
-                <UserCircle className="w-3 h-3" />
-                {topMessage.authorName}
-              </span>
-            )}
-          </div>
-        </motion.div>
-      )}
-
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium">Mural da comunidade</h3>
-        <div className="flex gap-1 p-0.5 rounded-lg bg-muted/50">
-          <button
-            onClick={() => setSortBy("recent")}
-            className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
-              sortBy === "recent" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"
-            }`}
-          >
-            Recentes
-          </button>
-          <button
-            onClick={() => setSortBy("popular")}
-            className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
-              sortBy === "popular" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"
-            }`}
-          >
-            Populares
-          </button>
-        </div>
       </div>
 
       <AnimatePresence>
-        {sorted.map((msg, i) => (
+        {messages.map((msg, i) => (
           <motion.div
             key={msg.id}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ delay: i * 0.04 }}
+            transition={{ delay: Math.min(i, 5) * 0.04 }}
             className="glass-card rounded-xl p-4"
           >
-            <p className="text-sm leading-relaxed">{msg.body}</p>
+            <div className="flex items-center gap-2 mb-2">
+              <RankBadge rank={i + 1} />
+              <MediaBadge type={msg.mediaType} />
+            </div>
+
+            {msg.mediaType === "audio" && msg.audioUrl ? (
+              <AudioPlayer src={msg.audioUrl} />
+            ) : (
+              <p className="text-sm leading-relaxed">{msg.content}</p>
+            )}
+
             <div className="flex items-center justify-between mt-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 {msg.anonymous ? (
@@ -174,18 +219,28 @@ export default function CommunityFeed() {
               <button
                 onClick={() => likeMutation.mutate(msg.id)}
                 className={`flex items-center gap-1 text-xs font-medium rounded-lg px-2.5 py-1.5 transition-colors ${
-                  msg.liked
+                  msg.likedByMe
                     ? "text-red-500 bg-red-50"
                     : "text-muted-foreground hover:text-red-400 hover:bg-red-50/50"
                 }`}
               >
-                <Heart className="w-3.5 h-3.5" weight={msg.liked ? "fill" : "regular"} />
+                <Heart className="w-3.5 h-3.5" weight={msg.likedByMe ? "fill" : "regular"} />
                 {msg.likeCount > 0 && msg.likeCount}
               </button>
             </div>
           </motion.div>
         ))}
       </AnimatePresence>
+
+      {hasNextPage && (
+        <button
+          onClick={() => fetchNextPage()}
+          disabled={isFetchingNextPage}
+          className="w-full py-3 text-sm font-medium text-brand-teal hover:bg-brand-teal/5 rounded-xl transition-colors disabled:opacity-50"
+        >
+          {isFetchingNextPage ? "Carregando..." : "Carregar mais"}
+        </button>
+      )}
     </section>
   );
 }

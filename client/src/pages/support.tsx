@@ -1,7 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { CaretLeft, Heart, Sparkle, ArrowsClockwise, PaperPlaneRight, PencilLine, Waves, Flame, HandHeart, Leaf, EyeSlash, Eye } from "@phosphor-icons/react";
+import { CaretLeft, Heart, Sparkle, ArrowsClockwise, PaperPlaneRight, PencilLine, Waves, Flame, HandHeart, Leaf, EyeSlash, Eye, Microphone, Stop, Waveform } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -64,9 +64,14 @@ export default function SupportCenterPage() {
   const queryClient = useQueryClient();
 
   const [tab, setTab] = useState<Tab>("receive");
+  const [composeMode, setComposeMode] = useState<"text" | "audio">("text");
   const [authorText, setAuthorText] = useState("");
   const [authorAnonymous, setAuthorAnonymous] = useState(true);
   const [authorSubmitted, setAuthorSubmitted] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<SupportCategory | null>(null);
   const [currentMessage, setCurrentMessage] = useState<SupportMessage | null>(null);
   const [favMessages, setFavMessages] = useState(getFavoriteMessages);
@@ -100,13 +105,14 @@ export default function SupportCenterPage() {
   }, []);
 
   const submitMessageMutation = useMutation({
-    mutationFn: async (payload: { body: string; anonymous: boolean }) => {
+    mutationFn: async (payload: { content?: string; audioUrl?: string; mediaType: "text" | "audio"; anonymous: boolean }) => {
       const res = await apiRequest("POST", "/api/community-messages", payload);
       return res.json();
     },
     onSuccess: () => {
       setAuthorSubmitted(true);
       setAuthorText("");
+      setAudioBlob(null);
       queryClient.invalidateQueries({ queryKey: ["/api/community-messages"] });
       toast({ title: "Mensagem enviada", description: "Obrigado por cuidar de alguém." });
     },
@@ -114,6 +120,30 @@ export default function SupportCenterPage() {
       toast({ title: "Erro", description: "Não foi possível enviar. Tente de novo.", variant: "destructive" });
     },
   });
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      chunksRef.current = [];
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        setAudioBlob(blob);
+        stream.getTracks().forEach((t) => t.stop());
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecording(true);
+    } catch {
+      toast({ title: "Permissão negada", description: "Habilite o microfone para gravar.", variant: "destructive" });
+    }
+  }, [toast]);
+
+  const stopRecording = useCallback(() => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+  }, []);
 
   const handleDeactivateRespiro = useCallback(() => {
     deactivateRespiro();
@@ -219,6 +249,11 @@ export default function SupportCenterPage() {
           onTap={() => navigate("/denuncia")}
         />
 
+        {/* Community feed — always visible below JuPHD card */}
+        <div className="mt-5">
+          <CommunityFeed />
+        </div>
+
         <AnimatePresence mode="wait">
           {tab === "receive" && (
             <motion.div
@@ -228,17 +263,13 @@ export default function SupportCenterPage() {
               exit={{ opacity: 0, x: 12 }}
               transition={{ duration: 0.2 }}
             >
-              {/* Category selection or current message */}
               {currentMessage ? (
                 <section className="mt-5 space-y-4">
-                  {/* Current message */}
                   <SupportMessageCard
                     message={currentMessage}
                     isFavorite={isFavorite(currentMessage.id)}
                     onToggleFavorite={handleToggleFavorite}
                   />
-
-                  {/* Actions */}
                   <div className="flex gap-3">
                     <button
                       onClick={handleNewMessage}
@@ -337,10 +368,10 @@ export default function SupportCenterPage() {
                       Sua mensagem já está no mural da comunidade.
                     </p>
                     <button
-                      onClick={() => { setAuthorSubmitted(false); setAuthorText(""); }}
+                      onClick={() => { setAuthorSubmitted(false); setAuthorText(""); setAudioBlob(null); }}
                       className="mt-4 text-xs font-medium text-brand-teal hover:underline"
                     >
-                      Escrever outra
+                      Enviar outra
                     </button>
                   </div>
                 ) : (
@@ -349,15 +380,86 @@ export default function SupportCenterPage() {
                       <p className="text-sm font-medium mb-1">
                         Deixe uma mensagem pra alguém
                       </p>
-                      <p className="text-xs text-muted-foreground mb-3">
-                        Escreva algo que possa ajudar alguém tendo um dia difícil. Até 280 caracteres.
-                      </p>
-                      <Textarea
-                        placeholder="Ex: Você não está só nessa..."
-                        value={authorText}
-                        onChange={(e) => setAuthorText(e.target.value.slice(0, 280))}
-                        className="min-h-[100px] bg-background/40 border-border/40 focus:border-brand-teal/40 resize-none rounded-xl"
-                      />
+
+                      {/* Escrever / Gravar toggle */}
+                      <div className="flex gap-1 p-0.5 rounded-lg bg-muted/50 mb-3">
+                        <button
+                          onClick={() => setComposeMode("text")}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                            composeMode === "text" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"
+                          }`}
+                        >
+                          <PencilLine className="w-3.5 h-3.5" weight="bold" />
+                          Escrever
+                        </button>
+                        <button
+                          onClick={() => setComposeMode("audio")}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                            composeMode === "audio" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"
+                          }`}
+                        >
+                          <Microphone className="w-3.5 h-3.5" weight="bold" />
+                          Gravar
+                        </button>
+                      </div>
+
+                      {composeMode === "text" ? (
+                        <>
+                          <p className="text-xs text-muted-foreground mb-2">
+                            Escreva algo que possa ajudar alguém tendo um dia difícil. Até 280 caracteres.
+                          </p>
+                          <Textarea
+                            placeholder="Ex: Você não está só nessa..."
+                            value={authorText}
+                            onChange={(e) => setAuthorText(e.target.value.slice(0, 280))}
+                            className="min-h-[100px] bg-background/40 border-border/40 focus:border-brand-teal/40 resize-none rounded-xl"
+                          />
+                        </>
+                      ) : (
+                        <div className="space-y-3">
+                          <p className="text-xs text-muted-foreground">
+                            Grave uma mensagem de voz para a comunidade.
+                          </p>
+                          {audioBlob ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 p-3 rounded-xl bg-brand-teal/5 border border-brand-teal/10">
+                                <Waveform className="w-5 h-5 text-brand-teal" weight="bold" />
+                                <span className="text-xs font-medium text-brand-teal flex-1">Áudio gravado</span>
+                              </div>
+                              <button
+                                onClick={() => setAudioBlob(null)}
+                                className="text-xs font-medium text-muted-foreground hover:text-foreground"
+                              >
+                                Refazer
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center py-4">
+                              <button
+                                onMouseDown={startRecording}
+                                onMouseUp={stopRecording}
+                                onTouchStart={startRecording}
+                                onTouchEnd={stopRecording}
+                                className={`flex items-center justify-center w-16 h-16 rounded-full transition-all ${
+                                  isRecording
+                                    ? "bg-red-500 text-white scale-110 animate-pulse"
+                                    : "bg-brand-teal/10 text-brand-teal hover:bg-brand-teal/20"
+                                }`}
+                              >
+                                {isRecording ? (
+                                  <Stop className="w-6 h-6" weight="fill" />
+                                ) : (
+                                  <Microphone className="w-6 h-6" weight="fill" />
+                                )}
+                              </button>
+                              <p className="text-xs text-muted-foreground mt-2">
+                                {isRecording ? "Gravando... solte para parar" : "Segure para gravar"}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       <div className="flex items-center justify-between mt-3">
                         <div className="flex items-center gap-2">
                           <button
@@ -376,26 +478,58 @@ export default function SupportCenterPage() {
                             )}
                             {authorAnonymous ? "Anônimo" : "Com nome"}
                           </button>
-                          <span className="text-xs text-muted-foreground">
-                            {authorText.length}/280
-                          </span>
+                          {composeMode === "text" && (
+                            <span className="text-xs text-muted-foreground">
+                              {authorText.length}/280
+                            </span>
+                          )}
                         </div>
                         <button
                           onClick={() => {
-                            if (authorText.trim().length < 10) {
-                              toast({
-                                title: "Precisa de mais",
-                                description: "Escreva pelo menos 10 caracteres.",
-                                variant: "destructive",
+                            if (composeMode === "text") {
+                              if (authorText.trim().length < 10) {
+                                toast({
+                                  title: "Precisa de mais",
+                                  description: "Escreva pelo menos 10 caracteres.",
+                                  variant: "destructive",
+                                });
+                                return;
+                              }
+                              submitMessageMutation.mutate({
+                                content: authorText.trim(),
+                                mediaType: "text",
+                                anonymous: authorAnonymous,
                               });
-                              return;
+                            } else {
+                              if (!audioBlob) {
+                                toast({
+                                  title: "Grave primeiro",
+                                  description: "Segure o botão para gravar sua mensagem.",
+                                  variant: "destructive",
+                                });
+                                return;
+                              }
+                              const formData = new FormData();
+                              formData.append("audio", audioBlob, "recording.webm");
+                              fetch("/api/upload-audio", { method: "POST", body: formData, credentials: "include" })
+                                .then((r) => { if (!r.ok) throw new Error("Upload falhou"); return r.json() as Promise<{ audioUrl: string }>; })
+                                .then((data) => {
+                                  submitMessageMutation.mutate({
+                                    audioUrl: data.audioUrl,
+                                    mediaType: "audio",
+                                    anonymous: authorAnonymous,
+                                  });
+                                })
+                                .catch(() => {
+                                  toast({ title: "Erro", description: "Falha ao enviar o áudio.", variant: "destructive" });
+                                });
                             }
-                            submitMessageMutation.mutate({
-                              body: authorText.trim(),
-                              anonymous: authorAnonymous,
-                            });
                           }}
-                          disabled={authorText.trim().length < 10 || submitMessageMutation.isPending}
+                          disabled={
+                            (composeMode === "text" && authorText.trim().length < 10) ||
+                            (composeMode === "audio" && !audioBlob) ||
+                            submitMessageMutation.isPending
+                          }
                           className="flex items-center gap-1.5 text-sm font-medium text-white bg-brand-teal hover:bg-brand-teal/90 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 rounded-xl transition-colors"
                         >
                           <PaperPlaneRight className="w-3.5 h-3.5" weight="bold" />
@@ -405,10 +539,6 @@ export default function SupportCenterPage() {
                     </div>
                   </div>
                 )}
-
-                <div className="mt-6">
-                  <CommunityFeed />
-                </div>
               </section>
             </motion.div>
           )}

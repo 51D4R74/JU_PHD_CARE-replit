@@ -1,7 +1,10 @@
 import type { Express, Request } from "express";
 import type { Server } from "node:http";
+import path from "node:path";
+import fs from "node:fs";
 import bcrypt from "bcryptjs";
 import rateLimit from "express-rate-limit";
+import multer from "multer";
 import type { IStorage } from "./storage";
 import { requireAuth, requireOwner, requireRole } from "./middleware";
 import { insertCheckInSchema, insertMomentCheckInSchema, insertUserMissionSchema, submitIncidentReportSchema, submitPulseResponseSchema, submitCommunityMessageSchema, type PulseResponse } from "@shared/schema";
@@ -577,9 +580,10 @@ export async function registerRoutes(
 
   app.get("/api/community-messages", requireAuth, async (req, res) => {
     const limitParam = req.query.limit;
-    const offsetParam = req.query.offset;
+    const pageParam = req.query.page;
     const limit = typeof limitParam === "string" ? Math.min(50, Math.max(1, Number.parseInt(limitParam, 10) || 20)) : 20;
-    const offset = typeof offsetParam === "string" ? Math.max(0, Number.parseInt(offsetParam, 10) || 0) : 0;
+    const page = typeof pageParam === "string" ? Math.max(0, Number.parseInt(pageParam, 10) || 0) : 0;
+    const offset = page * limit;
 
     const messages = await storage.getCommunityMessages(limit, offset);
     const userId = req.userId!;
@@ -588,16 +592,42 @@ export async function registerRoutes(
 
     const result = messages.map((msg) => ({
       id: msg.id,
-      body: msg.body,
+      content: msg.content,
+      audioUrl: msg.audioUrl,
+      mediaType: msg.mediaType,
       authorName: msg.anonymous ? null : msg.authorName,
       anonymous: msg.anonymous,
       category: msg.category,
       likeCount: msg.likeCount,
-      liked: likedSet.has(msg.id),
+      likedByMe: likedSet.has(msg.id),
       createdAt: msg.createdAt?.toISOString() ?? null,
     }));
 
     return res.json(result);
+  });
+
+  const uploadsDir = path.resolve("uploads");
+  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+  const audioUpload = multer({
+    storage: multer.diskStorage({
+      destination: (_req, _file, cb) => cb(null, uploadsDir),
+      filename: (_req, file, cb) => {
+        const ext = path.extname(file.originalname) || ".webm";
+        cb(null, `audio_${Date.now()}_${Math.random().toString(36).slice(2, 8)}${ext}`);
+      },
+    }),
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (_req, file, cb) => {
+      if (file.mimetype.startsWith("audio/")) cb(null, true);
+      else cb(new Error("Apenas arquivos de áudio são permitidos"));
+    },
+  });
+
+  app.post("/api/upload-audio", requireAuth, audioUpload.single("audio"), (req, res) => {
+    if (!req.file) return res.status(400).json({ message: "Nenhum arquivo enviado" });
+    const audioUrl = `/uploads/${req.file.filename}`;
+    return res.json({ audioUrl });
   });
 
   app.post("/api/community-messages", requireAuth, async (req, res) => {
@@ -609,7 +639,9 @@ export async function registerRoutes(
 
       const msg = await storage.createCommunityMessage({
         userId,
-        body: data.body,
+        content: data.content ?? null,
+        audioUrl: data.audioUrl ?? null,
+        mediaType: data.mediaType,
         anonymous: data.anonymous,
         authorName,
         category: data.category ?? null,
@@ -617,12 +649,14 @@ export async function registerRoutes(
 
       return res.json({
         id: msg.id,
-        body: msg.body,
+        content: msg.content,
+        audioUrl: msg.audioUrl,
+        mediaType: msg.mediaType,
         authorName: msg.anonymous ? null : msg.authorName,
         anonymous: msg.anonymous,
         category: msg.category,
         likeCount: msg.likeCount,
-        liked: false,
+        likedByMe: false,
         createdAt: msg.createdAt?.toISOString() ?? null,
       });
     } catch (e: unknown) {
