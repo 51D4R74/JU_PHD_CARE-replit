@@ -247,7 +247,7 @@ export default function CommunityFeed() {
                   }`}
                 >
                   <Heart className="w-3.5 h-3.5" weight={msg.likedByMe ? "fill" : "regular"} />
-                  {msg.likeCount > 0 && msg.likeCount}
+                  {msg.likeCount}
                 </button>
               )}
             </div>

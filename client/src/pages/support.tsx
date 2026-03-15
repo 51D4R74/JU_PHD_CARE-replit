@@ -117,7 +117,7 @@ export default function SupportCenterPage() {
         content: payload.content ?? null,
         audioUrl: payload.audioUrl ?? null,
         mediaType: payload.mediaType,
-        authorName: payload.isAnonymous ? null : null,
+        authorName: payload.isAnonymous ? null : (user?.name?.split(" ")[0] ?? null),
         isAnonymous: payload.isAnonymous,
         category: null,
         likeCount: 0,
