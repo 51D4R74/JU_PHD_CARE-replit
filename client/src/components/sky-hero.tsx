@@ -44,6 +44,14 @@ function resolveHero(scores: TodayScores): SkyHeroData {
   return getDefaultSkyHero();
 }
 
+function buildOverlayGradient(dimOverlay: number): string {
+  const topAlpha = Math.max(0.02, dimOverlay * 0.15);
+  const midAlpha = Math.max(0.06, dimOverlay * 0.25);
+  const bottomAlpha = Math.min(0.65, dimOverlay + 0.12);
+  const baseAlpha = Math.min(0.72, dimOverlay + 0.18);
+  return `linear-gradient(to bottom, rgba(0,0,0,${topAlpha.toFixed(2)}) 0%, rgba(0,0,0,${midAlpha.toFixed(2)}) 35%, rgba(0,0,0,${bottomAlpha.toFixed(2)}) 78%, rgba(0,0,0,${baseAlpha.toFixed(2)}) 100%)`;
+}
+
 // ── Domain pill ───────────────────────────────────
 
 function DomainPill({
@@ -85,7 +93,7 @@ export default function SkyHero({
     : "Como você está hoje?";
 
   return (
-    <section className="relative w-full min-h-[36svh] sm:min-h-[44vh]">
+    <section className="relative w-full min-h-[42svh] sm:min-h-[52vh]">
       {/* Sky photo background */}
       <motion.img
         key={hero.src}
@@ -98,31 +106,38 @@ export default function SkyHero({
         draggable={false}
       />
 
-      {/* Gradient overlay for text readability */}
+      {/* Adaptive gradient overlay — intensity driven by tier */}
       <div
         className="absolute inset-0"
-        style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.08) 30%, rgba(0,0,0,0.45) 75%, rgba(0,0,0,0.55) 100%)",
-        }}
+        style={{ background: buildOverlayGradient(hero.dimOverlay) }}
         aria-hidden="true"
       />
 
-      {/* Warm sunrise glow overlay */}
+      {/* Warm sunrise glow bloom at bottom center */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: "radial-gradient(ellipse at 50% 90%, rgba(255,180,50,0.08) 0%, transparent 60%)",
+          background: "radial-gradient(ellipse at 50% 85%, rgba(255,180,50,0.10) 0%, transparent 55%)",
         }}
         aria-hidden="true"
       />
 
-      {/* Controls bar — absolute top */}
+      {/* Top fade band for controls readability */}
+      <div
+        className="absolute inset-x-0 top-0 h-20 pointer-events-none"
+        style={{
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, transparent 100%)",
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Controls bar — transparent band */}
       <div className="relative z-10 px-4 pt-4">
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="glass-sky-controls flex items-center justify-between rounded-2xl px-3 py-2"
+          className="sky-controls-band flex items-center justify-between px-2 py-2"
         >
           <AnimatedBrandLogo size="compact" showWordmark={false} />
           <div className="flex items-center gap-2">
@@ -141,7 +156,7 @@ export default function SkyHero({
       </div>
 
       {/* Hero content — bottom-anchored */}
-      <div className="relative z-10 flex h-full flex-col items-center justify-end px-4 pb-6 pt-10 sm:pb-8" style={{ minHeight: "calc(34svh - 60px)" }}>
+      <div className="relative z-10 flex h-full flex-col items-center justify-end px-4 pb-6 pt-10 sm:pb-8" style={{ minHeight: "calc(40svh - 60px)" }}>
         {/* Domain pills */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -183,8 +198,7 @@ export default function SkyHero({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.42, duration: 0.5 }}
-            className="mt-2 max-w-xs text-center text-base leading-relaxed text-white/80"
-            style={{ textShadow: "0 1px 4px rgba(0,0,0,0.25)" }}
+            className="text-sky-readable mt-2 max-w-xs text-center text-base leading-relaxed opacity-85"
           >
             {subtitle}
           </motion.p>
