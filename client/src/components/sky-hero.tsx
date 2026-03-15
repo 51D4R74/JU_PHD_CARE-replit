@@ -26,6 +26,7 @@ type SkyHeroProps = Readonly<{
   checkedInDates: ReadonlyArray<string>;
   onOpenNotifications: () => void;
   onOpenSettings: () => void;
+  onNavigateDomains: () => void;
 }>;
 
 // ── Helpers ───────────────────────────────────────
@@ -56,16 +57,21 @@ function DomainPill({
   domainId,
   score,
   hasData,
-}: Readonly<{ domainId: ScoreDomainId; score: number; hasData: boolean }>) {
+  onClick,
+}: Readonly<{ domainId: ScoreDomainId; score: number; hasData: boolean; onClick: () => void }>) {
   const narrative = getDomainNarrative(domainId, score);
   const warmName = DOMAIN_WARM_NAMES[domainId];
   const emoji = hasData ? narrative.emoji : "·";
 
   return (
-    <span className="glass-sky-pill inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-white/90 text-[11px] font-semibold tracking-wide">
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-wide bg-white/95 text-brand-navy shadow-sm backdrop-blur-sm transition-transform active:scale-95"
+    >
       <span role="img" aria-hidden="true">{emoji}</span>
       <span>{warmName}</span>
-    </span>
+    </button>
   );
 }
 
@@ -78,6 +84,7 @@ export default function SkyHero({
   checkedInDates,
   onOpenNotifications,
   onOpenSettings,
+  onNavigateDomains,
 }: SkyHeroProps) {
   const hero = resolveHero(scores);
   const domains = getDomainMeta();
@@ -179,6 +186,7 @@ export default function SkyHero({
               domainId={d.id}
               score={Math.round(scores.domainScores[d.id] ?? 0)}
               hasData={scores.hasCheckedIn}
+              onClick={onNavigateDomains}
             />
           ))}
         </motion.div>

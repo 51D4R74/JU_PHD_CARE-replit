@@ -1,8 +1,8 @@
-import { useState, useMemo, useReducer } from "react";
-import { useLocation } from "wouter";
+import { useState, useMemo, useReducer, useEffect, useRef } from "react";
+import { useLocation, useSearch } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { devNow } from "@shared/dev-clock";
-import { CaretLeft, CaretRight, Star, TrendUp, FileText, Heart } from "@phosphor-icons/react";
+import { CaretLeft, CaretRight, Star, TrendUp, FileText, Heart, Lightning, SunHorizon, Handshake, Sparkle } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import {
   ResponsiveContainer,
@@ -91,6 +91,36 @@ function plural(n: number, singular: string, pluralForm: string): string {
   return n === 1 ? singular : pluralForm;
 }
 
+const DOMAIN_EXPLANATIONS: Record<ScoreDomainId, {
+  icon: typeof Lightning;
+  warmName: string;
+  whatItMeasures: string;
+  fromQuestions: string;
+  example: string;
+}> = {
+  recarga: {
+    icon: Lightning,
+    warmName: "Sua energia",
+    whatItMeasures: "Mede a qualidade do sono e o nível de disposição que você sente no dia.",
+    fromQuestions: "Vem das perguntas \"Como você dormiu?\" e \"Como tá a energia?\"",
+    example: "Bateria cheia — dia bom pra avançar",
+  },
+  "estado-do-dia": {
+    icon: SunHorizon,
+    warmName: "Seu dia",
+    whatItMeasures: "Captura como você está emocionalmente e o impacto que o dia deixa em você.",
+    fromQuestions: "Vem das perguntas \"Como tá se sentindo?\" e \"Como o dia te deixou?\"",
+    example: "Dia luminoso — aproveite",
+  },
+  "seguranca-relacional": {
+    icon: Handshake,
+    warmName: "O clima ao redor",
+    whatItMeasures: "Avalia como está o ambiente entre você e as pessoas ao redor — apoio, neutralidade ou tensão.",
+    fromQuestions: "Vem da pergunta \"Como foi o clima ao seu redor?\"",
+    example: "Clima tranquilo — bom pra conexões",
+  },
+};
+
 const EMPTY_SCORES: TodayScores = {
   domainScores: { recarga: 0, "estado-do-dia": 0, "seguranca-relacional": 0 },
   skyState: "partly-cloudy",
@@ -103,8 +133,10 @@ const EMPTY_SCORES: TodayScores = {
 
 export default function MeuCuidadoPage() {
   const [, navigate] = useLocation();
+  const searchString = useSearch();
   const { user } = useAuth();
   const [range, setRange] = useState<7 | 30>(7);
+  const domainsSectionRef = useRef<HTMLDivElement>(null);
 
   // Server-canonical check-in history — primary data source
   const { data: allHistory = [] } = useQuery<CheckInHistoryRecord[]>({
@@ -158,6 +190,16 @@ export default function MeuCuidadoPage() {
 
   const hasChartData = chartData.length > 0;
 
+  useEffect(() => {
+    const params = new URLSearchParams(searchString);
+    if (params.get("section") === "domains" && domainsSectionRef.current) {
+      const timeout = setTimeout(() => {
+        domainsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 350);
+      return () => clearTimeout(timeout);
+    }
+  }, [searchString]);
+
   return (
     <div className="min-h-screen gradient-sunrise">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -187,6 +229,70 @@ export default function MeuCuidadoPage() {
             Como você tem se cuidado ao longo do tempo.
           </p>
         </motion.div>
+
+        {/* ── Domain explainer ── */}
+        <motion.section
+          ref={domainsSectionRef}
+          id="domains"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.04 }}
+          className="mb-4"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkle className="w-4 h-4 text-brand-teal" weight="fill" />
+            <h2 className="text-sm font-semibold">Seus sinais de bem-estar</h2>
+          </div>
+
+          <div className="space-y-2">
+            {(Object.keys(DOMAIN_EXPLANATIONS) as ScoreDomainId[]).map((domainId) => {
+              const info = DOMAIN_EXPLANATIONS[domainId];
+              const Icon = info.icon;
+              return (
+                <div
+                  key={domainId}
+                  className="rounded-2xl border border-border/40 bg-card px-4 py-3"
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl"
+                      style={{ backgroundColor: `${DOMAIN_COLORS[domainId]}20` }}
+                    >
+                      <Icon
+                        className="h-4 w-4"
+                        weight="bold"
+                        style={{ color: DOMAIN_COLORS[domainId] }}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-foreground">
+                        {info.warmName}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                        {info.whatItMeasures}
+                      </p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">
+                        {info.fromQuestions}
+                      </p>
+                      <p className="text-[11px] italic text-muted-foreground/60 mt-1">
+                        Ex: "{info.example}"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-3 rounded-2xl border border-brand-teal/15 bg-brand-teal/5 px-4 py-3">
+            <p className="text-xs leading-relaxed text-foreground/80">
+              Com {DISCOVERY_MIN_RECORDS}+ check-ins, a Lumina começa a cruzar esses sinais com o contexto do seu dia — e gera <strong>descobertas privadas</strong> como <em>"Nos dias com exercício, sua energia tende a ficar melhor."</em>
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Só você vê. Nenhum número bruto aparece — apenas frases que ajudam você a se entender melhor.
+            </p>
+          </div>
+        </motion.section>
 
         {/* ── Constancy ── */}
         <motion.section

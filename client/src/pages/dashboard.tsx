@@ -899,6 +899,7 @@ export default function DashboardPage() {
         checkedInDates={checkedInDates}
         onOpenNotifications={() => setDrawerOpen(true)}
         onOpenSettings={() => navigate("/settings")}
+        onNavigateDomains={() => navigate("/meu-cuidado?section=domains")}
       />
 
       <AnimatePresence>
