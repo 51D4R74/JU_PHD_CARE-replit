@@ -21,7 +21,6 @@ import {
   type ProjectionCard,
   getTimeAwareSteps,
   detectChatTrigger,
-  CHAT_TRIGGERS,
 } from "@/lib/checkin-data";
 import { computeCheckInResult } from "@/lib/score-engine";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -235,57 +234,6 @@ function InlineProjectionCard({
   );
 }
 
-// ── Chat trigger inline prompt ────────────────────
-
-function InlineChatPrompt({
-  triggerId,
-  onDismiss,
-  onNavigate,
-}: Readonly<{
-  triggerId: string;
-  onDismiss: () => void;
-  onNavigate: () => void;
-}>) {
-  const t = CHAT_TRIGGERS[triggerId] ?? CHAT_TRIGGERS.pressured;
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="glass-card rounded-2xl p-4 border border-accent/20"
-    >
-      <div className="flex items-start gap-3 mb-3">
-        <div className="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center flex-shrink-0">
-          <ChatCircle className="w-5 h-5 text-accent" weight="fill" />
-        </div>
-        <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
-          {t.message}
-        </p>
-      </div>
-      <p className="text-xs text-muted-foreground/80 mb-3 flex items-center gap-1.5">
-        <Lock className="w-3 h-3" /> {t.anonymousNote}
-      </p>
-      <div className="flex gap-2">
-        <Button
-          onClick={onNavigate}
-          size="sm"
-          className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl border-0 h-9 text-xs"
-        >
-          {t.cta}
-        </Button>
-        <Button
-          onClick={onDismiss}
-          variant="ghost"
-          size="sm"
-          className="text-xs text-muted-foreground h-9"
-        >
-          Agora não
-        </Button>
-      </div>
-    </motion.div>
-  );
-}
-
 // ── StepView (inline, compact) ────────────────────
 
 function InlineStepView({
@@ -454,7 +402,6 @@ export default function InlineCheckin({
   const [answers, setAnswers] = useState<Record<string, string | string[]>>(
     partial.current?.answers ?? {},
   );
-  const [chatTrigger, setChatTrigger] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const progress = steps.length > 0 ? ((currentStep + 1) / steps.length) * 100 : 0;
@@ -512,7 +459,7 @@ export default function InlineCheckin({
           answers: JSON.stringify(finalAnswers),
           domainScores: JSON.stringify(result.domainScores),
           flags: result.flags.length > 0 ? result.flags : null,
-          chatTriggered: chatTrigger !== null,
+          chatTriggered: false,
           confidence,
         });
 
@@ -540,7 +487,7 @@ export default function InlineCheckin({
         setIsSaving(false);
       }
     },
-    [userId, chatTrigger, toast, onComplete],
+    [userId, toast, onComplete],
   );
 
   const handleAnswer = useCallback(
@@ -553,10 +500,11 @@ export default function InlineCheckin({
       const newAnswers = { ...answers, [stepId]: answer };
       setAnswers(newAnswers);
 
-      // Detect chat trigger
+      // Detect chat trigger — navigate immediately, save partial first
       const trigger = detectChatTrigger(stepId, answer, steps, projAnswer);
       if (trigger) {
-        setChatTrigger(trigger);
+        savePartial({ date: todayISO(), answers: newAnswers, step: currentStep });
+        onNavigateProtection();
         return;
       }
 
@@ -569,21 +517,6 @@ export default function InlineCheckin({
     },
     [answers, currentStep, steps, saveCheckIn, isSaving],
   );
-
-  const handleChatDismiss = useCallback(() => {
-    setChatTrigger(null);
-    if (currentStep < steps.length - 1) {
-      setDirection(1);
-      setCurrentStep((s) => s + 1);
-    } else {
-      saveCheckIn(answers);
-    }
-  }, [currentStep, steps.length, answers, saveCheckIn]);
-
-  const handleChatNavigate = useCallback(() => {
-    setChatTrigger(null);
-    onNavigateProtection();
-  }, [onNavigateProtection]);
 
   return (
     <div className="glass-card rounded-2xl p-4 overflow-hidden">
@@ -617,40 +550,25 @@ export default function InlineCheckin({
 
       {/* Question area */}
       <AnimatePresence mode="wait" custom={direction}>
-        {chatTrigger ? (
-          <motion.div
-            key="chat-trigger"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-          >
-            <InlineChatPrompt
-              triggerId={chatTrigger}
-              onDismiss={handleChatDismiss}
-              onNavigate={handleChatNavigate}
-            />
-          </motion.div>
-        ) : (
-          <motion.div
-            key={`inline-step-${currentStep}`}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <InlineStepView
-              step={steps[currentStep]}
-              onAnswer={handleAnswer}
-              previousAnswer={answers[steps[currentStep].id]}
-            />
-          </motion.div>
-        )}
+        <motion.div
+          key={`inline-step-${currentStep}`}
+          custom={direction}
+          variants={slideVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <InlineStepView
+            step={steps[currentStep]}
+            onAnswer={handleAnswer}
+            previousAnswer={answers[steps[currentStep].id]}
+          />
+        </motion.div>
       </AnimatePresence>
 
       {/* Privacy note — show only on first question */}
-      {currentStep === 0 && !chatTrigger && (
+      {currentStep === 0 && (
         <div className="privacy-note mt-3">
           <Lock className="w-3 h-3 flex-shrink-0 inline mr-1 opacity-60" />
           Respostas confidenciais — nada chega ao RH sem sua autorização.
