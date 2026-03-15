@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { CaretLeft, Heart, Sparkle, ArrowsClockwise, PaperPlaneRight, PencilLine } from "@phosphor-icons/react";
+import { CaretLeft, Heart, Sparkle, ArrowsClockwise, PaperPlaneRight, PencilLine, Waves, Flame, HandHeart, Leaf } from "@phosphor-icons/react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import { useQuery } from "@tanstack/react-query";
 import SupportMessageCard from "@/components/support-message-card";
@@ -22,6 +23,8 @@ import { POINT_VALUES } from "@/lib/mission-engine";
 import type { TodayScores } from "@/lib/score-engine";
 import type { UserMission } from "@shared/schema";
 import { useAuth } from "@/lib/auth";
+
+const CATEGORY_ICONS: Record<string, PhosphorIcon> = { Waves, Flame, HandHeart, Leaf };
 
 // ── Tabs ──────────────────────────────────────────
 
@@ -187,13 +190,13 @@ export default function SupportCenterPage() {
           </button>
         </div>
 
-        {/* Lumina companion — support suggestions */}
+        {/* JuPHD companion — same featured card as home */}
         <LuminaCard
           context="support"
-          compact
+          featured
           delay={0.15}
-          className="mt-3"
-          onTap={() => setTab("receive")}
+          className="mt-4"
+          onTap={() => navigate("/denuncia")}
         />
 
         <AnimatePresence mode="wait">
@@ -241,20 +244,25 @@ export default function SupportCenterPage() {
                     O que você precisa agora?
                   </p>
                   <div className="grid grid-cols-2 gap-3">
-                    {SUPPORT_CATEGORIES.map((cat) => (
-                      <motion.button
-                        key={cat.id}
-                        whileTap={{ scale: 0.96 }}
-                        onClick={() => handleCategorySelect(cat.id)}
-                        className="glass-card rounded-xl p-4 flex flex-col items-center gap-2 text-center hover:border-brand-teal/20 transition-all"
-                      >
-                        <span className="text-2xl">{cat.emoji}</span>
-                        <span className="text-sm font-medium">{cat.label}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {cat.description}
-                        </span>
-                      </motion.button>
-                    ))}
+                    {SUPPORT_CATEGORIES.map((cat) => {
+                      const IconComp = CATEGORY_ICONS[cat.icon];
+                      return (
+                        <motion.button
+                          key={cat.id}
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => handleCategorySelect(cat.id)}
+                          className="glass-card rounded-xl p-4 flex flex-col items-center gap-2 text-center hover:border-brand-teal/20 transition-all"
+                        >
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-teal/10">
+                            <IconComp className="w-5 h-5 text-brand-teal" weight="duotone" />
+                          </div>
+                          <span className="text-sm font-medium">{cat.label}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {cat.description}
+                          </span>
+                        </motion.button>
+                      );
+                    })}
                   </div>
                 </section>
               )}
@@ -348,7 +356,7 @@ export default function SupportCenterPage() {
                             setAuthorSubmitted(true);
                             toast({
                               title: "Mensagem enviada",
-                              description: "Obrigado por cuidar de alguém. ❤️",
+                              description: "Obrigado por cuidar de alguém.",
                             });
                           }}
                           disabled={authorText.trim().length < 10}

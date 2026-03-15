@@ -19,13 +19,13 @@ export interface SupportMessage {
 export const SUPPORT_CATEGORIES: {
   id: SupportCategory;
   label: string;
-  emoji: string;
+  icon: "Waves" | "Flame" | "HandHeart" | "Leaf";
   description: string;
 }[] = [
-  { id: "calma", label: "Calma", emoji: "🌊", description: "Mensagens para desacelerar" },
-  { id: "coragem", label: "Coragem", emoji: "🔥", description: "Força para seguir em frente" },
-  { id: "acolhimento", label: "Acolhimento", emoji: "🫂", description: "Abraços em palavras" },
-  { id: "leveza", label: "Leveza", emoji: "🍃", description: "Um sopro de leveza" },
+  { id: "calma", label: "Calma", icon: "Waves", description: "Mensagens para desacelerar" },
+  { id: "coragem", label: "Coragem", icon: "Flame", description: "Força para seguir em frente" },
+  { id: "acolhimento", label: "Acolhimento", icon: "HandHeart", description: "Abraços em palavras" },
+  { id: "leveza", label: "Leveza", icon: "Leaf", description: "Um sopro de leveza" },
 ];
 
 export const SUPPORT_MESSAGES: SupportMessage[] = [
