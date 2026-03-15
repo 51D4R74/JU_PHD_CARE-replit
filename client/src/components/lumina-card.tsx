@@ -51,12 +51,14 @@ export default function LuminaCard({
           "transition-colors hover:border-brand-teal/30 " + className
         }
       >
-        <LuminaAvatar size={36} />
+        <div className="flex flex-col items-center flex-shrink-0">
+          <LuminaAvatar size={36} />
+          <span className="text-[8px] font-bold tracking-wide text-brand-teal/70 uppercase mt-0.5">JuPHD</span>
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-[10px] font-bold tracking-wide text-brand-teal uppercase">JuPHD</span>
-            <span className="text-[9px] text-muted-foreground/60">·</span>
-            <span className="text-[9px] text-muted-foreground/60">IA Psicossocial</span>
+            <span className="text-[10px] font-medium text-muted-foreground">IA Psicossocial</span>
+            <span className="lumina-status-dot" aria-hidden="true" />
           </div>
           <p className="text-sm leading-snug text-foreground">
             {msg.text}
@@ -101,42 +103,40 @@ export default function LuminaCard({
           aria-hidden="true"
         />
 
-        <div className="relative flex flex-col items-center px-6 py-8 text-center sm:px-8 sm:py-10">
-          {/* Identity header */}
-          <div className="flex flex-col items-center gap-3 mb-6">
-            <LuminaAvatar size={88} showHalo />
+        <div className="relative flex flex-col px-6 py-7 sm:px-8 sm:py-9">
+          {/* Identity header row */}
+          <div className="flex items-center gap-3.5 mb-6">
+            <LuminaAvatar size={72} showHalo />
 
-            <div className="flex flex-col items-center gap-1.5">
+            <div className="flex flex-col gap-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-base font-bold tracking-tight text-brand-navy">JuPHD</span>
-                <SealCheck className="w-4 h-4 text-brand-teal" weight="fill" />
+                <span className="text-lg font-bold tracking-tight text-brand-navy">JuPHD</span>
+                <SealCheck className="w-4 h-4 text-brand-teal flex-shrink-0" weight="fill" />
               </div>
               <span className="text-[11px] font-medium text-muted-foreground tracking-wide">
                 IA especializada em Saúde Psicossocial
               </span>
-              <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="lumina-status-pill mt-0.5">
                 <span className="lumina-status-dot" aria-hidden="true" />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-score-good/80">
-                  Ativa
-                </span>
-              </div>
+                Ativa
+              </span>
             </div>
           </div>
 
           {/* Divider */}
-          <div className="w-12 h-px bg-gradient-to-r from-transparent via-brand-teal/20 to-transparent mb-6" />
+          <div className="w-full h-px bg-gradient-to-r from-brand-teal/10 via-brand-teal/20 to-brand-gold/10 mb-5" />
 
           {/* Message */}
-          <p className="max-w-sm text-[1.1rem] leading-8 text-foreground font-medium sm:text-lg">
+          <p className="text-[1.08rem] leading-8 text-foreground font-medium sm:text-lg">
             {msg.text}
           </p>
 
-          {/* CTA */}
+          {/* CTA — full width */}
           <button
             type="button"
             onClick={onTap}
             className={
-              "mt-8 inline-flex min-h-12 items-center gap-2.5 rounded-2xl " +
+              "mt-7 flex w-full min-h-12 items-center justify-center gap-2.5 rounded-2xl " +
               "bg-gradient-to-r from-brand-teal to-brand-navy " +
               "px-7 py-3.5 text-base font-semibold text-white " +
               "shadow-md shadow-brand-teal/15 " +
@@ -171,15 +171,18 @@ export default function LuminaCard({
       />
 
       <div className="relative flex items-start gap-3.5 px-4 py-4">
-        <div className="flex flex-col items-center gap-1 flex-shrink-0">
+        <div className="flex flex-col items-center gap-0.5 flex-shrink-0 pt-0.5">
           <LuminaAvatar size={44} />
-          <span className="text-[9px] font-bold tracking-wide text-brand-teal/70 uppercase mt-0.5">JuPHD</span>
+          <span className="text-[9px] font-bold tracking-wide text-brand-teal/70 uppercase mt-1">JuPHD</span>
+          <span className="text-[8px] text-muted-foreground/50 leading-tight">IA Psicossocial</span>
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 mb-1">
-            <span className="text-[10px] font-medium text-muted-foreground">IA em Saúde Psicossocial</span>
-            <span className="lumina-status-dot" aria-hidden="true" />
+            <span className="lumina-status-pill">
+              <span className="lumina-status-dot" aria-hidden="true" />
+              Ativa
+            </span>
           </div>
           <p className="text-sm leading-relaxed text-foreground">
             {msg.text}
