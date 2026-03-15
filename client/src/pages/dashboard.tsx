@@ -790,7 +790,8 @@ export default function DashboardPage() {
 
   const handleCheckinComplete = useCallback(() => {
     setJustCompleted(true);
-  }, []);
+    navigate("/meu-cuidado");
+  }, [navigate]);
 
   const handlePulseAnswer = useCallback((questionId: string, value: PulseAnswerValue) => {
     setPulseAnswers((current) => ({ ...current, [questionId]: value }));

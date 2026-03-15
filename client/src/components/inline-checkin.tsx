@@ -550,21 +550,39 @@ export default function InlineCheckin({
 
       {/* Question area */}
       <AnimatePresence mode="wait" custom={direction}>
-        <motion.div
-          key={`inline-step-${currentStep}`}
-          custom={direction}
-          variants={slideVariants}
-          initial="enter"
-          animate="center"
-          exit="exit"
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <InlineStepView
-            step={steps[currentStep]}
-            onAnswer={handleAnswer}
-            previousAnswer={answers[steps[currentStep].id]}
-          />
-        </motion.div>
+        {isSaving ? (
+          <motion.div
+            key="inline-saving"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="flex flex-col items-center justify-center gap-3 py-8"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+              className="w-8 h-8 rounded-full border-2 border-score-good/30 border-t-score-good"
+            />
+            <p className="text-sm text-muted-foreground">Registrando seu check-in…</p>
+          </motion.div>
+        ) : (
+          <motion.div
+            key={`inline-step-${currentStep}`}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <InlineStepView
+              step={steps[currentStep]}
+              onAnswer={handleAnswer}
+              previousAnswer={answers[steps[currentStep].id]}
+            />
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Privacy note — show only on first question */}
