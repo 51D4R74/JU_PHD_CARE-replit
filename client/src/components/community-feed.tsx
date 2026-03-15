@@ -187,10 +187,6 @@ export default function CommunityFeed() {
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">Mural da comunidade</h3>
-      </div>
-
       <AnimatePresence>
         {messages.map((msg, i) => (
           <motion.div

@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { CaretLeft, Heart, Sparkle, ArrowsClockwise, PaperPlaneRight, PencilLine, Waves, Flame, HandHeart, Leaf, EyeSlash, Eye, Microphone, Stop, Waveform } from "@phosphor-icons/react";
+import { CaretLeft, Heart, Sparkle, ArrowsClockwise, PaperPlaneRight, PencilLine, Waves, Flame, HandHeart, Leaf, EyeSlash, Eye, Microphone, Stop, Waveform, ChatCircleDots, Megaphone } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -275,11 +275,7 @@ export default function SupportCenterPage() {
           onTap={() => navigate("/denuncia")}
         />
 
-        {/* Community feed — always visible below JuPHD card */}
-        <div className="mt-5">
-          <CommunityFeed />
-        </div>
-
+        {/* Tab content — always above the mural */}
         <AnimatePresence mode="wait">
           {tab === "receive" && (
             <motion.div
@@ -317,9 +313,12 @@ export default function SupportCenterPage() {
                 </section>
               ) : (
                 <section className="mt-5">
-                  <p className="text-sm text-muted-foreground mb-3">
-                    O que você precisa agora?
-                  </p>
+                  <div className="mb-4">
+                    <h2 className="text-base font-semibold">O que você precisa agora?</h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Escolha uma categoria e receba uma mensagem de apoio
+                    </p>
+                  </div>
                   <div className="grid grid-cols-2 gap-3">
                     {SUPPORT_CATEGORIES.map((cat) => {
                       const IconComp = CATEGORY_ICONS[cat.icon];
@@ -402,169 +401,184 @@ export default function SupportCenterPage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="glass-card rounded-2xl p-4">
-                      <p className="text-sm font-medium mb-1">
-                        Deixe uma mensagem pra alguém
-                      </p>
-
-                      {/* Escrever / Gravar toggle */}
-                      <div className="flex gap-1 p-0.5 rounded-lg bg-muted/50 mb-3">
-                        <button
-                          onClick={() => setComposeMode("text")}
-                          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                            composeMode === "text" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"
-                          }`}
-                        >
-                          <PencilLine className="w-3.5 h-3.5" weight="bold" />
-                          Escrever
-                        </button>
-                        <button
-                          onClick={() => setComposeMode("audio")}
-                          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                            composeMode === "audio" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"
-                          }`}
-                        >
-                          <Microphone className="w-3.5 h-3.5" weight="bold" />
-                          Gravar
-                        </button>
+                    <div className="rounded-2xl overflow-hidden shadow-md border border-white/20">
+                      <div className="relative bg-gradient-to-br from-brand-teal via-brand-teal/90 to-brand-navy px-5 py-5">
+                        <div className="absolute top-3 right-3 opacity-10">
+                          <Megaphone className="w-16 h-16 text-white" weight="duotone" />
+                        </div>
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/15 backdrop-blur-sm">
+                            <HandHeart className="w-5 h-5 text-white" weight="fill" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-white">Deixe uma mensagem</h3>
+                            <p className="text-[11px] text-white/70">para alguém que precisa</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-white/85 leading-relaxed mt-1">
+                          Sua voz pode fazer a diferença no dia de alguém. Uma palavra de acolhimento pode mudar tudo.
+                        </p>
                       </div>
 
-                      {composeMode === "text" ? (
-                        <>
-                          <p className="text-xs text-muted-foreground mb-2">
-                            Escreva algo que possa ajudar alguém tendo um dia difícil. Até 280 caracteres.
-                          </p>
-                          <Textarea
-                            placeholder="Ex: Você não está só nessa..."
-                            value={authorText}
-                            onChange={(e) => setAuthorText(e.target.value.slice(0, 280))}
-                            className="min-h-[100px] bg-background/40 border-border/40 focus:border-brand-teal/40 resize-none rounded-xl"
-                          />
-                        </>
-                      ) : (
-                        <div className="space-y-3">
-                          <p className="text-xs text-muted-foreground">
-                            Grave uma mensagem de voz para a comunidade.
-                          </p>
-                          {audioBlob ? (
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 p-3 rounded-xl bg-brand-teal/5 border border-brand-teal/10">
-                                <Waveform className="w-5 h-5 text-brand-teal flex-shrink-0" weight="bold" />
-                                <audio
-                                  controls
-                                  src={URL.createObjectURL(audioBlob)}
-                                  className="flex-1 h-8"
-                                />
-                              </div>
-                              <button
-                                onClick={() => setAudioBlob(null)}
-                                className="text-xs font-medium text-muted-foreground hover:text-foreground"
-                              >
-                                Refazer
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-center py-4">
-                              <button
-                                onMouseDown={startRecording}
-                                onMouseUp={stopRecording}
-                                onTouchStart={startRecording}
-                                onTouchEnd={stopRecording}
-                                className={`flex items-center justify-center w-16 h-16 rounded-full transition-all ${
-                                  isRecording
-                                    ? "bg-red-500 text-white scale-110 animate-pulse"
-                                    : "bg-brand-teal/10 text-brand-teal hover:bg-brand-teal/20"
-                                }`}
-                              >
-                                {isRecording ? (
-                                  <Stop className="w-6 h-6" weight="fill" />
-                                ) : (
-                                  <Microphone className="w-6 h-6" weight="fill" />
-                                )}
-                              </button>
-                              <p className="text-xs text-muted-foreground mt-2">
-                                {isRecording ? "Gravando... solte para parar" : "Segure para gravar"}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between mt-3">
-                        <div className="flex items-center gap-2">
+                      <div className="bg-white/80 backdrop-blur-sm px-5 py-4 space-y-3">
+                        <div className="flex gap-1 p-0.5 rounded-lg bg-muted/60 mb-1">
                           <button
-                            type="button"
-                            onClick={() => setAuthorAnonymous(!authorAnonymous)}
-                            className={`flex items-center gap-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5 transition-colors ${
-                              authorAnonymous
-                                ? "text-brand-teal bg-brand-teal/10"
-                                : "text-muted-foreground bg-muted/50"
+                            onClick={() => setComposeMode("text")}
+                            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-md transition-colors ${
+                              composeMode === "text" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"
                             }`}
                           >
-                            {authorAnonymous ? (
-                              <EyeSlash className="w-3.5 h-3.5" weight="bold" />
-                            ) : (
-                              <Eye className="w-3.5 h-3.5" weight="bold" />
-                            )}
-                            {authorAnonymous ? "Anônimo" : "Com nome"}
+                            <PencilLine className="w-3.5 h-3.5" weight="bold" />
+                            Escrever
                           </button>
-                          {composeMode === "text" && (
-                            <span className="text-xs text-muted-foreground">
-                              {authorText.length}/280
-                            </span>
-                          )}
+                          <button
+                            onClick={() => setComposeMode("audio")}
+                            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-md transition-colors ${
+                              composeMode === "audio" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground"
+                            }`}
+                          >
+                            <Microphone className="w-3.5 h-3.5" weight="bold" />
+                            Gravar
+                          </button>
                         </div>
-                        <button
-                          onClick={() => {
-                            if (composeMode === "text") {
-                              if (authorText.trim().length < 10) {
-                                toast({
-                                  title: "Precisa de mais",
-                                  description: "Escreva pelo menos 10 caracteres.",
-                                  variant: "destructive",
-                                });
-                                return;
-                              }
-                              submitMessageMutation.mutate({
-                                content: authorText.trim(),
-                                mediaType: "text",
-                                isAnonymous: authorAnonymous,
-                              });
-                            } else {
-                              if (!audioBlob) {
-                                toast({
-                                  title: "Grave primeiro",
-                                  description: "Segure o botão para gravar sua mensagem.",
-                                  variant: "destructive",
-                                });
-                                return;
-                              }
-                              const formData = new FormData();
-                              formData.append("audio", audioBlob, "recording.webm");
-                              fetch("/api/upload-audio", { method: "POST", body: formData, credentials: "include" })
-                                .then((r) => { if (!r.ok) throw new Error("Upload falhou"); return r.json() as Promise<{ audioUrl: string }>; })
-                                .then((data) => {
-                                  submitMessageMutation.mutate({
-                                    audioUrl: data.audioUrl,
-                                    mediaType: "audio",
-                                    isAnonymous: authorAnonymous,
+
+                        {composeMode === "text" ? (
+                          <>
+                            <p className="text-xs text-muted-foreground">
+                              Escreva algo que possa ajudar alguém tendo um dia difícil. Até 280 caracteres.
+                            </p>
+                            <Textarea
+                              placeholder="Ex: Você não está só nessa..."
+                              value={authorText}
+                              onChange={(e) => setAuthorText(e.target.value.slice(0, 280))}
+                              className="min-h-[100px] bg-background/60 border-border/30 focus:border-brand-teal/40 resize-none rounded-xl text-sm"
+                            />
+                          </>
+                        ) : (
+                          <div className="space-y-3">
+                            <p className="text-xs text-muted-foreground">
+                              Grave uma mensagem de voz para a comunidade.
+                            </p>
+                            {audioBlob ? (
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2 p-3 rounded-xl bg-brand-teal/5 border border-brand-teal/10">
+                                  <Waveform className="w-5 h-5 text-brand-teal flex-shrink-0" weight="bold" />
+                                  <audio
+                                    controls
+                                    src={URL.createObjectURL(audioBlob)}
+                                    className="flex-1 h-8"
+                                  />
+                                </div>
+                                <button
+                                  onClick={() => setAudioBlob(null)}
+                                  className="text-xs font-medium text-muted-foreground hover:text-foreground"
+                                >
+                                  Refazer
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center py-4">
+                                <button
+                                  onMouseDown={startRecording}
+                                  onMouseUp={stopRecording}
+                                  onTouchStart={startRecording}
+                                  onTouchEnd={stopRecording}
+                                  className={`flex items-center justify-center w-16 h-16 rounded-full transition-all ${
+                                    isRecording
+                                      ? "bg-red-500 text-white scale-110 animate-pulse"
+                                      : "bg-brand-teal/10 text-brand-teal hover:bg-brand-teal/20"
+                                  }`}
+                                >
+                                  {isRecording ? (
+                                    <Stop className="w-6 h-6" weight="fill" />
+                                  ) : (
+                                    <Microphone className="w-6 h-6" weight="fill" />
+                                  )}
+                                </button>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  {isRecording ? "Gravando... solte para parar" : "Segure para gravar"}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-2 border-t border-border/20">
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setAuthorAnonymous(!authorAnonymous)}
+                              className={`flex items-center gap-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5 transition-colors ${
+                                authorAnonymous
+                                  ? "text-brand-teal bg-brand-teal/10"
+                                  : "text-muted-foreground bg-muted/50"
+                              }`}
+                            >
+                              {authorAnonymous ? (
+                                <EyeSlash className="w-3.5 h-3.5" weight="bold" />
+                              ) : (
+                                <Eye className="w-3.5 h-3.5" weight="bold" />
+                              )}
+                              {authorAnonymous ? "Anônimo" : "Com nome"}
+                            </button>
+                            {composeMode === "text" && (
+                              <span className="text-xs text-muted-foreground">
+                                {authorText.length}/280
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => {
+                              if (composeMode === "text") {
+                                if (authorText.trim().length < 10) {
+                                  toast({
+                                    title: "Precisa de mais",
+                                    description: "Escreva pelo menos 10 caracteres.",
+                                    variant: "destructive",
                                   });
-                                })
-                                .catch(() => {
-                                  toast({ title: "Erro", description: "Falha ao enviar o áudio.", variant: "destructive" });
+                                  return;
+                                }
+                                submitMessageMutation.mutate({
+                                  content: authorText.trim(),
+                                  mediaType: "text",
+                                  isAnonymous: authorAnonymous,
                                 });
+                              } else {
+                                if (!audioBlob) {
+                                  toast({
+                                    title: "Grave primeiro",
+                                    description: "Segure o botão para gravar sua mensagem.",
+                                    variant: "destructive",
+                                  });
+                                  return;
+                                }
+                                const formData = new FormData();
+                                formData.append("audio", audioBlob, "recording.webm");
+                                fetch("/api/upload-audio", { method: "POST", body: formData, credentials: "include" })
+                                  .then((r) => { if (!r.ok) throw new Error("Upload falhou"); return r.json() as Promise<{ audioUrl: string }>; })
+                                  .then((data) => {
+                                    submitMessageMutation.mutate({
+                                      audioUrl: data.audioUrl,
+                                      mediaType: "audio",
+                                      isAnonymous: authorAnonymous,
+                                    });
+                                  })
+                                  .catch(() => {
+                                    toast({ title: "Erro", description: "Falha ao enviar o áudio.", variant: "destructive" });
+                                  });
+                              }
+                            }}
+                            disabled={
+                              (composeMode === "text" && authorText.trim().length < 10) ||
+                              (composeMode === "audio" && !audioBlob) ||
+                              submitMessageMutation.isPending
                             }
-                          }}
-                          disabled={
-                            (composeMode === "text" && authorText.trim().length < 10) ||
-                            (composeMode === "audio" && !audioBlob) ||
-                            submitMessageMutation.isPending
-                          }
-                          className="flex items-center gap-1.5 text-sm font-medium text-white bg-brand-teal hover:bg-brand-teal/90 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 rounded-xl transition-colors"
-                        >
-                          <PaperPlaneRight className="w-3.5 h-3.5" weight="bold" />
-                          Enviar
-                        </button>
+                            className="flex items-center gap-1.5 text-sm font-semibold text-white bg-brand-teal hover:bg-brand-teal/90 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-2.5 rounded-xl transition-colors shadow-sm"
+                          >
+                            <PaperPlaneRight className="w-4 h-4" weight="bold" />
+                            Enviar
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -573,6 +587,20 @@ export default function SupportCenterPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Mural section divider */}
+        <div className="mt-6 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <ChatCircleDots className="w-4 h-4 text-brand-teal" weight="duotone" />
+              <h2 className="text-sm font-semibold">Mural da comunidade</h2>
+            </div>
+            <div className="flex-1 h-px bg-border/40" />
+          </div>
+        </div>
+
+        {/* Community feed — always visible below tab content */}
+        <CommunityFeed />
       </main>
 
       <BottomNav />
