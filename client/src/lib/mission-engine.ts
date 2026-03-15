@@ -10,12 +10,12 @@
  * BACKLOG: calibrate weights with engagement data [post-pilot]
  */
 
-import type { LucideIcon } from "lucide-react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import {
-  Wind, Droplets, Timer, Heart, Eye, Flower2,
-  MessageCircleHeart, HandHeart, SunMedium, PenLine,
-  Music, Footprints, Coffee, BookOpen, Smile,
-} from "lucide-react";
+  Wind, Drop, Timer, Heart, Eye, Flower,
+  ChatCircleDots, HandHeart, SunDim, PencilLine,
+  MusicNotes, Footprints, Coffee, BookOpen, Smiley,
+} from "@phosphor-icons/react";
 import type { SkyState, ScoreDomainId } from "@/lib/checkin-data";
 import { devNow } from "@shared/dev-clock";
 
@@ -39,7 +39,7 @@ export interface MissionTemplate {
   id: string;
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   category: MissionCategory;
   difficulty: MissionDifficulty;
   points: number;
@@ -55,7 +55,7 @@ export interface SelectedMission {
   id: string;
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   points: number;
   category: string;
 }
@@ -107,7 +107,7 @@ const MISSION_POOL: MissionTemplate[] = [
     id: "hydration-1",
     title: "Hidratação agora?",
     description: "Um copo de água faz mais do que parece. Seu corpo agradece. 💧",
-    icon: Droplets,
+    icon: Drop,
     category: "hydration",
     difficulty: "simple",
     points: 5,
@@ -119,7 +119,7 @@ const MISSION_POOL: MissionTemplate[] = [
     id: "hydration-2",
     title: "Mais um gole?",
     description: "Já faz um tempo desde o último copo. Que tal agora? 💧",
-    icon: Droplets,
+    icon: Drop,
     category: "hydration",
     difficulty: "simple",
     points: 5,
@@ -183,7 +183,7 @@ const MISSION_POOL: MissionTemplate[] = [
     id: "gratitude-person",
     title: "Reconhecer alguém hoje?",
     description: "Uma mensagem rápida dizendo que notou algo que a pessoa fez.",
-    icon: MessageCircleHeart,
+    icon: ChatCircleDots,
     category: "gratitude",
     difficulty: "support",
     points: 6,
@@ -209,7 +209,7 @@ const MISSION_POOL: MissionTemplate[] = [
     id: "connection-smile",
     title: "Um sorriso pra alguém?",
     description: "Genuíno, sem motivo. Muda o clima. Pode ser virtual também. 😊",
-    icon: Smile,
+    icon: Smiley,
     category: "connection",
     difficulty: "simple",
     points: 5,
@@ -223,7 +223,7 @@ const MISSION_POOL: MissionTemplate[] = [
     id: "movement-stretch",
     title: "Alongar um pouquinho?",
     description: "Pescoço, ombros, punhos. Seu corpo tá esperando essa.",
-    icon: Flower2,
+    icon: Flower,
     category: "movement",
     difficulty: "simple",
     points: 5,
@@ -249,7 +249,7 @@ const MISSION_POOL: MissionTemplate[] = [
     id: "sensory-music",
     title: "Uma música pra desacelerar?",
     description: "Coloque fone, feche os olhos se puder. Uma música só.",
-    icon: Music,
+    icon: MusicNotes,
     category: "sensory",
     difficulty: "simple",
     points: 5,
@@ -261,7 +261,7 @@ const MISSION_POOL: MissionTemplate[] = [
     id: "sensory-sunlight",
     title: "Um pouco de luz natural?",
     description: "2 min perto de uma janela ajustam seu ritmo mais do que parece.",
-    icon: SunMedium,
+    icon: SunDim,
     category: "sensory",
     difficulty: "simple",
     points: 5,
@@ -303,7 +303,7 @@ const MISSION_POOL: MissionTemplate[] = [
     id: "closure-day",
     title: "Fechar o dia em 20s?",
     description: "O que fiz? O que ficou? Como me sinto saindo? Três perguntas.",
-    icon: PenLine,
+    icon: PencilLine,
     category: "closure",
     difficulty: "simple",
     points: 5,
@@ -315,7 +315,7 @@ const MISSION_POOL: MissionTemplate[] = [
     id: "closure-positive",
     title: "Encerrar com algo bom?",
     description: "Antes de sair: relembre uma interação boa do dia. ✨",
-    icon: SunMedium,
+    icon: SunDim,
     category: "closure",
     difficulty: "simple",
     points: 5,

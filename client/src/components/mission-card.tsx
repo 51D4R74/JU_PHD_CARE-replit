@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Check } from "@phosphor-icons/react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export type MissionStatus = "pending" | "done";
@@ -10,7 +10,7 @@ export interface MissionDef {
   id: string;
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   points: number;
   category: string;
 }

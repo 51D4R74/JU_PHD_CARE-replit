@@ -1,10 +1,8 @@
 import { useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  ChevronLeft, Sun, MessageCircleHeart, BookOpen,
-  Heart, Sparkles, RefreshCw, Send, PenLine,
-} from "lucide-react";
+import { CaretLeft, Heart, Sparkle, ArrowsClockwise, PaperPlaneRight, PencilLine } from "@phosphor-icons/react";
+import BottomNav from "@/components/bottom-nav";
 import { useQuery } from "@tanstack/react-query";
 import SupportMessageCard from "@/components/support-message-card";
 import LuminaCard from "@/components/lumina-card";
@@ -112,7 +110,7 @@ export default function SupportCenterPage() {
           className="p-2 -ml-2 rounded-xl hover:bg-black/5 transition-colors"
           aria-label="Voltar"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <CaretLeft className="w-5 h-5" weight="bold" />
         </button>
         <div className="flex-1">
           <h1 className="text-lg font-semibold">Apoio</h1>
@@ -132,7 +130,7 @@ export default function SupportCenterPage() {
             className="mt-3 rounded-2xl border border-brand-teal/20 bg-brand-teal/8 p-4"
           >
             <div className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-brand-teal flex-shrink-0 mt-0.5" />
+              <Sparkle className="w-5 h-5 text-brand-teal flex-shrink-0 mt-0.5" weight="fill" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-brand-teal">
                   Modo Respiro ativo
@@ -173,7 +171,7 @@ export default function SupportCenterPage() {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Heart className="w-3 h-3 inline mr-1" />
+            <Heart className="w-3 h-3 inline mr-1" weight="fill" />
             Favoritos
           </button>
           <button
@@ -184,7 +182,7 @@ export default function SupportCenterPage() {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <PenLine className="w-3 h-3 inline mr-1" />
+            <PencilLine className="w-3 h-3 inline mr-1" weight="bold" />
             Deixar
           </button>
         </div>
@@ -223,7 +221,7 @@ export default function SupportCenterPage() {
                       onClick={handleNewMessage}
                       className="flex-1 flex items-center justify-center gap-2 text-sm font-medium text-brand-teal bg-brand-teal/10 hover:bg-brand-teal/15 rounded-xl py-3 transition-colors"
                     >
-                      <RefreshCw className="w-4 h-4" />
+                      <ArrowsClockwise className="w-4 h-4" weight="bold" />
                       Outra mensagem
                     </button>
                     <button
@@ -273,7 +271,7 @@ export default function SupportCenterPage() {
               <section className="mt-5 space-y-3">
                 {favMessages.length === 0 ? (
                   <div className="text-center py-12">
-                    <Heart className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+                    <Heart className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" weight="fill" />
                     <p className="text-sm text-muted-foreground">
                       Suas mensagens favoritas aparecerão aqui.
                     </p>
@@ -305,7 +303,7 @@ export default function SupportCenterPage() {
               <section className="mt-5">
                 {authorSubmitted ? (
                   <div className="text-center py-12">
-                    <Sparkles className="w-8 h-8 text-brand-teal mx-auto mb-3" />
+                    <Sparkle className="w-8 h-8 text-brand-teal mx-auto mb-3" weight="fill" />
                     <p className="text-sm font-medium">Obrigado por cuidar de alguém.</p>
                     <p className="text-xs text-muted-foreground mt-1">
                       Sua mensagem será revisada antes de chegar a outra pessoa.
@@ -356,7 +354,7 @@ export default function SupportCenterPage() {
                           disabled={authorText.trim().length < 10}
                           className="flex items-center gap-1.5 text-sm font-medium text-white bg-brand-teal hover:bg-brand-teal/90 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 rounded-xl transition-colors"
                         >
-                          <Send className="w-3.5 h-3.5" />
+                          <PaperPlaneRight className="w-3.5 h-3.5" weight="bold" />
                           Enviar
                         </button>
                       </div>
@@ -372,46 +370,7 @@ export default function SupportCenterPage() {
         </AnimatePresence>
       </main>
 
-      {/* Bottom nav */}
-      <nav className="fixed bottom-0 inset-x-0 z-20 glass-card border-t border-border/30">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-around">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Sun className="w-5 h-5" />
-            <span className="text-xs">Início</span>
-          </button>
-          <button
-            onClick={() => navigate("/checkin")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <MessageCircleHeart className="w-5 h-5" />
-            <span className="text-xs">Check-in</span>
-          </button>
-          <button
-            onClick={() => navigate("/missions")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Sparkles className="w-5 h-5" />
-            <span className="text-xs">Pra Você</span>
-          </button>
-          <button
-            onClick={() => navigate("/support")}
-            className="flex flex-col items-center gap-1 text-brand-teal"
-          >
-            <Heart className="w-5 h-5" />
-            <span className="text-xs font-medium">Apoio</span>
-          </button>
-          <button
-            onClick={() => navigate("/meu-cuidado")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <BookOpen className="w-5 h-5" />
-            <span className="text-xs">Sua Jornada</span>
-          </button>
-        </div>
-      </nav>
+      <BottomNav />
     </div>
   );
 }

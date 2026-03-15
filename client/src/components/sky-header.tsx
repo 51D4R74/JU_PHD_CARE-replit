@@ -1,6 +1,6 @@
 import { useId } from "react";
 import { motion } from "framer-motion";
-import { Cloud } from "lucide-react";
+import { Cloud } from "@phosphor-icons/react";
 import type { SkyState } from "@/lib/checkin-data";
 import type { HaloMetrics } from "@/lib/solar-points";
 

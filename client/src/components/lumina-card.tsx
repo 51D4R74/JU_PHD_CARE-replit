@@ -10,7 +10,7 @@
  */
 
 import { motion } from "framer-motion";
-import { Sparkles, ChevronRight } from "lucide-react";
+import { Sparkle, CaretRight } from "@phosphor-icons/react";
 import {
   type LuminaContext,
   selectLuminaMessage,
@@ -55,7 +55,7 @@ export default function LuminaCard({
         <p className="flex-1 text-sm leading-snug text-foreground">
           {msg.text}
         </p>
-        <ChevronRight className="h-4 w-4 flex-shrink-0 text-brand-teal/60" />
+        <CaretRight className="h-4 w-4 flex-shrink-0 text-brand-teal/60" weight="bold" />
       </motion.button>
     );
   }
@@ -90,13 +90,6 @@ export default function LuminaCard({
           <>
             <LuminaAvatar size={88} />
 
-            <div className="mt-4 flex items-center gap-2">
-              <span className="text-sm font-semibold tracking-[0.22em] text-brand-teal">
-                JUPHD
-              </span>
-              <Sparkles className="h-4 w-4 text-brand-teal/60" />
-            </div>
-
             <p className="mt-5 max-w-xl text-[1.08rem] leading-8 text-foreground sm:text-lg">
               {msg.text}
             </p>
@@ -111,7 +104,7 @@ export default function LuminaCard({
               }
             >
               {msg.cta}
-              <ChevronRight className="h-4 w-4" />
+              <CaretRight className="h-4 w-4" weight="bold" />
             </button>
           </>
         ) : (
@@ -123,7 +116,7 @@ export default function LuminaCard({
                 <span className="text-xs font-semibold tracking-wide text-brand-teal">
                   JuPHD
                 </span>
-                <Sparkles className="h-3 w-3 text-brand-teal/60" />
+                <Sparkle className="h-3 w-3 text-brand-teal/60" weight="fill" />
               </div>
 
               <p className="text-sm leading-relaxed text-foreground">
@@ -140,7 +133,7 @@ export default function LuminaCard({
                 }
               >
                 {msg.cta}
-                <ChevronRight className="h-3.5 w-3.5" />
+                <CaretRight className="h-3.5 w-3.5" weight="bold" />
               </button>
             </div>
           </>

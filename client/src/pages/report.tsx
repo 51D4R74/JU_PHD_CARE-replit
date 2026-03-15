@@ -2,10 +2,8 @@ import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { devNow } from "@shared/dev-clock";
-import {
-  ChevronLeft, Sun, MessageCircleHeart, Sparkles, BookOpen, Heart,
-  Share2, TrendingUp, TrendingDown, Minus, Calendar,
-} from "lucide-react";
+import { CaretLeft, ShareNetwork, TrendUp, TrendDown, Minus, CalendarBlank } from "@phosphor-icons/react";
+import BottomNav from "@/components/bottom-nav";
 import {
   ResponsiveContainer,
   LineChart,
@@ -47,9 +45,9 @@ function mean(values: number[]): number {
 const TREND_THRESHOLD = 3;
 
 function TrendIcon({ delta }: Readonly<{ delta: number }>) {
-  if (delta > TREND_THRESHOLD) return <TrendingUp className="w-4 h-4 text-score-good" />;
-  if (delta < -TREND_THRESHOLD) return <TrendingDown className="w-4 h-4 text-score-critical" />;
-  return <Minus className="w-4 h-4 text-muted-foreground" />;
+  if (delta > TREND_THRESHOLD) return <TrendUp className="w-4 h-4 text-score-good" weight="bold" />;
+  if (delta < -TREND_THRESHOLD) return <TrendDown className="w-4 h-4 text-score-critical" weight="bold" />;
+  return <Minus className="w-4 h-4 text-muted-foreground" weight="bold" />;
 }
 
 function ScoreStat({
@@ -206,11 +204,11 @@ export default function ReportPage() {
           onClick={() => navigate("/meu-cuidado")}
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <CaretLeft className="w-4 h-4" weight="bold" />
           Meu Cuidado
         </button>
         <div className="flex items-center gap-1 text-muted-foreground">
-          <Calendar className="w-4 h-4" />
+          <CalendarBlank className="w-4 h-4" weight="bold" />
           <span className="text-xs capitalize">{periodLabel}</span>
         </div>
       </header>
@@ -403,7 +401,7 @@ export default function ReportPage() {
             className="mb-4"
           >
             <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-4 h-4 text-brand-teal" />
+              <TrendUp className="w-4 h-4 text-brand-teal" weight="bold" />
               <h2 className="text-sm font-semibold">Descobertas</h2>
             </div>
             <div className="space-y-3">
@@ -427,7 +425,7 @@ export default function ReportPage() {
             title="Em breve"
           >
             <div className="w-10 h-10 rounded-xl bg-muted/40 flex items-center justify-center flex-shrink-0">
-              <Share2 className="w-5 h-5 text-muted-foreground" />
+              <ShareNetwork className="w-5 h-5 text-muted-foreground" />
             </div>
             <div>
               <p className="text-sm font-semibold">Compartilhar com um profissional</p>
@@ -439,51 +437,7 @@ export default function ReportPage() {
         </motion.section>
       </main>
 
-      {/* ── Bottom nav ── */}
-      <nav className="fixed bottom-0 inset-x-0 z-20 glass-card border-t border-border/30">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-around">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-home-rep"
-          >
-            <Sun className="w-5 h-5" />
-            <span className="text-xs">Início</span>
-          </button>
-          <button
-            onClick={() => navigate("/checkin")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-checkin-rep"
-          >
-            <MessageCircleHeart className="w-5 h-5" />
-            <span className="text-xs">Check-in</span>
-          </button>
-          <button
-            onClick={() => navigate("/missions")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-missions-rep"
-          >
-            <Sparkles className="w-5 h-5" />
-            <span className="text-xs">Pra Você</span>
-          </button>
-          <button
-            onClick={() => navigate("/support")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-support-rep"
-          >
-            <Heart className="w-5 h-5" />
-            <span className="text-xs">Apoio</span>
-          </button>
-          <button
-            onClick={() => navigate("/meu-cuidado")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-jornada-rep"
-          >
-            <BookOpen className="w-5 h-5" />
-            <span className="text-xs">Sua Jornada</span>
-          </button>
-        </div>
-      </nav>
+      <BottomNav />
     </div>
   );
 }

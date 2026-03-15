@@ -6,10 +6,10 @@ import {
   AreaChart, Area, Cell, PieChart, Pie,
 } from "recharts";
 import {
-  Shield, AlertTriangle, TrendingUp, Users, Activity, Brain,
-  LogOut, BarChart3, Flame, Bell,
+  Shield, Warning, TrendUp, UsersThree, Activity, Brain,
+  SignOut, ChartBar, Flame, Bell,
   Trophy, Heart, Percent,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import { useAuth } from "@/lib/auth";
 import RHAggregateCard from "@/components/rh-aggregate-card";
 import { fetchCurrentChallenge, buildOfflineSnapshot, type TeamChallengeSnapshot } from "@/lib/team-challenge-engine";
@@ -155,7 +155,7 @@ export default function RHDashboardPage() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-brand-navy flex items-center justify-center">
-              <BarChart3 className="w-4 h-4 text-white" />
+              <ChartBar className="w-4 h-4 text-white" />
             </div>
             <div>
               <h1 className="text-sm font-bold text-foreground">JuPHD — Painel RH</h1>
@@ -178,7 +178,7 @@ export default function RHDashboardPage() {
               className="p-2 rounded-lg hover:bg-black/5 transition-colors text-muted-foreground"
               data-testid="button-rh-logout"
             >
-              <LogOut className="w-4 h-4" />
+              <SignOut className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -188,7 +188,7 @@ export default function RHDashboardPage() {
         {/* KPI row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <RHAggregateCard
-            icon={<Users className="w-5 h-5 text-brand-teal" />}
+            icon={<UsersThree className="w-5 h-5 text-brand-teal" />}
             label="Colaboradores Ativos"
             value={`${data.activeCollaborators}/${data.totalCollaborators}`}
             subtitle={`${data.participation}% de participação`}
@@ -338,7 +338,7 @@ export default function RHDashboardPage() {
             className="lg:col-span-2 rounded-xl border border-border-soft bg-white p-6"
           >
             <h3 className="text-sm font-semibold mb-1 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-score-moderate" />
+              <TrendUp className="w-4 h-4 text-score-moderate" weight="bold" />
               Tendência de Desgaste Agregado
             </h3>
             <p className="text-xs text-muted-foreground mb-6">
@@ -463,7 +463,7 @@ export default function RHDashboardPage() {
             className="rounded-xl border border-border-soft bg-white p-6"
           >
             <h3 className="text-sm font-semibold mb-1 flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-brand-teal" />
+              <ChartBar className="w-4 h-4 text-brand-teal" />
               Médias por Domínio
             </h3>
             <p className="text-xs text-muted-foreground mb-4">Recarga · Estado do dia · Segurança relacional</p>
@@ -499,7 +499,7 @@ export default function RHDashboardPage() {
           className="rounded-xl border border-border-soft bg-white p-6"
         >
           <h3 className="text-sm font-semibold mb-1 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-score-moderate" />
+            <Warning className="w-4 h-4 text-score-moderate" />
             Alertas de Atenção Organizacional
           </h3>
           <p className="text-xs text-muted-foreground mb-4">

@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { X, Bell } from "lucide-react";
+import { X, Bell } from "@phosphor-icons/react";
 import { devNow } from "@shared/dev-clock";
 import {
   getNotifications,

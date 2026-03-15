@@ -2,9 +2,8 @@ import { useState, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { devNow } from "@shared/dev-clock";
-import {
-  Sun, MessageCircleHeart, BookOpen, Sparkles, ChevronLeft, Heart,
-} from "lucide-react";
+import { CaretLeft, ChatCircleDots } from "@phosphor-icons/react";
+import BottomNav from "@/components/bottom-nav";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import MissionCard, { type MissionDef, type MissionStatus } from "@/components/mission-card";
 import LuminaCard from "@/components/lumina-card";
@@ -160,7 +159,7 @@ export default function MissionCenterPage() {
           className="p-2 -ml-2 rounded-xl hover:bg-black/5 transition-colors"
           aria-label="Voltar"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <CaretLeft className="w-5 h-5" weight="bold" />
         </button>
         <div className="flex-1">
           <h1 className="text-lg font-semibold">Pra Você</h1>
@@ -237,7 +236,7 @@ export default function MissionCenterPage() {
             className="mt-5 glass-card rounded-2xl p-4 flex items-center gap-3"
           >
             <div className="w-10 h-10 rounded-xl bg-brand-navy/10 flex items-center justify-center flex-shrink-0">
-              <MessageCircleHeart className="w-5 h-5 text-brand-navy" />
+              <ChatCircleDots className="w-5 h-5 text-brand-navy" weight="fill" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium">Faça seu check-in</p>
@@ -268,51 +267,7 @@ export default function MissionCenterPage() {
         </motion.section>
       </main>
 
-      {/* Bottom nav */}
-      <nav className="fixed bottom-0 inset-x-0 z-20 glass-card border-t border-border/30">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-around">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-home"
-          >
-            <Sun className="w-5 h-5" />
-            <span className="text-xs">Início</span>
-          </button>
-          <button
-            onClick={() => navigate("/checkin")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-checkin"
-          >
-            <MessageCircleHeart className="w-5 h-5" />
-            <span className="text-xs">Check-in</span>
-          </button>
-          <button
-            onClick={() => navigate("/missions")}
-            className="flex flex-col items-center gap-1 text-brand-navy"
-            data-testid="nav-missions"
-          >
-            <Sparkles className="w-5 h-5" />
-            <span className="text-xs font-medium">Pra Você</span>
-          </button>
-          <button
-            onClick={() => navigate("/support")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-support"
-          >
-            <Heart className="w-5 h-5" />
-            <span className="text-xs">Apoio</span>
-          </button>
-          <button
-            onClick={() => navigate("/meu-cuidado")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-jornada"
-          >
-            <BookOpen className="w-5 h-5" />
-            <span className="text-xs">Sua Jornada</span>
-          </button>
-        </div>
-      </nav>
+      <BottomNav />
 
       {/* Microcheck sheet */}
       <Microcheck

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { CaretDown } from "@phosphor-icons/react";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ScoreDomainId } from "@/lib/checkin-data";
@@ -117,7 +117,7 @@ export default function ScoreCard({
                 animate={{ rotate: expanded ? 180 : 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <ChevronDown className="h-3.5 w-3.5" />
+                <CaretDown className="h-3.5 w-3.5" weight="bold" />
               </motion.span>
             </button>
 

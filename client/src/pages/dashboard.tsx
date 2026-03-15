@@ -2,10 +2,10 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sun, ChevronRight, MessageCircleHeart, BookOpen,
-  Heart, CheckCircle2,
-  Sparkles, BellRing, Download,
-} from "lucide-react";
+  CaretRight, CheckCircle, Sparkle, BellRinging, DownloadSimple,
+  ChatCircleDots, Heart,
+} from "@phosphor-icons/react";
+import BottomNav from "@/components/bottom-nav";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import SkyHero from "@/components/sky-hero";
 import NotificationDrawer from "@/components/notification-drawer";
@@ -272,7 +272,7 @@ function PulseCard({
       <div className={`w-full rounded-2xl border bg-card px-4 py-4 text-left shadow-sm transition-colors ${tone.container}`}>
         <div className="flex items-start gap-3">
           <div className={`mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${tone.icon}`}>
-            <MessageCircleHeart className="h-5 w-5" />
+            <ChatCircleDots className="h-5 w-5" weight="fill" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-3">
@@ -310,7 +310,7 @@ function PulseCard({
                 className="mt-3 flex items-center gap-2 text-sm font-medium text-brand-teal"
               >
                 <span>Responder agora</span>
-                <ChevronRight className="h-4 w-4" />
+                <CaretRight className="h-4 w-4" weight="bold" />
               </button>
             )}
           </div>
@@ -320,58 +320,6 @@ function PulseCard({
   );
 }
 
-function DashboardBottomNav({
-  onNavigate,
-}: Readonly<{
-  onNavigate: (path: string) => void;
-}>) {
-  return (
-    <nav className="fixed bottom-0 inset-x-0 z-20 glass-nav-dark">
-      <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-around">
-        <button
-          onClick={() => onNavigate("/dashboard")}
-          className="flex flex-col items-center gap-1 text-white"
-          data-testid="nav-home"
-        >
-          <Sun className="w-5 h-5" />
-          <span className="text-xs font-medium">Início</span>
-        </button>
-        <button
-          onClick={() => onNavigate("/checkin")}
-          className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-colors"
-          data-testid="nav-checkin"
-        >
-          <MessageCircleHeart className="w-5 h-5" />
-          <span className="text-xs">Check-in</span>
-        </button>
-        <button
-          onClick={() => onNavigate("/missions")}
-          className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-colors"
-          data-testid="nav-missions"
-        >
-          <Sparkles className="w-5 h-5" />
-          <span className="text-xs">Pra Você</span>
-        </button>
-        <button
-          onClick={() => onNavigate("/support")}
-          className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-colors"
-          data-testid="nav-support"
-        >
-          <Heart className="w-5 h-5" />
-          <span className="text-xs">Apoio</span>
-        </button>
-        <button
-          onClick={() => onNavigate("/meu-cuidado")}
-          className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-colors"
-          data-testid="nav-jornada"
-        >
-          <BookOpen className="w-5 h-5" />
-          <span className="text-xs">Sua Jornada</span>
-        </button>
-      </div>
-    </nav>
-  );
-}
 
 // ── Extracted section components (reduces DashboardPage cognitive complexity) ──
 
@@ -394,9 +342,9 @@ function CheckedInCard({ justCompleted, statusCopy }: Readonly<{
         className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-score-good/12"
       >
         {justCompleted ? (
-          <Sparkles className="w-5 h-5 text-score-good" />
+          <Sparkle className="w-5 h-5 text-score-good" weight="fill" />
         ) : (
-          <CheckCircle2 className="w-5 h-5 text-score-good" />
+          <CheckCircle className="w-5 h-5 text-score-good" weight="fill" />
         )}
       </motion.div>
       <div className="flex-1 min-w-0">
@@ -422,7 +370,7 @@ function ReminderActivationCard({ onEnable }: Readonly<{ onEnable: () => void }>
       <div className="rounded-2xl border border-brand-teal/20 bg-card px-4 py-4 shadow-sm">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-brand-teal/10">
-            <BellRing className="h-5 w-5 text-brand-teal" />
+            <BellRinging className="h-5 w-5 text-brand-teal" weight="fill" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-foreground">
@@ -452,7 +400,7 @@ function InstallAppCard({ onInstall }: Readonly<{ onInstall: () => void }>) {
       <div className="rounded-2xl border border-brand-navy/15 bg-card px-4 py-4 shadow-sm">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-brand-navy/10">
-            <Download className="h-5 w-5 text-brand-navy" />
+            <DownloadSimple className="h-5 w-5 text-brand-navy" weight="bold" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-foreground">
@@ -483,7 +431,7 @@ function DiscoveryCard({ discovery }: Readonly<{
     >
       <div className="flex items-start gap-3">
         <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-brand-teal/12">
-          <Sparkles className="h-4 w-4 text-brand-teal" />
+          <Sparkle className="h-4 w-4 text-brand-teal" weight="fill" />
         </div>
         <div>
           <p className="text-sm font-medium text-muted-foreground">
@@ -515,7 +463,7 @@ function DiscoveryProgressTeaser({ progress, threshold }: Readonly<{
     >
       <div className="flex items-center gap-3">
         <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-primary/8">
-          <Sparkles className="h-3.5 w-3.5 text-primary/60" />
+          <Sparkle className="h-3.5 w-3.5 text-primary/60" weight="fill" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-xs leading-relaxed text-muted-foreground">
@@ -549,7 +497,7 @@ function CrisisSupportCTA({ onNavigate }: Readonly<{ onNavigate: () => void }>) 
         data-testid="button-crisis-support"
       >
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-score-attention/14">
-          <Heart className="w-5 h-5 text-score-attention" />
+          <Heart className="w-5 h-5 text-score-attention" weight="fill" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-base font-semibold tracking-[-0.02em]">Tô aqui se precisar.</p>
@@ -557,7 +505,7 @@ function CrisisSupportCTA({ onNavigate }: Readonly<{ onNavigate: () => void }>) 
             Apoio e acolhimento quando quiser
           </p>
         </div>
-        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        <CaretRight className="w-4 h-4 text-muted-foreground flex-shrink-0" weight="bold" />
       </button>
     </motion.section>
   );
@@ -926,7 +874,6 @@ export default function DashboardPage() {
         checkedInDates={checkedInDates}
         onOpenNotifications={() => setDrawerOpen(true)}
         onOpenSettings={() => navigate("/settings")}
-        onTapLumina={() => navigate("/support")}
       />
 
       <AnimatePresence>
@@ -1031,7 +978,7 @@ export default function DashboardPage() {
         />
       )}
 
-      <DashboardBottomNav onNavigate={navigate} />
+      <BottomNav variant="dark" />
 
     </div>
   );

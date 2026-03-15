@@ -5,7 +5,7 @@
  */
 
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendUp, TrendDown, Minus } from "@phosphor-icons/react";
 
 export interface RHAggregateCardProps {
   readonly icon: React.ReactNode;
@@ -36,8 +36,8 @@ export default function RHAggregateCard({
   })();
 
   function trendIcon() {
-    if (trend?.direction === "up") return TrendingUp;
-    if (trend?.direction === "down") return TrendingDown;
+    if (trend?.direction === "up") return TrendUp;
+    if (trend?.direction === "down") return TrendDown;
     return Minus;
   }
   const TrendIcon = trendIcon();

@@ -8,7 +8,7 @@
 
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Sun, Cloud, Flame } from "lucide-react";
+import { Sun, Cloud, Flame } from "@phosphor-icons/react";
 import { devNow } from "@shared/dev-clock";
 
 interface ConstancyDotsProps {

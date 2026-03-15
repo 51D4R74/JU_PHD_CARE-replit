@@ -4,7 +4,7 @@
 Corporate mental health platform focused on employee well-being (prevention and harassment protection) and data intelligence for HR (NR1 compliance and cost reduction). The visual metaphor is "Finding the sun after the rain" — dark night sky colors transitioning to warm golden/amber accents.
 
 ## Tech Stack
-- **Frontend**: React + TypeScript, Wouter (routing), Framer Motion (animations), Recharts (charts), Tailwind CSS, shadcn/ui
+- **Frontend**: React + TypeScript, Wouter (routing), Framer Motion (animations), Recharts (charts), Tailwind CSS, shadcn/ui, Phosphor Icons
 - **Backend**: Express.js + TypeScript
 - **Storage**: In-memory storage with seed data (MVP)
 - **Build**: Vite
@@ -34,6 +34,17 @@ Corporate mental health platform focused on employee well-being (prevention and 
 - Uses PostgreSQL (Drizzle ORM) when DATABASE_URL is set, falls back to in-memory storage
 - Demo users are auto-seeded on first startup when using PostgreSQL
 - Run `npm run db:push` to apply schema changes
+
+## Icon System
+- **Library**: `@phosphor-icons/react` (Phosphor Icons) — Noun Project style
+- **shadcn/ui** components retain their own `lucide-react` imports (unchanged)
+- **Weight conventions**: `fill` for active/emphasis, `bold` for carets/chevrons, `regular` for default
+- **Type**: Use `Icon as PhosphorIcon` from `@phosphor-icons/react` for icon prop types
+
+## Navigation
+- **Shared BottomNav**: `client/src/components/bottom-nav.tsx` — 5 items: Início, Pra Você, Riscos (burst icon), Apoio, Sua Jornada
+- Dashboard uses `variant="dark"` (glass-nav-dark); all other pages use default light variant
+- Sub-route mapping: `/report` → Sua Jornada active, `/team-challenge` → Pra Você active, `/checkin` → Início active
 
 ## User Flows
 1. **Login** → Dashboard (collaborator) or RH Dashboard (hr role)

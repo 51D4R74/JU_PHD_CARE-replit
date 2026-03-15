@@ -10,7 +10,7 @@
 
 import { motion } from "framer-motion";
 import { useLocation } from "wouter";
-import { Siren } from "lucide-react";
+import { Siren } from "@phosphor-icons/react";
 
 export default function PanicButton() {
   const [, navigate] = useLocation();

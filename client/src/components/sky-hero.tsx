@@ -7,14 +7,13 @@
  */
 
 import { motion } from "framer-motion";
-import { Settings } from "lucide-react";
+import { GearSix } from "@phosphor-icons/react";
 import AnimatedBrandLogo from "@/components/animated-brand-logo";
 import ConstancyDots from "@/components/constancy-dots";
 import SolarPointsBadge from "@/components/solar-points-badge";
 import NotificationBadge from "@/components/notification-badge";
 import { type TodayScores, getDomainNarrative, getDomainMeta, DOMAIN_WARM_NAMES } from "@/lib/score-engine";
 import { getSkyHero, getDefaultSkyHero, getCompositeScore, type SkyHeroData } from "@/lib/sky-image";
-import { selectLuminaMessage } from "@/lib/lumina-engine";
 import type { ScoreDomainId } from "@/lib/checkin-data";
 import { devNow } from "@shared/dev-clock";
 
@@ -27,7 +26,6 @@ type SkyHeroProps = Readonly<{
   checkedInDates: ReadonlyArray<string>;
   onOpenNotifications: () => void;
   onOpenSettings: () => void;
-  onTapLumina: () => void;
 }>;
 
 // ── Helpers ───────────────────────────────────────
@@ -44,14 +42,6 @@ function resolveHero(scores: TodayScores): SkyHeroData {
     return getSkyHero(getCompositeScore(scores.domainScores));
   }
   return getDefaultSkyHero();
-}
-
-function resolveLuminaContext(scores: TodayScores): "dashboard" | "dashboard-low" {
-  const CRISIS_THRESHOLD = 25;
-  const hasCrisis = scores.hasCheckedIn && Object.values(scores.domainScores).some(
-    (s) => s < CRISIS_THRESHOLD,
-  );
-  return hasCrisis ? "dashboard-low" : "dashboard";
 }
 
 // ── Domain pill ───────────────────────────────────
@@ -82,11 +72,8 @@ export default function SkyHero({
   checkedInDates,
   onOpenNotifications,
   onOpenSettings,
-  onTapLumina,
 }: SkyHeroProps) {
   const hero = resolveHero(scores);
-  const luminaContext = resolveLuminaContext(scores);
-  const luminaMessage = selectLuminaMessage(luminaContext);
   const domains = getDomainMeta();
 
   const headline = scores.hasCheckedIn
@@ -94,7 +81,7 @@ export default function SkyHero({
     : `${getGreeting()}, ${firstName}`;
 
   const subtitle = scores.hasCheckedIn
-    ? luminaMessage.text
+    ? null
     : "Como você está hoje?";
 
   return (
@@ -138,7 +125,7 @@ export default function SkyHero({
               className="rounded-full p-1.5 text-white/80 transition-colors hover:bg-white/10"
               aria-label="Configurações"
             >
-              <Settings className="h-4 w-4" />
+              <GearSix className="h-4 w-4" weight="bold" />
             </button>
           </div>
         </motion.div>
@@ -182,29 +169,16 @@ export default function SkyHero({
           <ConstancyDots checkedInDates={checkedInDates} days={7} variant="hero" />
         </motion.div>
 
-        {/* Lumina narrative line */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.42, duration: 0.5 }}
-          className="mt-2 max-w-xs text-center text-base leading-relaxed text-white/80"
-          style={{ textShadow: "0 1px 4px rgba(0,0,0,0.25)" }}
-        >
-          {subtitle}
-        </motion.p>
-
-        {/* Lumina CTA pill */}
-        {scores.hasCheckedIn && (
-          <motion.button
-            type="button"
-            onClick={onTapLumina}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.58, duration: 0.4, type: "spring", stiffness: 300, damping: 22 }}
-            className="glass-sky-cta mt-4 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-transform active:scale-95"
+        {subtitle !== null && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.42, duration: 0.5 }}
+            className="mt-2 max-w-xs text-center text-base leading-relaxed text-white/80"
+            style={{ textShadow: "0 1px 4px rgba(0,0,0,0.25)" }}
           >
-            ✦ {luminaMessage.cta}
-          </motion.button>
+            {subtitle}
+          </motion.p>
         )}
       </div>
     </section>

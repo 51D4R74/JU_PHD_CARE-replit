@@ -10,10 +10,10 @@ import { useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sun, MessageCircleHeart, BookOpen, Heart,
-  Droplets, PauseCircle, Wind, ClipboardCheck,
-  ChevronRight, CalendarDays, Trophy, Sparkles, PartyPopper, Target,
-} from "lucide-react";
+  Drop, PauseCircle, Wind, ClipboardText, Heart,
+  CaretRight, CalendarDots, Trophy, Sparkle, Confetti, Target,
+} from "@phosphor-icons/react";
+import BottomNav from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import TeamProgressArc from "@/components/team-progress-arc";
 import SkyHeader from "@/components/sky-header";
@@ -32,10 +32,10 @@ import { useToast } from "@/hooks/use-toast";
 // ── Icon map for challenge categories ─────────────
 
 const CATEGORY_ICONS: Record<ChallengeCategory, React.ReactNode> = {
-  hydration: <Droplets className="w-5 h-5" />,
-  pause: <PauseCircle className="w-5 h-5" />,
-  support: <Heart className="w-5 h-5" />,
-  checkin: <ClipboardCheck className="w-5 h-5" />,
+  hydration: <Drop className="w-5 h-5" weight="fill" />,
+  pause: <PauseCircle className="w-5 h-5" weight="fill" />,
+  support: <Heart className="w-5 h-5" weight="fill" />,
+  checkin: <ClipboardText className="w-5 h-5" weight="fill" />,
   breathing: <Wind className="w-5 h-5" />,
 };
 
@@ -87,9 +87,9 @@ function MilestoneCelebration({
           className="inline-flex mb-4"
         >
           {pct >= 100 ? (
-            <PartyPopper className="w-14 h-14 text-brand-gold" />
+            <Confetti className="w-14 h-14 text-brand-gold" weight="fill" />
           ) : (
-            <Trophy className="w-14 h-14 text-brand-gold" />
+            <Trophy className="w-14 h-14 text-brand-gold" weight="fill" />
           )}
         </motion.div>
 
@@ -199,7 +199,7 @@ export default function TeamChallengePage() {
       <header className="relative z-10 px-4 pt-6 pb-2 flex items-center justify-between max-w-lg mx-auto">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-brand-navy flex items-center justify-center">
-            <Trophy className="w-4 h-4 text-white" />
+            <Trophy className="w-4 h-4 text-white" weight="fill" />
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Desafio Coletivo</p>
@@ -275,7 +275,7 @@ export default function TeamChallengePage() {
 
           <div className="flex items-center gap-4 mt-4 pt-3 border-t border-border/30">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <CalendarDays className="w-3.5 h-3.5" />
+              <CalendarDots className="w-3.5 h-3.5" />
               <span>
                 {challenge.daysRemaining === 0
                   ? "Último dia!"
@@ -303,9 +303,9 @@ export default function TeamChallengePage() {
             data-testid="button-contribute"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-            <Sparkles className="w-5 h-5 mr-3 text-accent" />
+            <Sparkle className="w-5 h-5 mr-3 text-accent" weight="fill" />
             {contributeLabel(challenge, canContribute)}
-            <ChevronRight className="w-5 h-5 ml-3" />
+            <CaretRight className="w-5 h-5 ml-3" weight="bold" />
           </Button>
           {canContribute && (
             <p className="text-center text-xs text-muted-foreground mt-2">
@@ -322,7 +322,7 @@ export default function TeamChallengePage() {
           className="mt-5 glass-card rounded-2xl p-4"
         >
           <h3 className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-1.5 uppercase tracking-wider">
-            <Trophy className="w-3.5 h-3.5 text-brand-gold" />
+            <Trophy className="w-3.5 h-3.5 text-brand-gold" weight="fill" />
             Marcos da equipe
           </h3>
           <div className="space-y-2">
@@ -370,51 +370,7 @@ export default function TeamChallengePage() {
         </motion.section>
       </main>
 
-      {/* Bottom nav */}
-      <nav className="fixed bottom-0 inset-x-0 z-20 glass-card border-t border-border/30">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-around">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-home"
-          >
-            <Sun className="w-5 h-5" />
-            <span className="text-xs">Início</span>
-          </button>
-          <button
-            onClick={() => navigate("/checkin")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-checkin"
-          >
-            <MessageCircleHeart className="w-5 h-5" />
-            <span className="text-xs">Check-in</span>
-          </button>
-          <button
-            onClick={() => navigate("/missions")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-missions"
-          >
-            <Sparkles className="w-5 h-5" />
-            <span className="text-xs">Pra Você</span>
-          </button>
-          <button
-            onClick={() => navigate("/support")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-support"
-          >
-            <Heart className="w-5 h-5" />
-            <span className="text-xs">Apoio</span>
-          </button>
-          <button
-            onClick={() => navigate("/meu-cuidado")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-jornada"
-          >
-            <BookOpen className="w-5 h-5" />
-            <span className="text-xs">Sua Jornada</span>
-          </button>
-        </div>
-      </nav>
+      <BottomNav />
 
       {/* Milestone celebration overlay */}
       <AnimatePresence>

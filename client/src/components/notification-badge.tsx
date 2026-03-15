@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Bell } from "lucide-react";
+import { Bell } from "@phosphor-icons/react";
 import { getUnreadCount } from "@/lib/notification-engine";
 
 interface NotificationBadgeProps {

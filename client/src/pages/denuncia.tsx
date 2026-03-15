@@ -2,12 +2,12 @@ import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Shield, Phone, AlertTriangle, ChevronLeft, Heart,
-  LifeBuoy, CircleHelp, Lock, Scale, BriefcaseBusiness, UserX, UserMinus,
-  Headphones, Sun, MessageCircleHeart, Sparkles, MessageSquareWarning,
-  WandSparkles, Siren, X, BookOpen, FileText, BadgeAlert, Paperclip,
-  BadgeX, MessageSquareX
-} from "lucide-react";
+  Shield, Phone, Warning, CaretLeft, Heart,
+  Lifebuoy, Question, Lock, Scales, Briefcase, UserMinus, UserCircleMinus,
+  Headphones, ChatSlash, MagicWand, Siren, X, FileText, SealWarning, Paperclip,
+  SealCheck, ChatCircleDots,
+} from "@phosphor-icons/react";
+import BottomNav from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,22 +43,22 @@ const severityOptions: ReadonlyArray<{
 ];
 
 const globalRisks = [
-  { label: "Assédio Sexual (Art. 216-A CP)", icon: AlertTriangle, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
-  { label: "Assédio Moral (CLT Art. 483)", icon: MessageSquareWarning, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
+  { label: "Assédio Sexual (Art. 216-A CP)", icon: Warning, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
+  { label: "Assédio Moral (CLT Art. 483)", icon: ChatSlash, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
   { label: "Situação Violenta/Traumática", icon: Siren, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
 ];
 
 const psychSafety = [
-  { label: "Falta de clareza", icon: CircleHelp, color: "text-brand-teal", bgColor: "from-brand-teal/20 to-brand-teal/5" },
+  { label: "Falta de clareza", icon: Question, color: "text-brand-teal", bgColor: "from-brand-teal/20 to-brand-teal/5" },
   { label: "Esforço sem reconhecimento", icon: Heart, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
-  { label: "Baixo reconhecimento", icon: BadgeX, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
-  { label: "Falta de suporte", icon: LifeBuoy, color: "text-brand-teal", bgColor: "from-brand-teal/20 to-brand-teal/5" },
-  { label: "Falta de autonomia", icon: WandSparkles, color: "text-score-moderate", bgColor: "from-score-moderate/20 to-score-moderate/5" },
-  { label: "Sensação de injustiça", icon: Scale, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
-  { label: "Sobrecarga", icon: BriefcaseBusiness, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
+  { label: "Baixo reconhecimento", icon: SealWarning, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
+  { label: "Falta de suporte", icon: Lifebuoy, color: "text-brand-teal", bgColor: "from-brand-teal/20 to-brand-teal/5" },
+  { label: "Falta de autonomia", icon: MagicWand, color: "text-score-moderate", bgColor: "from-score-moderate/20 to-score-moderate/5" },
+  { label: "Sensação de injustiça", icon: Scales, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
+  { label: "Sobrecarga", icon: Briefcase, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
   { label: "Relações ruins", icon: UserMinus, color: "text-brand-navy", bgColor: "from-brand-navy/20 to-brand-navy/5" },
-  { label: "Isolamento", icon: UserX, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
-  { label: "Dificuldade de comunicação", icon: MessageSquareX, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
+  { label: "Isolamento", icon: UserCircleMinus, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
+  { label: "Dificuldade de comunicação", icon: ChatCircleDots, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
 ];
 
 export default function DenunciaPage() {
@@ -193,7 +193,7 @@ export default function DenunciaPage() {
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           data-testid="button-back-dashboard"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <CaretLeft className="w-4 h-4" weight="bold" />
           Voltar ao início
         </button>
       </header>
@@ -242,7 +242,7 @@ export default function DenunciaPage() {
           className="mb-6"
         >
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-            <AlertTriangle className="w-3.5 h-3.5 text-score-attention" />
+            <Warning className="w-3.5 h-3.5 text-score-attention" />
             Mapeamento de Riscos Globais — Relatos Anônimos
           </h3>
           <div className="grid grid-cols-2 gap-3">
@@ -291,30 +291,7 @@ export default function DenunciaPage() {
         </motion.section>
       </main>
 
-      <nav className="fixed bottom-0 inset-x-0 z-20 glass-card border-t border-border/30">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-around">
-          <button onClick={() => navigate("/dashboard")} className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-home-2">
-            <Sun className="w-5 h-5" />
-            <span className="text-xs">Início</span>
-          </button>
-          <button onClick={() => navigate("/checkin")} className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-checkin-2">
-            <MessageCircleHeart className="w-5 h-5" />
-            <span className="text-xs">Check-in</span>
-          </button>
-          <button onClick={() => navigate("/missions")} className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-missions-2">
-            <Sparkles className="w-5 h-5" />
-            <span className="text-xs">Pra Você</span>
-          </button>
-          <button onClick={() => navigate("/support")} className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-support-2">
-            <Heart className="w-5 h-5" />
-            <span className="text-xs">Apoio</span>
-          </button>
-          <button onClick={() => navigate("/meu-cuidado")} className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-jornada-2">
-            <BookOpen className="w-5 h-5" />
-            <span className="text-xs">Sua Jornada</span>
-          </button>
-        </div>
-      </nav>
+      <BottomNav />
 
       <AnimatePresence>
         {showModeChooser && (
@@ -407,7 +384,7 @@ export default function DenunciaPage() {
 
               <div className="flex items-center gap-2 mb-4 rounded-lg border border-brand-navy/15 bg-brand-navy/8 p-3">
                 {reportMode === "formal" ? (
-                  <BadgeAlert className="w-4 h-4 text-brand-navy flex-shrink-0" />
+                  <SealWarning className="w-4 h-4 text-brand-navy flex-shrink-0" />
                 ) : (
                   <Lock className="w-4 h-4 text-brand-navy flex-shrink-0" />
                 )}

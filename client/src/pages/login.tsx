@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Check, X, Sparkles, User, Building2 } from "lucide-react";
+import { Eye, EyeSlash, Envelope, Lock, ArrowRight, Check, X, Sparkle, User, Buildings } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -165,7 +165,7 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm text-muted-foreground">E-mail</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="email"
                       type="email"
@@ -199,7 +199,7 @@ export default function LoginPage() {
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       data-testid="button-toggle-password"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
@@ -261,7 +261,7 @@ export default function LoginPage() {
               className="glass-card rounded-2xl p-8"
             >
               <div className="flex items-center gap-2 mb-6">
-                <Sparkles className="w-4 h-4 text-brand-gold" />
+                <Sparkle className="w-4 h-4 text-brand-gold" weight="fill" />
                 <h2 className="text-lg font-semibold text-foreground">Criar sua conta</h2>
               </div>
 
@@ -286,7 +286,7 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <Label htmlFor="reg-email" className="text-sm text-muted-foreground">E-mail</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="reg-email"
                       type="email"
@@ -303,7 +303,7 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <Label htmlFor="reg-department" className="text-sm text-muted-foreground">Departamento (opcional)</Label>
                   <div className="relative">
-                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Buildings className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="reg-department"
                       type="text"
@@ -335,7 +335,7 @@ export default function LoginPage() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>

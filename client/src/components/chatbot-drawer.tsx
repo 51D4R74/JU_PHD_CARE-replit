@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
+import { ChatCircle, X, PaperPlaneRight, SpinnerGap } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 
 interface ChatMessage {
@@ -90,7 +90,7 @@ export default function ChatbotDrawer({ userId }: ChatbotDrawerProps) {
               className="h-14 w-14 rounded-full bg-brand-teal text-white shadow-lg hover:bg-brand-teal/90"
               aria-label="Abrir chat de apoio"
             >
-              <MessageCircle className="h-6 w-6" />
+              <ChatCircle className="h-6 w-6" />
             </Button>
           </motion.div>
         )}
@@ -109,7 +109,7 @@ export default function ChatbotDrawer({ userId }: ChatbotDrawerProps) {
             {/* Header */}
             <div className="flex items-center justify-between border-b px-4 py-3">
               <div className="flex items-center gap-2">
-                <MessageCircle className="h-5 w-5 text-brand-teal" />
+                <ChatCircle className="h-5 w-5 text-brand-teal" weight="fill" />
                   <span className="text-sm font-medium">Assistente JuPHD</span>
               </div>
               <Button
@@ -144,7 +144,7 @@ export default function ChatbotDrawer({ userId }: ChatbotDrawerProps) {
               {loading ? (
                 <div className="flex justify-start">
                   <div className="flex items-center gap-2 rounded-2xl bg-muted px-3 py-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <SpinnerGap className="h-3.5 w-3.5 animate-spin" />
                     Pensando...
                   </div>
                 </div>
@@ -175,7 +175,7 @@ export default function ChatbotDrawer({ userId }: ChatbotDrawerProps) {
                 disabled={!input.trim() || loading}
                 aria-label="Enviar mensagem"
               >
-                <Send className="h-4 w-4" />
+                <PaperPlaneRight className="h-4 w-4" weight="bold" />
               </Button>
             </form>
           </motion.div>

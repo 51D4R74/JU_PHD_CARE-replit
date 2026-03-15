@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Heart } from "lucide-react";
+import { Heart } from "@phosphor-icons/react";
 import type { SupportMessage, SupportCategory } from "@/lib/support-messages";
 import { SUPPORT_CATEGORIES } from "@/lib/support-messages";
 

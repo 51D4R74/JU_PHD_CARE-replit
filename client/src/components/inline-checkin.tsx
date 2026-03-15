@@ -11,7 +11,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Lock, MessageCircle } from "lucide-react";
+import { Check, Lock, ChatCircle } from "@phosphor-icons/react";
 import { devNow } from "@shared/dev-clock";
 import { Button } from "@/components/ui/button";
 import {
@@ -208,7 +208,7 @@ function InlineProjectionCard({
   return (
     <div className="mt-3 p-3 rounded-xl border border-dashed border-accent/30 bg-accent/5">
       <div className="flex items-start gap-2 mb-2">
-        <MessageCircle className="w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0" />
+        <ChatCircle className="w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0" />
         <div>
           <p className="text-xs font-medium text-foreground leading-snug">
             {card.text}
@@ -256,7 +256,7 @@ function InlineChatPrompt({
     >
       <div className="flex items-start gap-3 mb-3">
         <div className="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center flex-shrink-0">
-          <MessageCircle className="w-5 h-5 text-accent" />
+          <ChatCircle className="w-5 h-5 text-accent" weight="fill" />
         </div>
         <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
           {t.message}

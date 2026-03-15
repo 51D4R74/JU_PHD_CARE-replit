@@ -8,7 +8,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Sun } from "lucide-react";
+import { Sun } from "@phosphor-icons/react";
 import {
   Tooltip,
   TooltipContent,

@@ -8,10 +8,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import {
-  Settings, Bell, Moon, Clock, ChevronLeft,
-  Sun, MessageCircleHeart, Sparkles, Heart, BookOpen,
-} from "lucide-react";
+import { GearSix, Bell, Moon, Clock, CaretLeft } from "@phosphor-icons/react";
+import BottomNav from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -167,10 +165,10 @@ export default function SettingsPage() {
           onClick={() => navigate("/dashboard")}
           className="p-2 rounded-lg hover:bg-black/5 transition-colors"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <CaretLeft className="w-5 h-5" weight="bold" />
         </button>
         <div className="flex items-center gap-2">
-          <Settings className="w-4 h-4 text-muted-foreground" />
+          <GearSix className="w-4 h-4 text-muted-foreground" />
           <h1 className="text-base font-semibold">Configurações</h1>
         </div>
       </header>
@@ -345,31 +343,7 @@ export default function SettingsPage() {
         </motion.section>
       </main>
 
-      {/* Bottom nav */}
-      <nav className="fixed bottom-0 inset-x-0 z-20 glass-card border-t border-border/30">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-around">
-          <button onClick={() => navigate("/dashboard")} className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
-            <Sun className="w-5 h-5" />
-            <span className="text-xs">Início</span>
-          </button>
-          <button onClick={() => navigate("/checkin")} className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
-            <MessageCircleHeart className="w-5 h-5" />
-            <span className="text-xs">Check-in</span>
-          </button>
-          <button onClick={() => navigate("/missions")} className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
-            <Sparkles className="w-5 h-5" />
-            <span className="text-xs">Pra Você</span>
-          </button>
-          <button onClick={() => navigate("/support")} className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
-            <Heart className="w-5 h-5" />
-            <span className="text-xs">Apoio</span>
-          </button>
-          <button onClick={() => navigate("/meu-cuidado")} className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
-            <BookOpen className="w-5 h-5" />
-            <span className="text-xs">Sua Jornada</span>
-          </button>
-        </div>
-      </nav>
+      <BottomNav />
     </div>
   );
 }

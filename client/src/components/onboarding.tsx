@@ -10,9 +10,9 @@ import { useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sun, ArrowRight, Sparkles, Target, Heart,
-  ChevronLeft, ChevronRight, Cloud,
-} from "lucide-react";
+  Sun, ArrowRight, Sparkle, Target, Heart,
+  CaretLeft, CaretRight, Cloud,
+} from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import SkyHeader from "@/components/sky-header";
 import AnimatedBrandLogo from "@/components/animated-brand-logo";
@@ -102,7 +102,7 @@ const SCREENS: OnboardingScreen[] = [
               <p className="text-xs font-semibold">{m.label}</p>
             </div>
             <div className="flex items-center gap-1 text-xs text-brand-gold-dark font-medium">
-              <Sparkles className="w-3 h-3" />
+              <Sparkle className="w-3 h-3" />
               +{m.pts}
             </div>
           </div>
@@ -246,7 +246,7 @@ export default function OnboardingPage() {
               onClick={goPrev}
               className="rounded-xl px-4"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <CaretLeft className="w-4 h-4" weight="bold" />
             </Button>
           )}
           <Button
@@ -261,7 +261,7 @@ export default function OnboardingPage() {
             ) : (
               <>
                 Próximo
-                <ChevronRight className="w-4 h-4 ml-2" />
+                <CaretRight className="w-4 h-4 ml-2" weight="bold" />
               </>
             )}
           </Button>

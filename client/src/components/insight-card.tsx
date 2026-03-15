@@ -7,7 +7,7 @@
  * - Disclaimer is always visible (M3 spec: never mislead).
  */
 
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendUp, TrendDown } from "@phosphor-icons/react";
 import type { Discovery } from "@/lib/discovery-engine";
 
 interface InsightCardProps {
@@ -56,9 +56,9 @@ export default function InsightCard({ discovery, className = "" }: InsightCardPr
         {/* Direction indicator */}
         <div className={`w-9 h-9 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
           {discovery.direction === "up" ? (
-            <TrendingUp className={`w-4 h-4 ${colors.text}`} aria-label="Tendência de alta" />
+            <TrendUp className={`w-4 h-4 ${colors.text}`} weight="bold" aria-label="Tendência de alta" />
           ) : (
-            <TrendingDown className={`w-4 h-4 ${colors.text}`} aria-label="Tendência de baixa" />
+            <TrendDown className={`w-4 h-4 ${colors.text}`} weight="bold" aria-label="Tendência de baixa" />
           )}
         </div>
 

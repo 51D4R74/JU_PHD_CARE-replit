@@ -2,10 +2,8 @@ import { useState, useMemo, useReducer } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { devNow } from "@shared/dev-clock";
-import {
-  ChevronLeft, Sun, MessageCircleHeart, Sparkles, BookOpen,
-  Heart, Star, TrendingUp, FileText,
-} from "lucide-react";
+import { CaretLeft, CaretRight, Star, TrendUp, FileText, Heart } from "@phosphor-icons/react";
+import BottomNav from "@/components/bottom-nav";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -171,7 +169,7 @@ export default function MeuCuidadoPage() {
           onClick={() => navigate("/dashboard")}
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <CaretLeft className="w-4 h-4" weight="bold" />
           Voltar ao início
         </button>
       </header>
@@ -352,7 +350,7 @@ export default function MeuCuidadoPage() {
           className="mb-4"
         >
           <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-4 h-4 text-brand-teal" />
+            <TrendUp className="w-4 h-4 text-brand-teal" weight="bold" />
             <h2 className="text-sm font-semibold">Suas descobertas</h2>
           </div>
 
@@ -366,7 +364,7 @@ export default function MeuCuidadoPage() {
             <div className="glass-card rounded-2xl p-4 border border-border/30">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-brand-teal/10 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="w-5 h-5 text-brand-teal" />
+                  <TrendUp className="w-5 h-5 text-brand-teal" weight="bold" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">
@@ -433,13 +431,13 @@ export default function MeuCuidadoPage() {
           className="w-full glass-card rounded-2xl p-4 border border-brand-navy/15 flex items-center gap-3 text-left hover:border-brand-navy/30 transition-colors mb-4"
         >
           <div className="w-10 h-10 rounded-xl bg-brand-navy/10 flex items-center justify-center flex-shrink-0">
-            <FileText className="w-5 h-5 text-brand-navy" />
+            <FileText className="w-5 h-5 text-brand-navy" weight="fill" />
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold">Ver Seu Relatório</p>
             <p className="text-xs text-muted-foreground">Resumo semanal e mensal do seu cuidado</p>
           </div>
-          <ChevronLeft className="w-4 h-4 text-muted-foreground rotate-180" />
+          <CaretRight className="w-4 h-4 text-muted-foreground" weight="bold" />
         </motion.button>
 
         {/* ── Favorite messages ── */}
@@ -450,7 +448,7 @@ export default function MeuCuidadoPage() {
             transition={{ delay: 0.3 }}
           >
             <div className="flex items-center gap-2 mb-3">
-              <Star className="w-4 h-4 text-brand-gold" />
+              <Star className="w-4 h-4 text-brand-gold" weight="fill" />
               <h2 className="text-sm font-semibold">Mensagens favoritas</h2>
             </div>
             <div className="space-y-3">
@@ -467,51 +465,7 @@ export default function MeuCuidadoPage() {
         )}
       </main>
 
-      {/* ── Bottom nav ── */}
-      <nav className="fixed bottom-0 inset-x-0 z-20 glass-card border-t border-border/30">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-around">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-home-mc"
-          >
-            <Sun className="w-5 h-5" />
-            <span className="text-xs">Início</span>
-          </button>
-          <button
-            onClick={() => navigate("/checkin")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-checkin-mc"
-          >
-            <MessageCircleHeart className="w-5 h-5" />
-            <span className="text-xs">Check-in</span>
-          </button>
-          <button
-            onClick={() => navigate("/missions")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-missions-mc"
-          >
-            <Sparkles className="w-5 h-5" />
-            <span className="text-xs">Pra Você</span>
-          </button>
-          <button
-            onClick={() => navigate("/support")}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="nav-support-mc"
-          >
-            <Heart className="w-5 h-5" />
-            <span className="text-xs">Apoio</span>
-          </button>
-          <button
-            onClick={() => navigate("/meu-cuidado")}
-            className="flex flex-col items-center gap-1 text-brand-teal"
-            data-testid="nav-jornada-mc"
-          >
-            <BookOpen className="w-5 h-5" />
-            <span className="text-xs font-medium">Sua Jornada</span>
-          </button>
-        </div>
-      </nav>
+      <BottomNav />
     </div>
   );
 }
