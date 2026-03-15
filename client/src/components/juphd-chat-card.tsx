@@ -62,7 +62,7 @@ export default function JuPHDChatCard({
             </span>
             <span className="lumina-status-pill mt-0.5">
               <span className="lumina-status-dot" aria-hidden="true" />
-              Ativa
+              ATIVA
             </span>
           </div>
         </div>
