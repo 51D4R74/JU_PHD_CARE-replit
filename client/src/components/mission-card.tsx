@@ -52,8 +52,8 @@ export function MissionMiniCard({ mission, status, onSelect }: MissionMiniCardPr
 
   return (
     <motion.button
-      whileTap={isDone ? {} : { scale: 0.95 }}
-      onClick={() => !isDone && onSelect(mission)}
+      whileTap={{ scale: 0.95 }}
+      onClick={() => onSelect(mission)}
       className={`flex flex-col items-center gap-1.5 rounded-2xl p-3 text-center transition-all min-h-[100px] w-full ${
         isDone
           ? "bg-emerald-50 border border-emerald-200/60 opacity-80"
