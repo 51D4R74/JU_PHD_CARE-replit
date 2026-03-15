@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { GearSix, Bell, Moon, Clock, CaretLeft } from "@phosphor-icons/react";
+import { GearSix, Bell, Moon, CaretLeft } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -291,39 +291,6 @@ export default function SettingsPage() {
                 </div>
               </div>
             )}
-          </motion.section>
-        )}
-
-        {/* Daily limit */}
-        {settings.notifications.enabled && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            className="glass-card rounded-2xl p-4"
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              <h2 className="text-xs font-semibold text-muted-foreground">No máximo por dia</h2>
-            </div>
-            <div className="flex items-center gap-3">
-              {[1, 2, 3, 5].map((n) => (
-                <button
-                  key={n}
-                  onClick={() => updateNotif({ maxPerDay: n })}
-                  className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    settings.notifications.maxPerDay === n
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-white/50 text-muted-foreground hover:bg-white/70"
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-2">
-              Até {settings.notifications.maxPerDay} notificação{settings.notifications.maxPerDay > 1 ? "ões" : ""} por dia
-            </p>
           </motion.section>
         )}
 
