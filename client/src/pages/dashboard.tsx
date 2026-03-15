@@ -79,6 +79,7 @@ const CHECKIN_REMINDER_KEY = "lumina_checkin_reminder_date";
 const LEGACY_CHECKIN_REMINDER_KEY = "juphdcare_checkin_reminder_date";
 const SETTINGS_KEY = "lumina_settings";
 const LEGACY_SETTINGS_KEY = "juphdcare_settings";
+const REMINDER_CARD_DISMISSED_KEY = "lumina_reminder_card_dismissed";
 
 function todayKey(): string {
   return new Date().toISOString().slice(0, 10);
@@ -380,7 +381,11 @@ function ReminderActivationCard({ onEnable }: Readonly<{ onEnable: () => void }>
             <p className="mt-1 text-sm text-muted-foreground">
               Quando o check-in do dia abrir, a JuPHD pode te avisar sem você precisar caçar a tela.
             </p>
-            <Button type="button" onClick={onEnable} className="mt-3 rounded-xl bg-brand-teal hover:bg-brand-teal/90">
+            <Button
+              type="button"
+              onClick={onEnable}
+              className="mt-3 rounded-full bg-gradient-to-r from-brand-teal to-brand-navy px-5 text-white hover:opacity-90"
+            >
               Ativar lembretes
             </Button>
           </div>
@@ -677,6 +682,9 @@ export default function DashboardPage() {
   const [isStandalone, setIsStandalone] = useState(() => isStandaloneMode());
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(getInitialNotificationPermission);
   const [lastCheckinReminderDate, setLastCheckinReminderDate] = useState<string | null>(() => loadLastCheckinReminderDate());
+  const [reminderCardDismissed, setReminderCardDismissed] = useState<boolean>(() =>
+    localStorage.getItem(REMINDER_CARD_DISMISSED_KEY) === "1",
+  );
   // Track local completion to show celebration immediately (before server refetch)
   const [justCompleted, setJustCompleted] = useState(false);
 
@@ -809,6 +817,9 @@ export default function DashboardPage() {
   }, [pulseState]);
 
   const handleEnableReminders = useCallback(async () => {
+    localStorage.setItem(REMINDER_CARD_DISMISSED_KEY, "1");
+    setReminderCardDismissed(true);
+
     if (typeof Notification === "undefined") {
       return;
     }
@@ -825,8 +836,8 @@ export default function DashboardPage() {
     }
 
     toast({
-      title: "Lembretes não ativados",
-      description: "Se quiser, você pode liberar depois nas permissões do navegador.",
+      title: "Tudo certo",
+      description: "Se quiser ativar depois, é só acessar as permissões do navegador.",
     });
   }, [toast]);
 
@@ -856,6 +867,7 @@ export default function DashboardPage() {
   const activePulseWindowId = pulseState ? getActivePulseWindowId(pulseState) : null;
   const shouldShowPulseCard = pulseState !== undefined && dismissedPulseWindow !== activePulseWindowId;
   const shouldOfferReminderActivation = !checkedIn
+    && !reminderCardDismissed
     && typeof Notification !== "undefined"
     && notificationPermission !== "granted"
     && canSendCheckinReminders();
