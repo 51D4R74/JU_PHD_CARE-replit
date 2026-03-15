@@ -44,12 +44,10 @@ function resolveHero(scores: TodayScores): SkyHeroData {
   return getDefaultSkyHero();
 }
 
-function buildOverlayGradient(dimOverlay: number): string {
-  const topAlpha = Math.max(0.02, dimOverlay * 0.15);
-  const midAlpha = Math.max(0.06, dimOverlay * 0.25);
-  const bottomAlpha = Math.min(0.65, dimOverlay + 0.12);
-  const baseAlpha = Math.min(0.72, dimOverlay + 0.18);
-  return `linear-gradient(to bottom, rgba(0,0,0,${topAlpha.toFixed(2)}) 0%, rgba(0,0,0,${midAlpha.toFixed(2)}) 35%, rgba(0,0,0,${bottomAlpha.toFixed(2)}) 78%, rgba(0,0,0,${baseAlpha.toFixed(2)}) 100%)`;
+function buildBottomScrim(dimOverlay: number): string {
+  const peakAlpha = Math.min(0.75, dimOverlay + 0.22);
+  const midAlpha = Math.min(0.55, dimOverlay + 0.08);
+  return `linear-gradient(to top, rgba(0,0,0,${peakAlpha.toFixed(2)}) 0%, rgba(0,0,0,${midAlpha.toFixed(2)}) 35%, rgba(0,0,0,0.12) 60%, transparent 80%)`;
 }
 
 // ── Domain pill ───────────────────────────────────
@@ -106,10 +104,28 @@ export default function SkyHero({
         draggable={false}
       />
 
-      {/* Adaptive gradient overlay — intensity driven by tier */}
+      {/* Layer 1: Bottom-up scrim — protects text content zone */}
       <div
         className="absolute inset-0"
-        style={{ background: buildOverlayGradient(hero.dimOverlay) }}
+        style={{ background: buildBottomScrim(hero.dimOverlay) }}
+        aria-hidden="true"
+      />
+
+      {/* Layer 2: Top-down fade — protects controls zone */}
+      <div
+        className="absolute inset-x-0 top-0 h-24 pointer-events-none"
+        style={{
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.12) 50%, transparent 100%)",
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Layer 3: Radial content scrim — darkens the text cluster zone */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse 90% 45% at 50% 68%, rgba(0,0,0,0.18) 0%, transparent 100%)",
+        }}
         aria-hidden="true"
       />
 
@@ -117,21 +133,12 @@ export default function SkyHero({
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: "radial-gradient(ellipse at 50% 85%, rgba(255,180,50,0.10) 0%, transparent 55%)",
+          background: "radial-gradient(ellipse at 50% 85%, rgba(255,180,50,0.08) 0%, transparent 55%)",
         }}
         aria-hidden="true"
       />
 
-      {/* Top fade band for controls readability */}
-      <div
-        className="absolute inset-x-0 top-0 h-20 pointer-events-none"
-        style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, transparent 100%)",
-        }}
-        aria-hidden="true"
-      />
-
-      {/* Controls bar — transparent band */}
+      {/* Controls bar */}
       <div className="relative z-10 px-4 pt-4">
         <motion.div
           initial={{ opacity: 0, y: -8 }}
@@ -139,7 +146,9 @@ export default function SkyHero({
           transition={{ duration: 0.4 }}
           className="sky-controls-band flex items-center justify-between px-2 py-2"
         >
-          <AnimatedBrandLogo size="compact" showWordmark={false} />
+          <div className="sky-logo-glass flex items-center justify-center rounded-full">
+            <AnimatedBrandLogo size="compact" showWordmark={false} />
+          </div>
           <div className="flex items-center gap-2">
             <SolarPointsBadge points={solarPoints} />
             <NotificationBadge onClick={onOpenNotifications} />
@@ -198,7 +207,7 @@ export default function SkyHero({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.42, duration: 0.5 }}
-            className="text-sky-readable mt-2 max-w-xs text-center text-base leading-relaxed opacity-85"
+            className="text-sky-readable mt-2 max-w-xs text-center text-base leading-relaxed"
           >
             {subtitle}
           </motion.p>
