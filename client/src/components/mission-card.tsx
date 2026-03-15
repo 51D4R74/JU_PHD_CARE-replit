@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "@phosphor-icons/react";
-import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import {
   Drawer,
   DrawerContent,
@@ -11,6 +10,8 @@ import {
   DrawerFooter,
 } from "@/components/ui/drawer";
 import { Checkbox } from "@/components/ui/checkbox";
+import type { MissionCategory } from "@/lib/mission-engine";
+import { CATEGORY_LABELS, CATEGORY_COLORS } from "@/lib/mission-engine";
 
 export type MissionStatus = "pending" | "done";
 
@@ -18,7 +19,6 @@ export interface MissionDef {
   id: string;
   title: string;
   description: string;
-  icon: PhosphorIcon;
   points: number;
   category: string;
 }
@@ -30,7 +30,7 @@ type MissionMiniCardProps = Readonly<{
 }>;
 
 const ENCOURAGEMENTS = [
-  "Bom pra você! ☀️",
+  "Bom pra você!",
   "Pequeno gesto, grande cuidado.",
   "Isso conta mais do que parece.",
   "Você merece esse momento.",
@@ -48,32 +48,23 @@ function pickEncouragement(missionId: string): string {
 
 export function MissionMiniCard({ mission, status, onSelect }: MissionMiniCardProps) {
   const isDone = status === "done";
-  const Icon = mission.icon;
 
   return (
     <motion.button
       whileTap={{ scale: 0.95 }}
       onClick={() => onSelect(mission)}
-      className={`flex flex-col items-center gap-1.5 rounded-2xl p-3 text-center transition-all min-h-[100px] w-full ${
+      className={`flex flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center transition-all h-[90px] w-full ${
         isDone
           ? "bg-emerald-50 border border-emerald-200/60 opacity-80"
           : "glass-card hover:border-brand-teal/25 hover:shadow-sm cursor-pointer"
       }`}
       aria-label={isDone ? `${mission.title} — concluída` : mission.title}
     >
-      <div
-        className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-          isDone ? "bg-emerald-500" : "bg-brand-navy/8"
-        }`}
-      >
-        {isDone ? (
-          <Check className="w-4.5 h-4.5 text-white" weight="bold" />
-        ) : (
-          <Icon className="w-4.5 h-4.5 text-brand-navy" weight="duotone" />
-        )}
-      </div>
+      {isDone && (
+        <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" weight="bold" />
+      )}
       <span
-        className={`text-[11px] font-medium leading-tight line-clamp-2 ${
+        className={`text-[12px] font-medium leading-tight line-clamp-2 ${
           isDone ? "line-through text-muted-foreground" : "text-foreground"
         }`}
       >
@@ -131,7 +122,9 @@ export function MissionDetailDrawer({
 
   if (!mission) return null;
 
-  const Icon = mission.icon;
+  const cat = mission.category as MissionCategory;
+  const catLabel = CATEGORY_LABELS[cat] ?? mission.category;
+  const catColor = CATEGORY_COLORS[cat] ?? "bg-gray-100 text-gray-700";
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -144,20 +137,21 @@ export function MissionDetailDrawer({
             <motion.div
               animate={celebrating ? { scale: [1, 1.2, 1] } : {}}
               transition={{ duration: 0.4 }}
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto ${
-                isDone ? "bg-emerald-500" : "bg-brand-navy/8"
-              }`}
+              className="flex items-center justify-center gap-2 mx-auto"
             >
               {isDone ? (
                 <motion.div
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                  className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center"
                 >
-                  <Check className="w-7 h-7 text-white" weight="bold" />
+                  <Check className="w-5 h-5 text-white" weight="bold" />
                 </motion.div>
               ) : (
-                <Icon className="w-7 h-7 text-brand-navy" weight="duotone" />
+                <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${catColor}`}>
+                  {catLabel}
+                </span>
               )}
             </motion.div>
           </div>
