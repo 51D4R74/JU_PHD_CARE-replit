@@ -178,6 +178,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen gradient-sunrise flex flex-col">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-accent/8 rounded-full blur-[150px]" />
+        <div className="absolute bottom-0 right-0 w-[400px] h-[300px] bg-brand-teal/5 rounded-full blur-[120px]" />
       </div>
 
       {/* Skip button */}
@@ -226,13 +227,13 @@ export default function OnboardingPage() {
         {/* Dots indicator */}
         <div className="flex justify-center gap-2">
           {SCREENS.map((s, i) => {
-            let dotClass = "w-1.5 bg-muted-foreground/20";
-            if (i === step) dotClass = "w-6 bg-primary";
-            else if (i < step) dotClass = "w-1.5 bg-primary/40";
+            let dotClass = "stepper-dot";
+            if (i === step) dotClass = "stepper-dot active";
+            else if (i < step) dotClass = "stepper-dot done";
             return (
               <div
                 key={s.id}
-                className={`h-1.5 rounded-full transition-all duration-300 ${dotClass}`}
+                className={dotClass}
               />
             );
           })}

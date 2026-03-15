@@ -216,10 +216,11 @@ export default function MeuCuidadoPage() {
             {domains.map((d) => {
               const score = scores.domainScores[d.id] ?? 0;
               const narrative = getDomainNarrative(d.id, score);
+              const scoreBorderClass = score >= 75 ? "card-score-good" : score >= 50 ? "card-score-moderate" : score >= 25 ? "card-score-attention" : "card-score-critical";
               return (
                 <div
                   key={d.id}
-                  className="flex items-center gap-3 rounded-2xl border border-border/40 bg-card px-4 py-3"
+                  className={`flex items-center gap-3 rounded-2xl border border-border/40 bg-card px-4 py-3 ${scoreBorderClass}`}
                 >
                   <span className="text-lg flex-shrink-0" role="img" aria-hidden="true">
                     {narrative.emoji}

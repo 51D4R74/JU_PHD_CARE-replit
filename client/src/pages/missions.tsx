@@ -183,14 +183,14 @@ export default function MissionCenterPage() {
             <span className="text-sm font-medium">
               {completedCount}/{totalMissions} missões
             </span>
-            <span className="text-xs text-muted-foreground">{progress}%</span>
+            <span className="text-xs text-muted-foreground font-medium">{progress}%</span>
           </div>
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+          <div className="progress-track" style={{ height: 8 }}>
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="h-full rounded-full bg-brand-gold"
+              className="progress-fill"
             />
           </div>
           {completedCount === totalMissions && totalMissions > 0 && (

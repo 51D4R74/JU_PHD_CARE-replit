@@ -85,7 +85,7 @@ export default function SkyHero({
     : "Como você está hoje?";
 
   return (
-    <section className="relative w-full min-h-[34svh] sm:min-h-[42vh]">
+    <section className="relative w-full min-h-[36svh] sm:min-h-[44vh]">
       {/* Sky photo background */}
       <motion.img
         key={hero.src}
@@ -102,7 +102,16 @@ export default function SkyHero({
       <div
         className="absolute inset-0"
         style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.12) 40%, rgba(0,0,0,0.48) 100%)",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.08) 30%, rgba(0,0,0,0.45) 75%, rgba(0,0,0,0.55) 100%)",
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Warm sunrise glow overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse at 50% 90%, rgba(255,180,50,0.08) 0%, transparent 60%)",
         }}
         aria-hidden="true"
       />

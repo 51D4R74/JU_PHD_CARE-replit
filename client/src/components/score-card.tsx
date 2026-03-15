@@ -74,8 +74,10 @@ export default function ScoreCard({
     );
   }
 
+  const borderClass = score >= 75 ? "card-score-good" : score >= 50 ? "card-score-moderate" : score >= 25 ? "card-score-attention" : "card-score-critical";
+
   return (
-    <Card className={`overflow-hidden ${className}`.trim()}>
+    <Card className={`overflow-hidden ${borderClass} ${className}`.trim()}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
@@ -95,7 +97,7 @@ export default function ScoreCard({
 
       <CardContent className="pt-0">
         {/* Progress bar */}
-        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div className="progress-track">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${Math.min(score, 100)}%` }}

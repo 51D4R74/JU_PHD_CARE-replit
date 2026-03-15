@@ -183,7 +183,7 @@ export default function SettingsPage() {
         >
           <h2 className="text-xs font-semibold text-muted-foreground mb-3">Perfil</h2>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
+            <div className="w-10 h-10 rounded-full bg-brand-navy/10 flex items-center justify-center text-sm font-bold text-brand-navy">
               {firstName.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1">
@@ -332,14 +332,19 @@ export default function SettingsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
+          className="space-y-3"
         >
           <Button
             variant="outline"
             onClick={() => { void logout(); navigate("/"); }}
-            className="w-full rounded-xl text-sm"
+            className="w-full rounded-xl text-sm border-score-critical/20 text-score-critical hover:bg-score-critical/5"
           >
             Sair da conta
           </Button>
+          <div className="privacy-note">
+            <Moon className="w-3 h-3 inline mr-1 opacity-60" />
+            Seus dados são protegidos e nunca compartilhados com sua empresa. Conforme NR-1 e LGPD.
+          </div>
         </motion.section>
       </main>
 

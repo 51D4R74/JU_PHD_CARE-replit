@@ -143,7 +143,7 @@ export default function LoginPage() {
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-md relative z-10"
       >
-        <div className="text-center mb-8">
+        <div className="text-center mb-10">
           <AnimatedBrandLogo className="mx-auto" />
         </div>
 
@@ -247,6 +247,11 @@ export default function LoginPage() {
                   <User className="w-4 h-4 mr-2" />
                   Criar nova conta
                 </Button>
+              </div>
+
+              <div className="privacy-note mt-5">
+                <Lock className="w-3 h-3 inline mr-1 opacity-60" />
+                Seus dados são protegidos e nunca compartilhados com sua empresa. Conforme NR-1 e LGPD.
               </div>
             </motion.div>
           )}

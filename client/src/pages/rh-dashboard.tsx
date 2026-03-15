@@ -6,7 +6,7 @@ import {
   AreaChart, Area, Cell, PieChart, Pie,
 } from "recharts";
 import {
-  Shield, Warning, TrendUp, UsersThree, Activity, Brain,
+  Shield, Warning, TrendUp, UsersThree, Pulse, Brain,
   SignOut, ChartBar, Flame, Bell,
   Trophy, Heart, Percent,
 } from "@phosphor-icons/react";
@@ -215,7 +215,7 @@ export default function RHDashboardPage() {
             delay={0.1}
           />
           <RHAggregateCard
-            icon={<Activity className="w-5 h-5 text-brand-navy" />}
+            icon={<Pulse className="w-5 h-5 text-brand-navy" />}
             label="Alertas Ativos"
             value={data.alerts.length}
             subtitle={`${data.alerts.filter((a) => a.severity === "high").length} alta severidade`}
@@ -527,12 +527,13 @@ export default function RHDashboardPage() {
         </motion.div>
 
         {/* Privacy footer */}
-        <div className="mt-6 text-center pb-8">
-          <p className="text-[10px] text-muted-foreground/50 max-w-md mx-auto leading-relaxed">
+        <div className="mt-8 pb-8">
+          <div className="privacy-note max-w-lg mx-auto">
+            <Shield className="w-3.5 h-3.5 inline mr-1 opacity-60" />
             Este painel exibe apenas dados agregados. Nenhum colaborador individual
             é identificado. Taxas de participação são percentuais por departamento,
-            sem nomes ou IDs.
-          </p>
+            sem nomes ou IDs. Conforme NR-1 e LGPD.
+          </div>
         </div>
       </main>
     </div>

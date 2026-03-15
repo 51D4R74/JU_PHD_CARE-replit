@@ -412,6 +412,10 @@ export default function ReportPage() {
           </motion.section>
         )}
 
+        <div className="privacy-note mt-2 mb-4">
+          Dados visíveis apenas para você. Nenhuma informação é compartilhada com sua empresa.
+        </div>
+
       </main>
 
       <BottomNav />

@@ -211,6 +211,10 @@ export default function DenunciaPage() {
           <p className="text-sm text-muted-foreground mt-2">
             Um espaço seguro e confidencial. Seu relato será anônimo.
           </p>
+          <div className="confidential-badge mx-auto mt-3">
+            <Lock className="w-3.5 h-3.5" />
+            Canal protegido · NR-1 · LGPD
+          </div>
         </motion.div>
 
         <motion.div
@@ -544,6 +548,13 @@ export default function DenunciaPage() {
               >
                 {isSending ? "Enviando..." : getPrimaryButtonLabel()}
               </Button>
+
+              <div className="privacy-note mt-3">
+                <Lock className="w-3 h-3 inline mr-1 opacity-60" />
+                {reportMode === "anonymous"
+                  ? "Relato 100% anônimo. Nenhuma informação identificável é armazenada."
+                  : "Seus dados são protegidos conforme NR-1 e LGPD."}
+              </div>
             </motion.div>
           </motion.div>
         )}

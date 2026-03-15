@@ -589,14 +589,14 @@ export default function InlineCheckin({
     <div className="glass-card rounded-2xl p-4 overflow-hidden">
       {/* Progress bar */}
       <div className="flex items-center gap-3 mb-3">
-        <div className="flex-1 h-1 bg-background/40 rounded-full overflow-hidden">
+        <div className="progress-track flex-1">
           <motion.div
-            className="h-full bg-primary rounded-full"
+            className="progress-fill"
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           />
         </div>
-        <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+        <span className="text-[10px] text-muted-foreground whitespace-nowrap font-medium">
           {currentStep + 1}/{steps.length}
         </span>
       </div>
@@ -651,10 +651,10 @@ export default function InlineCheckin({
 
       {/* Privacy note — show only on first question */}
       {currentStep === 0 && !chatTrigger && (
-        <p className="text-xs text-muted-foreground/80 mt-3 flex items-center gap-1.5">
-          <Lock className="w-3 h-3 flex-shrink-0" />
+        <div className="privacy-note mt-3">
+          <Lock className="w-3 h-3 flex-shrink-0 inline mr-1 opacity-60" />
           Respostas confidenciais — nada chega ao RH sem sua autorização.
-        </p>
+        </div>
       )}
     </div>
   );

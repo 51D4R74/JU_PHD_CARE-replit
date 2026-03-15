@@ -11,7 +11,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Drop, PauseCircle, Wind, ClipboardText, Heart,
-  CaretRight, CalendarDots, Trophy, Sparkle, Confetti, Target,
+  CaretRight, CalendarDots, Trophy, Sparkle, Confetti, Target, Lock,
 } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
@@ -361,12 +361,13 @@ export default function TeamChallengePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="mt-4 text-center"
+          className="mt-4"
         >
-          <p className="text-[10px] text-muted-foreground/60 leading-relaxed max-w-xs mx-auto">
+          <div className="privacy-note max-w-xs mx-auto">
+            <Lock className="w-3 h-3 inline mr-1 opacity-60" />
             Suas contribuições individuais são privadas. Apenas o total coletivo é visível.
             Não há ranking entre participantes.
-          </p>
+          </div>
         </motion.section>
       </main>
 
