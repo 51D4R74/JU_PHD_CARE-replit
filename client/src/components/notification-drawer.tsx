@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { X, Bell } from "@phosphor-icons/react";
 import { devNow } from "@shared/dev-clock";
@@ -33,6 +34,7 @@ function timeAgo(ts: number): string {
 }
 
 export default function NotificationDrawer({ open, onClose }: Readonly<NotificationDrawerProps>) {
+  const [, navigate] = useLocation();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   useEffect(() => {
@@ -46,9 +48,13 @@ export default function NotificationDrawer({ open, onClose }: Readonly<Notificat
     setNotifications(getNotifications());
   };
 
-  const handleMarkRead = (id: string) => {
-    markRead(id);
+  const handleNotificationClick = (n: AppNotification) => {
+    markRead(n.id);
     setNotifications(getNotifications());
+    if (n.type === "mission") {
+      onClose();
+      navigate("/missions");
+    }
   };
 
   if (!open) return null;
@@ -117,7 +123,7 @@ export default function NotificationDrawer({ open, onClose }: Readonly<Notificat
                     className={`w-full cursor-pointer px-4 py-3.5 text-left transition-colors hover:bg-surface-warm/70 ${
                       n.read ? "" : "bg-primary/5"
                     }`}
-                    onClick={() => handleMarkRead(n.id)}
+                    onClick={() => handleNotificationClick(n)}
                   >
                     <div className="flex items-start gap-3">
                       <span className="text-base mt-0.5" role="img" aria-label={n.type}>

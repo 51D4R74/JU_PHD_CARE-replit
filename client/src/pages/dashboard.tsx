@@ -16,7 +16,8 @@ import { queryClient } from "@/lib/queryClient";
 import { fetchCurrentRelationalPulse, submitRelationalPulse } from "@/lib/pulse-client";
 import { type TodayScores } from "@/lib/score-engine";
 import { computeDiscoveries, DISCOVERY_MIN_RECORDS } from "@/lib/discovery-engine";
-import { POINT_VALUES } from "@/lib/mission-engine";
+import { POINT_VALUES, selectMissions } from "@/lib/mission-engine";
+import { useMissionNotificationScheduler } from "@/hooks/use-mission-notification-scheduler";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -864,6 +865,17 @@ export default function DashboardPage() {
     setLastCheckinReminderDate(date);
   }, []);
   useCheckinReminderNotification(checkedIn, notificationPermission, lastCheckinReminderDate, handleReminderSent);
+
+  const schedulerMissions = useMemo(() => {
+    const completedIds = todayMissions.map((m) => m.missionId);
+    return selectMissions({
+      skyState: scores.skyState,
+      domainScores: scores.domainScores,
+      flags: scores.flags,
+      recentMissionIds: completedIds,
+    });
+  }, [scores.skyState, scores.domainScores, scores.flags, todayMissions]);
+  useMissionNotificationScheduler(schedulerMissions);
 
   return (
     <div className="min-h-screen bg-background">

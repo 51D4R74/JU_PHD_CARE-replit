@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import ConstancyDots from "@/components/constancy-dots";
 import InsightCard from "@/components/insight-card";
 import JuPHDChatCard from "@/components/juphd-chat-card";
+import WellnessReadinessCard from "@/components/wellness-readiness-card";
 import SupportMessageCard from "@/components/support-message-card";
 import { computeTagCloud, DOMAIN_COLORS, getDomainMeta, getDomainNarrative, DOMAIN_WARM_NAMES, type TagCount, type TodayScores } from "@/lib/score-engine";
 import type { ScoreDomainId } from "@/lib/checkin-data";
@@ -204,6 +205,11 @@ export default function MeuCuidadoPage() {
               : `${allHistory.length} check-in${plural(allHistory.length, "", "s")} no total.`}
           </p>
         </motion.section>
+
+        {/* ── Wellness readiness panel (Oura-inspired) ── */}
+        {scores.hasCheckedIn && (
+          <WellnessReadinessCard scores={scores} />
+        )}
 
         {/* ── Wellness narrative — today's story ── */}
         {scores.hasCheckedIn && (

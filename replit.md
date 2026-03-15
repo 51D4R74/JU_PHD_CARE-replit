@@ -54,6 +54,21 @@ Corporate mental health platform focused on employee well-being (prevention and 
 - **Location**: Feed is always visible below LuminaCard on support page; compose form is in "Deixar" tab
 - **Audio uploads**: Saved to `uploads/` directory, served at `/uploads/<filename>`
 
+## Wellness Readiness Panel (Oura-inspired)
+- **Component**: `client/src/components/wellness-readiness-card.tsx` — 4 bar indicators (Energia, Foco, Equilíbrio, Conexão) derived from check-in domain scores
+- Shown on Meu Cuidado page after check-in with adaptive phrase
+- Color-coded bars: green (75+), gold (50+), orange (25+), red (<25)
+
+## Mission Notification Scheduler
+- **Hook**: `client/src/hooks/use-mission-notification-scheduler.ts` — schedules setTimeout at 08:30, 12:10, 17:00
+- Picks category-relevant mission for each time slot (morning=movement/focus, lunch=connection/social, evening=closure/gratitude)
+- Deduplicates via localStorage key `lumina_mission_notif_sent`; respects quiet hours from settings
+- Integrated in dashboard.tsx on mount
+
+## Notification Deep-Linking
+- Mission-type notifications in NotificationDrawer navigate to `/missions` on click
+- Uses wouter `navigate()` from the drawer component
+
 ## User Flows
 1. **Login** → Dashboard (collaborator) or RH Dashboard (hr role)
 2. **Dashboard** → Check-in wizard (5 steps) → Save → Back to dashboard
