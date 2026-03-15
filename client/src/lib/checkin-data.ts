@@ -13,6 +13,7 @@ import {
   TbCloudRain,
   TbCloud,
   TbCloudBolt,
+  TbBolt,
   TbBattery4,
   TbBattery2,
   TbBattery1,
@@ -35,6 +36,7 @@ import {
   TbUserOff,
   TbCoin,
   TbHeartbeat,
+  TbHeartHandshake,
   TbDots,
 } from "react-icons/tb";
 
@@ -389,10 +391,10 @@ export const DAILY_STEPS: CheckInStep[] = [
     type: "single",
     question: "Como você dormiu?",
     options: [
-      { id: "restorative", label: "Dormi bem", icon: TbSparkles, score: 4, color: "text-score-good", bgColor: "from-score-good/20 to-score-good/5" },
-      { id: "acceptable", label: "Sono razoável", icon: TbMoonStars, score: 3, color: "text-score-moderate", bgColor: "from-score-moderate/20 to-score-moderate/5" },
+      { id: "restorative", label: "Acordei renovado(a)", icon: TbSparkles, score: 4, color: "text-score-good", bgColor: "from-score-good/20 to-score-good/5" },
+      { id: "acceptable", label: "Noite tranquila", icon: TbMoonStars, score: 3, color: "text-score-moderate", bgColor: "from-score-moderate/20 to-score-moderate/5" },
       { id: "agitated", label: "Noite agitada", icon: TbCloudStorm, score: 2, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
-      { id: "terrible", label: "Quase não dormi", icon: TbSkull, score: 1, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
+      { id: "terrible", label: "Acordei exausto(a)", icon: TbBatteryOff, score: 1, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
     ],
   },
   // Q2: Energy → Recarga
@@ -401,10 +403,10 @@ export const DAILY_STEPS: CheckInStep[] = [
     type: "single",
     question: "Como tá a energia?",
     options: [
-      { id: "full", label: "100%", icon: TbBattery4, score: 4, color: "text-score-good", bgColor: "from-score-good/20 to-score-good/5" },
+      { id: "full", label: "No pique", icon: TbBolt, score: 4, color: "text-score-good", bgColor: "from-score-good/20 to-score-good/5" },
       { id: "ok", label: "Dá pro gasto", icon: TbBattery2, score: 3, color: "text-score-moderate", bgColor: "from-score-moderate/20 to-score-moderate/5" },
-      { id: "low", label: "Tá difícil", icon: TbBattery1, score: 2, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
-      { id: "empty", label: "No vermelho", icon: TbBatteryOff, score: 1, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
+      { id: "low", label: "Tô no limite", icon: TbBattery1, score: 2, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
+      { id: "empty", label: "Esgotado(a)", icon: TbBatteryOff, score: 1, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
     ],
     followUp: {
       question: "Atrapalhou o trabalho?",
@@ -421,7 +423,7 @@ export const DAILY_STEPS: CheckInStep[] = [
     type: "single",
     question: "Como tá se sentindo?",
     options: [
-      { id: "good", label: "Suave", icon: TbMoodHappy, score: 4, color: "text-score-good", bgColor: "from-score-good/20 to-score-good/5" },
+      { id: "good", label: "Tranquilo(a)", icon: TbMoodHappy, score: 4, color: "text-score-good", bgColor: "from-score-good/20 to-score-good/5" },
       { id: "tired", label: "Cansado", icon: TbZzz, score: 3, color: "text-score-moderate", bgColor: "from-score-moderate/20 to-score-moderate/5" },
       { id: "heavy", label: "Tô pesado", icon: TbMoodSad, score: 2, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
       { id: "overwhelmed", label: "No limite", icon: TbMoodNervous, score: 1, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
@@ -433,7 +435,7 @@ export const DAILY_STEPS: CheckInStep[] = [
     type: "single",
     question: "Como o dia te deixou?",
     options: [
-      { id: "light", label: "De boa", icon: TbMoodSmile, score: 4, color: "text-score-good", bgColor: "from-score-good/20 to-score-good/5" },
+      { id: "light", label: "Em paz", icon: TbMoodSmile, score: 4, color: "text-score-good", bgColor: "from-score-good/20 to-score-good/5" },
       { id: "tired_ok", label: "Cansado, mas inteiro", icon: TbZzz, score: 3, color: "text-score-moderate", bgColor: "from-score-moderate/20 to-score-moderate/5" },
       { id: "frustrated", label: "Frustrado", icon: TbMoodAngry, score: 2, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
       { id: "overwhelmed", label: "Esgotado", icon: TbMoodNervous, score: 1, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
@@ -445,10 +447,10 @@ export const DAILY_STEPS: CheckInStep[] = [
     type: "single",
     question: "Como foi o clima ao seu redor?",
     options: [
-      { id: "supported", label: "Clima bom", icon: TbCheck, score: 4, color: "text-score-good", bgColor: "from-score-good/20 to-score-good/5" },
-      { id: "normal", label: "Normal", icon: TbMoodEmpty, score: 3, color: "text-score-moderate", bgColor: "from-score-moderate/20 to-score-moderate/5" },
-      { id: "tense", label: "Clima tenso", icon: TbTemperature, score: 2, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5", flag: "climate_risk" },
-      { id: "pressured", label: "Me senti pressionado", icon: TbAlertTriangle, score: 1, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5", flag: "harassment_signal", triggerChat: true },
+      { id: "supported", label: "Me senti apoiado(a)", icon: TbHeartHandshake, score: 4, color: "text-score-good", bgColor: "from-score-good/20 to-score-good/5" },
+      { id: "normal", label: "Dia normal", icon: TbMoodEmpty, score: 3, color: "text-score-moderate", bgColor: "from-score-moderate/20 to-score-moderate/5" },
+      { id: "tense", label: "Clima pesado", icon: TbTemperature, score: 2, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5", flag: "climate_risk" },
+      { id: "pressured", label: "Me senti pressionado(a)", icon: TbCloudBolt, score: 1, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5", flag: "harassment_signal", triggerChat: true },
     ],
   },
   // Q6: Context tags (optional, no score) — PRD v2.0 S5

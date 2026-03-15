@@ -47,8 +47,8 @@
   /* Score tier semantic tokens */
   --score-good: 161 50% 38%;
   --score-good-foreground: 161 56% 28%;
-  --score-moderate: 43 82% 52%;
-  --score-moderate-foreground: 40 72% 35%;
+  --score-moderate: 180 38% 40%;
+  --score-moderate-foreground: 180 42% 30%;
   --score-attention: 24 78% 54%;
   --score-attention-foreground: 22 74% 38%;
   --score-critical: 0 68% 54%;
