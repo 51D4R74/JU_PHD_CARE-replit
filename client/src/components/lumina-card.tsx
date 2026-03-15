@@ -10,7 +10,7 @@
  */
 
 import { motion } from "framer-motion";
-import { Sparkle, CaretRight } from "@phosphor-icons/react";
+import { CaretRight } from "@phosphor-icons/react";
 import {
   type LuminaContext,
   selectLuminaMessage,
@@ -112,13 +112,6 @@ export default function LuminaCard({
             <LuminaAvatar size={40} />
 
             <div className="min-w-0 flex-1">
-              <div className="mb-1 flex items-center gap-1.5">
-                <span className="text-xs font-semibold tracking-wide text-brand-teal">
-                  JuPHD
-                </span>
-                <Sparkle className="h-3 w-3 text-brand-teal/60" weight="fill" />
-              </div>
-
               <p className="text-sm leading-relaxed text-foreground">
                 {msg.text}
               </p>

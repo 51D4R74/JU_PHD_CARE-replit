@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { devNow } from "@shared/dev-clock";
-import { CaretLeft, ShareNetwork, TrendUp, TrendDown, Minus, CalendarBlank } from "@phosphor-icons/react";
+import { CaretLeft, TrendUp, TrendDown, Minus, CalendarBlank } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import {
   ResponsiveContainer,
@@ -412,29 +412,6 @@ export default function ReportPage() {
           </motion.section>
         )}
 
-        {/* ── Share placeholder (T9) ── */}
-        {/* BACKLOG: enable when backend supports encrypted report sharing [future milestone] */}
-        <motion.section
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-        >
-          <button
-            disabled
-            className="w-full glass-card rounded-2xl p-4 border border-border/20 flex items-center gap-3 text-left opacity-50 cursor-not-allowed"
-            title="Em breve"
-          >
-            <div className="w-10 h-10 rounded-xl bg-muted/40 flex items-center justify-center flex-shrink-0">
-              <ShareNetwork className="w-5 h-5 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold">Compartilhar com um profissional</p>
-              <p className="text-xs text-muted-foreground">
-                Em breve — envie pro seu terapeuta ou médico(a).
-              </p>
-            </div>
-          </button>
-        </motion.section>
       </main>
 
       <BottomNav />
