@@ -573,7 +573,7 @@ export default function SupportCenterPage() {
                               (composeMode === "audio" && !audioBlob) ||
                               submitMessageMutation.isPending
                             }
-                            className="flex items-center gap-1.5 text-sm font-semibold text-white bg-brand-teal hover:bg-brand-teal/90 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-2.5 rounded-xl transition-colors shadow-sm"
+                            className="flex items-center gap-1.5 text-sm font-semibold text-white bg-brand-teal hover:bg-brand-teal/90 disabled:opacity-60 disabled:cursor-not-allowed px-5 py-2.5 rounded-xl transition-colors shadow-sm"
                           >
                             <PaperPlaneRight className="w-4 h-4" weight="bold" />
                             Enviar
