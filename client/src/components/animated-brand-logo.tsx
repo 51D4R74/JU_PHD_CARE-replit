@@ -65,7 +65,7 @@ export default function AnimatedBrandLogo({
             className="text-xs font-medium tracking-[0.07em] uppercase opacity-55"
             style={{ color: "hsl(var(--text-body))" }}
           >
-            Inteligência em saúde psicossocial
+            protegendo o que importa.
           </p>
         </motion.div>
       )}
