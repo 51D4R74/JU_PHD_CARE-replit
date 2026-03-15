@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check } from "@phosphor-icons/react";
 import {
   Drawer,
   DrawerContent,
@@ -53,32 +52,38 @@ export function MissionMiniCard({ mission, status, onSelect }: MissionMiniCardPr
     <motion.button
       whileTap={{ scale: 0.95 }}
       onClick={() => onSelect(mission)}
-      className={`flex flex-col items-center justify-center gap-2 rounded-2xl p-3 text-center transition-all h-[90px] w-full ${
+      className={`flex flex-col items-start gap-1.5 rounded-2xl p-3 text-left transition-all min-h-[90px] w-full ${
         isDone
           ? "bg-emerald-50 border border-emerald-200/60 opacity-80"
           : "glass-card hover:border-brand-teal/25 hover:shadow-sm cursor-pointer"
       }`}
       aria-label={isDone ? `${mission.title} — concluída` : mission.title}
     >
-      {isDone && (
-        <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" weight="bold" />
-      )}
       <span
-        className={`text-[12px] font-medium leading-tight line-clamp-2 ${
+        className={`text-[12px] font-medium leading-tight line-clamp-2 flex-1 ${
           isDone ? "line-through text-muted-foreground" : "text-foreground"
         }`}
       >
         {mission.title}
       </span>
-      <span
-        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-          isDone
-            ? "bg-emerald-100 text-emerald-700"
-            : "bg-brand-gold/15 text-brand-gold-dark"
-        }`}
-      >
-        +{mission.points} ☀️
-      </span>
+      <div className="flex items-center gap-1.5 w-full">
+        <span
+          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+            isDone
+              ? "bg-emerald-100 text-emerald-700"
+              : "bg-brand-gold/15 text-brand-gold-dark"
+          }`}
+        >
+          +{mission.points}
+        </span>
+        <span
+          className={`text-[9px] font-medium ml-auto ${
+            isDone ? "text-emerald-600" : "text-muted-foreground"
+          }`}
+        >
+          {isDone ? "Concluída" : "Pendente"}
+        </span>
+      </div>
     </motion.button>
   );
 }
@@ -135,24 +140,24 @@ export function MissionDetailDrawer({
               {celebrating && <CelebrationBurst />}
             </AnimatePresence>
             <motion.div
-              animate={celebrating ? { scale: [1, 1.2, 1] } : {}}
+              animate={celebrating ? { scale: [1, 1.15, 1] } : {}}
               transition={{ duration: 0.4 }}
               className="flex items-center justify-center gap-2 mx-auto"
             >
-              {isDone ? (
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                  className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center"
-                >
-                  <Check className="w-5 h-5 text-white" weight="bold" />
-                </motion.div>
-              ) : (
-                <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${catColor}`}>
-                  {catLabel}
-                </span>
-              )}
+              <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${
+                isDone ? "bg-emerald-100 text-emerald-700" : catColor
+              }`}>
+                {isDone ? "Concluída" : catLabel}
+              </span>
+              <span
+                className={`text-xs font-semibold px-3 py-1.5 rounded-full ${
+                  isDone
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-brand-gold/15 text-brand-gold-dark"
+                }`}
+              >
+                +{mission.points}
+              </span>
             </motion.div>
           </div>
           <DrawerTitle className="text-base font-semibold">
@@ -161,17 +166,6 @@ export function MissionDetailDrawer({
           <DrawerDescription className="text-sm leading-relaxed mt-1">
             {mission.description}
           </DrawerDescription>
-          <div className="flex justify-center mt-3">
-            <span
-              className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                isDone
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-brand-gold/15 text-brand-gold-dark"
-              }`}
-            >
-              +{mission.points} ☀️
-            </span>
-          </div>
         </DrawerHeader>
 
         <DrawerFooter className="pb-8">
@@ -195,8 +189,7 @@ export function MissionDetailDrawer({
                 animate={{ opacity: 1 }}
                 className="text-center py-2"
               >
-                <p className="text-sm text-emerald-600 font-medium flex items-center justify-center gap-1.5">
-                  <Check className="w-4 h-4" weight="bold" />
+                <p className="text-sm text-emerald-600 font-medium">
                   Concluída
                 </p>
               </motion.div>
