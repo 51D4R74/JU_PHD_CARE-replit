@@ -10,7 +10,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import SkyHero from "@/components/sky-hero";
 import NotificationDrawer from "@/components/notification-drawer";
 import InlineCheckin from "@/components/inline-checkin";
-import LuminaCard from "@/components/lumina-card";
+import JuPHDChatCard from "@/components/juphd-chat-card";
 import { useAuth } from "@/lib/auth";
 import { queryClient } from "@/lib/queryClient";
 import { fetchCurrentRelationalPulse, submitRelationalPulse } from "@/lib/pulse-client";
@@ -884,13 +884,12 @@ export default function DashboardPage() {
       </AnimatePresence>
 
       <main className="relative z-10 mx-auto max-w-lg px-4 pb-24 pt-5">
-        {/* Lumina — permanent AI companion card (AI sprint: swap engine for live RAG call) */}
-        <LuminaCard
-          context={hasCrisisSignal ? "dashboard-low" : "dashboard"}
+        <JuPHDChatCard
+          message={hasCrisisSignal
+            ? "Percebi que algo te incomodou. Estou aqui pra ouvir, sem julgamento."
+            : "Como foi até agora? Quero entender melhor o seu momento."}
           delay={0.32}
-          featured
           className="relative z-10"
-          onTap={() => navigate("/support")}
         />
 
         {/* Inline check-in OR post-check-in celebration */}

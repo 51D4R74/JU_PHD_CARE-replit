@@ -1,13 +1,22 @@
 import { useLocation } from "wouter";
 import { Sun, Sparkle, ShieldWarning, Heart, BookOpen } from "@phosphor-icons/react";
 
-const NAV_ITEMS = [
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
+
+interface NavItem {
+  readonly path: string;
+  readonly label: string;
+  readonly icon: PhosphorIcon;
+  readonly burst?: boolean;
+}
+
+const NAV_ITEMS: readonly NavItem[] = [
   { path: "/dashboard", label: "Início", icon: Sun },
   { path: "/missions", label: "Pra Você", icon: Sparkle },
   { path: "/denuncia", label: "Riscos", icon: ShieldWarning, burst: true },
   { path: "/support", label: "Apoio", icon: Heart },
   { path: "/meu-cuidado", label: "Sua Jornada", icon: BookOpen },
-] as const;
+];
 
 interface BottomNavProps {
   readonly variant?: "light" | "dark";

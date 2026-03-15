@@ -6,7 +6,7 @@ import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import SupportMessageCard from "@/components/support-message-card";
-import LuminaCard from "@/components/lumina-card";
+import JuPHDChatCard from "@/components/juphd-chat-card";
 import SolarPointsBadge from "@/components/solar-points-badge";
 import CommunityFeed from "@/components/community-feed";
 import { Textarea } from "@/components/ui/textarea";
@@ -266,13 +266,10 @@ export default function SupportCenterPage() {
           </button>
         </div>
 
-        {/* JuPHD companion — same featured card as home */}
-        <LuminaCard
-          context="support"
-          featured
+        <JuPHDChatCard
+          message="Estou aqui pra ouvir. Pode contar o que quiser, sem julgamento."
           delay={0.15}
           className="mt-4"
-          onTap={() => navigate("/denuncia")}
         />
 
         {/* Tab content — always above the mural */}

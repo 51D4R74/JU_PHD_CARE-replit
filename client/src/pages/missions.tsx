@@ -2,13 +2,14 @@ import React, { useState, useCallback, useMemo, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { devNow } from "@shared/dev-clock";
-import { CaretLeft, ChatCircleDots, SealCheck, Sparkle } from "@phosphor-icons/react";
+import { CaretLeft, ChatCircleDots, Sparkle } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MissionMiniCard, MissionDetailDrawer, type MissionDef, type MissionStatus } from "@/components/mission-card";
 import SolarPointsBadge from "@/components/solar-points-badge";
 import ConstancyDots from "@/components/constancy-dots";
 import Microcheck from "@/components/microcheck";
+import JuPHDChatCard from "@/components/juphd-chat-card";
 import { type TodayScores } from "@/lib/score-engine";
 import { selectMissions, POINT_VALUES } from "@/lib/mission-engine";
 import { recordNeedSupport } from "@/lib/support-engine";
@@ -223,40 +224,11 @@ export default function MissionCenterPage() {
           )}
         </motion.section>
 
-        {/* JuPHD institutional card */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12, duration: 0.4 }}
-          className="mt-3 relative overflow-hidden rounded-2xl border border-brand-teal/15 bg-card shadow-sm"
-        >
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.04]"
-            style={{
-              background: "linear-gradient(135deg, hsl(183 41% 36%), hsl(43 82% 58%) 60%, transparent 80%)",
-            }}
-            aria-hidden="true"
-          />
-          <div className="relative flex items-center gap-3 px-4 py-3.5">
-            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0" style={{ background: "linear-gradient(145deg, hsl(183 41% 36% / 0.08), hsl(43 82% 58% / 0.06))" }}>
-              <img
-                src="/juphd-icon.png"
-                alt="JuPHD"
-                className="h-full w-full object-contain p-[8%]"
-                style={{ filter: "drop-shadow(0 2px 6px rgba(42,166,166,0.15))" }}
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <img src="/juphd-nome.png" alt="JuPHD" className="h-3.5 object-contain" />
-                <SealCheck className="w-3.5 h-3.5 text-brand-teal flex-shrink-0" weight="fill" />
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Pequenas ações, grande cuidado. Escolhemos isso especialmente pra você.
-              </p>
-            </div>
-          </div>
-        </motion.div>
+        <JuPHDChatCard
+          message="Pequenas ações, grande cuidado. Quer contar como está se sentindo?"
+          delay={0.12}
+          className="mt-3"
+        />
 
         {/* Mission grid — 3 per row */}
         <section className="mt-5">

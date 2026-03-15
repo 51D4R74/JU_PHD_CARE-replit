@@ -8,6 +8,8 @@ import { useAuth } from "@/lib/auth";
 import { hasCompletedOnboarding } from "@/lib/onboarding-state";
 import PanicButton from "@/components/panic-button";
 import DevToolbar from "@/components/dev-toolbar";
+import { ChatbotProvider } from "@/lib/chatbot-context";
+import ChatbotDrawer from "@/components/chatbot-drawer";
 
 // ── Lazy-loaded pages ─────────────────────────────
 
@@ -120,10 +122,13 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
-        {isAuthenticated && <PanicButton />}
-        {process.env.NODE_ENV !== "production" && <DevToolbar />}
+        <ChatbotProvider>
+          <Toaster />
+          <Router />
+          {isAuthenticated && <PanicButton />}
+          {isAuthenticated && <ChatbotDrawer />}
+          {process.env.NODE_ENV !== "production" && <DevToolbar />}
+        </ChatbotProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
