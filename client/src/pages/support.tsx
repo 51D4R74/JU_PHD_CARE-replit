@@ -109,6 +109,31 @@ export default function SupportCenterPage() {
       const res = await apiRequest("POST", "/api/community-messages", payload);
       return res.json();
     },
+    onMutate: async (payload) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/community-messages"] });
+      const prev = queryClient.getQueryData(["/api/community-messages"]);
+      const optimisticMsg = {
+        id: `_pending_${Date.now()}`,
+        content: payload.content ?? null,
+        audioUrl: payload.audioUrl ?? null,
+        mediaType: payload.mediaType,
+        authorName: payload.anonymous ? null : null,
+        anonymous: payload.anonymous,
+        category: null,
+        likeCount: 0,
+        likedByMe: false,
+        createdAt: new Date().toISOString(),
+        _pending: true,
+      };
+      queryClient.setQueryData(["/api/community-messages"], (old: unknown) => {
+        if (!old || typeof old !== "object" || !("pages" in old)) {
+          return { pages: [[optimisticMsg]], pageParams: [1] };
+        }
+        const inf = old as { pages: unknown[][]; pageParams: unknown[] };
+        return { ...inf, pages: [[optimisticMsg, ...inf.pages[0]], ...inf.pages.slice(1)] };
+      });
+      return { prev };
+    },
     onSuccess: () => {
       setAuthorSubmitted(true);
       setAuthorText("");
@@ -116,7 +141,8 @@ export default function SupportCenterPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/community-messages"] });
       toast({ title: "Mensagem enviada", description: "Obrigado por cuidar de alguém." });
     },
-    onError: () => {
+    onError: (_err, _vars, context) => {
+      if (context?.prev) queryClient.setQueryData(["/api/community-messages"], context.prev);
       toast({ title: "Erro", description: "Não foi possível enviar. Tente de novo.", variant: "destructive" });
     },
   });
@@ -423,8 +449,12 @@ export default function SupportCenterPage() {
                           {audioBlob ? (
                             <div className="space-y-2">
                               <div className="flex items-center gap-2 p-3 rounded-xl bg-brand-teal/5 border border-brand-teal/10">
-                                <Waveform className="w-5 h-5 text-brand-teal" weight="bold" />
-                                <span className="text-xs font-medium text-brand-teal flex-1">Áudio gravado</span>
+                                <Waveform className="w-5 h-5 text-brand-teal flex-shrink-0" weight="bold" />
+                                <audio
+                                  controls
+                                  src={URL.createObjectURL(audioBlob)}
+                                  className="flex-1 h-8"
+                                />
                               </div>
                               <button
                                 onClick={() => setAudioBlob(null)}

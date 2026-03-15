@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, UserCircle, Trophy, ChatCircleDots, Waveform, Play, Pause } from "@phosphor-icons/react";
+import { Heart, UserCircle, Trophy, ChatCircleDots, Waveform, Play, Pause, PencilLine, Clock } from "@phosphor-icons/react";
 import { apiRequest } from "@/lib/queryClient";
 
 interface FeedMessage {
@@ -15,9 +15,10 @@ interface FeedMessage {
   likeCount: number;
   likedByMe: boolean;
   createdAt: string | null;
+  _pending?: boolean;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 function timeAgo(iso: string | null): string {
   if (!iso) return "";
@@ -34,6 +35,9 @@ function timeAgo(iso: string | null): string {
 function AudioPlayer({ src }: Readonly<{ src: string }>) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
+  const barsRef = useRef(
+    Array.from({ length: 24 }, (_, i) => 20 + Math.sin(i * 0.8) * 60 + Math.random() * 20)
+  );
 
   const toggle = useCallback(() => {
     const el = audioRef.current;
@@ -55,11 +59,11 @@ function AudioPlayer({ src }: Readonly<{ src: string }>) {
         {playing ? <Pause className="w-4 h-4" weight="fill" /> : <Play className="w-4 h-4" weight="fill" />}
       </button>
       <div className="flex-1 flex items-center gap-0.5 h-5">
-        {Array.from({ length: 24 }).map((_, i) => (
+        {barsRef.current.map((h, i) => (
           <div
             key={i}
             className="flex-1 rounded-full bg-brand-teal/20"
-            style={{ height: `${20 + Math.sin(i * 0.8) * 60 + Math.random() * 20}%` }}
+            style={{ height: `${h}%` }}
           />
         ))}
       </div>
@@ -74,11 +78,12 @@ function AudioPlayer({ src }: Readonly<{ src: string }>) {
 }
 
 function RankBadge({ rank }: Readonly<{ rank: number }>) {
-  if (rank > 3) return null;
-  const colors = ["text-brand-gold", "text-muted-foreground", "text-amber-700"];
+  const colors = rank <= 3
+    ? ["text-brand-gold", "text-muted-foreground", "text-amber-700"][rank - 1]
+    : "text-muted-foreground/60";
   return (
-    <span className={`flex items-center gap-0.5 text-[10px] font-bold ${colors[rank - 1]}`}>
-      <Trophy className="w-3 h-3" weight="fill" />
+    <span className={`flex items-center gap-0.5 text-[10px] font-bold ${colors}`}>
+      {rank <= 3 && <Trophy className="w-3 h-3" weight="fill" />}
       #{rank}
     </span>
   );
@@ -93,7 +98,12 @@ function MediaBadge({ type }: Readonly<{ type: string }>) {
       </span>
     );
   }
-  return null;
+  return (
+    <span className="flex items-center gap-0.5 text-[10px] font-medium text-muted-foreground bg-muted/50 rounded px-1.5 py-0.5">
+      <PencilLine className="w-3 h-3" weight="bold" />
+      Texto
+    </span>
+  );
 }
 
 export default function CommunityFeed() {
@@ -112,14 +122,14 @@ export default function CommunityFeed() {
       if (!res.ok) throw new Error("Falha ao carregar mensagens");
       return res.json();
     },
-    initialPageParam: 0,
+    initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.length < PAGE_SIZE) return undefined;
-      return allPages.length;
+      return allPages.length + 1;
     },
   });
 
-  const messages = data?.pages.flat() ?? [];
+  const messages = useMemo(() => data?.pages.flat() ?? [], [data]);
 
   const likeMutation = useMutation({
     mutationFn: async (messageId: string) => {
@@ -184,11 +194,17 @@ export default function CommunityFeed() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ delay: Math.min(i, 5) * 0.04 }}
-            className="glass-card rounded-xl p-4"
+            className={`glass-card rounded-xl p-4 ${msg._pending ? "opacity-70" : ""}`}
           >
             <div className="flex items-center gap-2 mb-2">
               <RankBadge rank={i + 1} />
               <MediaBadge type={msg.mediaType} />
+              {msg._pending && (
+                <span className="flex items-center gap-0.5 text-[10px] font-medium text-amber-600 bg-amber-50 rounded px-1.5 py-0.5">
+                  <Clock className="w-3 h-3" weight="bold" />
+                  Enviando...
+                </span>
+              )}
             </div>
 
             {msg.mediaType === "audio" && msg.audioUrl ? (
@@ -216,17 +232,19 @@ export default function CommunityFeed() {
                   <span>{timeAgo(msg.createdAt)}</span>
                 )}
               </div>
-              <button
-                onClick={() => likeMutation.mutate(msg.id)}
-                className={`flex items-center gap-1 text-xs font-medium rounded-lg px-2.5 py-1.5 transition-colors ${
-                  msg.likedByMe
-                    ? "text-red-500 bg-red-50"
-                    : "text-muted-foreground hover:text-red-400 hover:bg-red-50/50"
-                }`}
-              >
-                <Heart className="w-3.5 h-3.5" weight={msg.likedByMe ? "fill" : "regular"} />
-                {msg.likeCount > 0 && msg.likeCount}
-              </button>
+              {!msg._pending && (
+                <button
+                  onClick={() => likeMutation.mutate(msg.id)}
+                  className={`flex items-center gap-1 text-xs font-medium rounded-lg px-2.5 py-1.5 transition-colors ${
+                    msg.likedByMe
+                      ? "text-red-500 bg-red-50"
+                      : "text-muted-foreground hover:text-red-400 hover:bg-red-50/50"
+                  }`}
+                >
+                  <Heart className="w-3.5 h-3.5" weight={msg.likedByMe ? "fill" : "regular"} />
+                  {msg.likeCount > 0 && msg.likeCount}
+                </button>
+              )}
             </div>
           </motion.div>
         ))}

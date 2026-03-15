@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, boolean, integer, real } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, boolean, integer, real, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -136,7 +136,9 @@ export const messageLikes = pgTable("message_likes", {
   messageId: varchar("message_id").notNull(),
   userId: varchar("user_id").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  uniqueIndex("idx_message_likes_user_message").on(table.messageId, table.userId),
+]);
 
 // ── Insert schemas ────────────────────────────────
 

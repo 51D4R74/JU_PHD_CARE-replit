@@ -581,9 +581,9 @@ export async function registerRoutes(
   app.get("/api/community-messages", requireAuth, async (req, res) => {
     const limitParam = req.query.limit;
     const pageParam = req.query.page;
-    const limit = typeof limitParam === "string" ? Math.min(50, Math.max(1, Number.parseInt(limitParam, 10) || 20)) : 20;
-    const page = typeof pageParam === "string" ? Math.max(0, Number.parseInt(pageParam, 10) || 0) : 0;
-    const offset = page * limit;
+    const limit = typeof limitParam === "string" ? Math.min(50, Math.max(1, Number.parseInt(limitParam, 10) || 10)) : 10;
+    const page = typeof pageParam === "string" ? Math.max(1, Number.parseInt(pageParam, 10) || 1) : 1;
+    const offset = (page - 1) * limit;
 
     const messages = await storage.getCommunityMessages(limit, offset);
     const userId = req.userId!;
