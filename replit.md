@@ -30,6 +30,11 @@ Corporate mental health platform focused on employee well-being (prevention and 
 - Collaborator: `maria@juphd.com` / `Senha@123`
 - HR Manager: `rh@juphd.com` / `Senha@123`
 
+## Storage
+- Uses PostgreSQL (Drizzle ORM) when DATABASE_URL is set, falls back to in-memory storage
+- Demo users are auto-seeded on first startup when using PostgreSQL
+- Run `npm run db:push` to apply schema changes
+
 ## User Flows
 1. **Login** → Dashboard (collaborator) or RH Dashboard (hr role)
 2. **Dashboard** → Check-in wizard (5 steps) → Save → Back to dashboard

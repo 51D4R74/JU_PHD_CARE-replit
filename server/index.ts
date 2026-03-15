@@ -6,11 +6,31 @@ import { serveStatic } from "./static";
 import { createServer } from "node:http";
 import { MemStorage } from "./storage";
 import { DrizzleStorage } from "./drizzle-storage";
+import type { IStorage } from "./storage";
 
 const app = express();
 const httpServer = createServer(app);
 
-const storage = process.env.DATABASE_URL ? new DrizzleStorage() : new MemStorage();
+// Trust the proxy (Replit uses X-Forwarded-For headers)
+app.set("trust proxy", 1);
+
+const storage: IStorage = process.env.DATABASE_URL ? new DrizzleStorage() : new MemStorage();
+
+async function seedDemoUsers(s: IStorage) {
+  try {
+    const existing = await s.getUserByUsername("maria@juphd.com");
+    if (existing) return;
+    await s.createUser({ username: "maria@juphd.com", password: "Senha@123", name: "Maria Silva", role: "collaborator", department: "Tecnologia" });
+    await s.createUser({ username: "rh@juphd.com", password: "Senha@123", name: "Ana RH", role: "rh", department: "Recursos Humanos" });
+    console.log("[seed] Usuários demo criados: maria@juphd.com e rh@juphd.com (senha: Senha@123)");
+  } catch (err) {
+    console.error("[seed] Erro ao criar usuários demo:", err);
+  }
+}
+
+if (process.env.DATABASE_URL) {
+  await seedDemoUsers(storage);
+}
 
 declare module "node:http" {
   interface IncomingMessage {
