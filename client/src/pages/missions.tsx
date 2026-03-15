@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { devNow } from "@shared/dev-clock";
@@ -116,15 +116,25 @@ export default function MissionCenterPage() {
   const checkinPoints = scores.hasCheckedIn ? POINT_VALUES.checkin : 0;
   const totalPoints = checkinPoints + missionPoints;
 
+  const justCompletedRef = useRef(false);
+
   const handleComplete = useCallback((missionId: string) => {
     if (completedIds.includes(missionId)) return;
     const mission = missions.find((m) => m.id === missionId);
     const pts = mission?.points ?? 5;
     completeMissionMut.mutate({ missionId, pointsEarned: pts });
-    if (microcheckCount < POINT_VALUES.microchecksMaxPerDay) {
-      setTimeout(() => setMicrocheckOpen(true), 1400);
+    justCompletedRef.current = true;
+  }, [completedIds, missions, completeMissionMut]);
+
+  const handleDrawerOpenChange = useCallback((open: boolean) => {
+    setDrawerOpen(open);
+    if (!open && justCompletedRef.current) {
+      justCompletedRef.current = false;
+      if (microcheckCount < POINT_VALUES.microchecksMaxPerDay) {
+        setMicrocheckOpen(true);
+      }
     }
-  }, [completedIds, missions, microcheckCount, completeMissionMut]);
+  }, [microcheckCount]);
 
   const handleMicrocheckRespond = useCallback(
     (mood: MicroMoodId, _context?: string) => {
@@ -175,9 +185,12 @@ export default function MissionCenterPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, duration: 0.4 }}
-          className="mt-3 text-center"
+          className="mt-3 rounded-2xl py-2.5 px-4 text-center"
+          style={{
+            background: "linear-gradient(135deg, hsl(183 41% 36% / 0.10), hsl(43 82% 58% / 0.12))",
+          }}
         >
-          <p className="text-base font-bold bg-gradient-to-r from-brand-teal via-brand-navy to-brand-gold bg-clip-text text-transparent">
+          <p className="text-sm font-bold bg-gradient-to-r from-brand-teal via-brand-navy to-brand-gold bg-clip-text text-transparent">
             Você é seu melhor projeto!
           </p>
         </motion.div>
@@ -316,7 +329,7 @@ export default function MissionCenterPage() {
         mission={selectedMission}
         status={selectedMission ? getStatus(selectedMission.id) : "pending"}
         open={drawerOpen}
-        onOpenChange={setDrawerOpen}
+        onOpenChange={handleDrawerOpenChange}
         onComplete={handleComplete}
       />
 

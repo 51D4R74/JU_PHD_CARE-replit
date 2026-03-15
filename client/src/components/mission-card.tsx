@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Sparkle } from "@phosphor-icons/react";
+import { Check } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import {
   Drawer,
@@ -10,6 +10,7 @@ import {
   DrawerDescription,
   DrawerFooter,
 } from "@/components/ui/drawer";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export type MissionStatus = "pending" | "done";
 
@@ -125,7 +126,7 @@ export function MissionDetailDrawer({
       setCelebrating(false);
       onOpenChange(false);
       timerRef.current = null;
-    }, 1200);
+    }, 400);
   }, [mission, isDone, onComplete, onOpenChange]);
 
   if (!mission) return null;
@@ -206,17 +207,23 @@ export function MissionDetailDrawer({
                 </p>
               </motion.div>
             ) : (
-              <motion.button
+              <motion.label
                 key="cta"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={handleComplete}
-                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-gradient-to-r from-brand-teal to-brand-navy text-white font-semibold text-sm shadow-md shadow-brand-teal/15 transition-all hover:shadow-lg hover:brightness-110 active:scale-[0.98]"
+                htmlFor={`mission-done-${mission.id}`}
+                className="flex items-center gap-3 cursor-pointer rounded-2xl border border-brand-teal/15 px-4 py-3.5 transition-colors hover:bg-brand-teal/5"
               >
-                <Sparkle className="w-4 h-4" weight="fill" />
-                Marcar como feita
-              </motion.button>
+                <Checkbox
+                  id={`mission-done-${mission.id}`}
+                  checked={false}
+                  onCheckedChange={handleComplete}
+                  className="h-5 w-5 rounded-md border-brand-teal/40 data-[state=checked]:bg-brand-teal data-[state=checked]:border-brand-teal"
+                />
+                <span className="text-sm font-semibold text-foreground">
+                  Marcar como feita
+                </span>
+              </motion.label>
             )}
           </AnimatePresence>
         </DrawerFooter>
