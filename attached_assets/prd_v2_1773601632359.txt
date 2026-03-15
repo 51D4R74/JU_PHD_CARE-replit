@@ -1,0 +1,1178 @@
+☀
+
+
+
+JuPhD Care
+Product Requirements Document — Source of Truth
+Versão 2.0  |  2026-03-13  |  Status: APROVADO — IMPLEMENTAÇÃO IMEDIATA
+Campo
+Valor
+Arquiteta Científica
+Dra. Juliana Almeida (JuPhD)
+Domínio
+Saúde Mental Corporativa — Risco Psicossocial
+Compliance
+NR-1 Revisada 2024 — LGPD — CFP 11/2018
+Ciclo de review
+Trimestral ou após mudança de stack/ciência
+Hierarquia de conflito
+Este documento prevalece sobre qualquer outro
+
+
+
+
+0. Como Usar Este Documento
+[SoT]  Este é o Source of Truth (SoT) do JuPhD Care. Toda decisão de produto, design, código e linguagem deve ser confrontada com este documento antes de implementação. Em caso de conflito entre este SoT e qualquer outro documento ou instrução verbal, este SoT prevalece.
+
+Este documento consolida 9 documentos de produto, análise científica, revisão de código, e duas rodadas de revisão crítica (Claude + Copilot). Incorpora todas as 12 correções identificadas e adiciona cinco pontos cegos que a revisão anterior não capturou.
+
+Seção
+Conteúdo
+0
+Como Usar Este Documento
+1
+Visão, Missão e Posicionamento
+2
+Benchmark de Referência — Evidências que Funcionam (NOVO)
+3
+Arquitetura Científica e Psicométrica
+4
+Arquitetura de Produto — Check-in, Microcheck, Pulse Survey
+5
+Sistema Visual — Céu + Halo Solar
+6
+Sistema de Pontuação e Motor de Missões
+7
+Motor de Detecção — HLB, Assédio e Risco Psicossocial
+8
+Dashboard RH e People Analytics
+9
+Linguagem, UX Writing e Banco de Mensagens
+10
+Arquitetura Técnica, Stack e Constraints de Código
+11
+Roadmap de Implementação — S22 a S25
+12
+Ética, Privacidade e LGPD Compliance
+13
+Glossário Técnico
+
+
+1. Visão, Missão e Posicionamento
+1.1 Declaração de Missão
+O JuPhD Care é uma plataforma de gestão estratégica de risco psicossocial corporativo. Opera em três frentes simultâneas: cuidado proativo do colaborador, canal seguro de reporte de comportamentos nocivos, e dashboard de inteligência organizacional para o RH.
+[SoT]  O JuPhD Care NÃO é um formulário de auditoria corporativa. É um ecossistema de segurança psicológica. A plataforma convida — nunca exige. O design não permite que honestidade gere punição visual ou operacional em nenhuma circunstância.
+
+1.2 Diferencial Estratégico
+Dimensão
+Mercado Atual
+JuPhD Care
+Medição de bem-estar
+Pesquisa anual genérica
+EMA diária + Pulse Survey 45 dias + Deep Assessment trimestral
+Detecção de risco
+Canal de ouvidoria reativo
+Detecção passiva por padrão de EMA com vetores de risco diferenciados
+Dashboard RH
+Relatório de absenteísmo
+IRP em tempo real com predição de burnout e diferenciação de vetores
+Privacidade
+Respostas nominais
+k-anonymity n≥5, ICC por equipe, zero PII exposto ao RH
+Compliance
+Relatório anual
+NR-1 revisada 2024 — monitoramento contínuo com trilha de auditoria
+Gamificação
+Ausente ou competitiva
+Compassiva — premia ação de cuidado, nunca estado emocional
+
+1.3 Persona da Plataforma
+A Dra. Juliana Almeida (JuPhD) é a arquiteta científica e responsável acadêmica. Ela NÃO é a persona operacional do chatbot.
+[CRÍTICO]  A IA deve se apresentar como 'assistente de bem-estar' — nunca como psicóloga ou como a Dra. Juliana. Confundir IA com profissional humano viola o CFP (Resolução 11/2018) e cria expectativa de atendimento clínico que o app não pode entregar.
+
+
+2. Benchmark de Referência — Evidências que Funcionam
+[NOTA]  Esta seção foi identificada como ponto cego na revisão anterior. Sem benchmark empírico, decisões de produto são opiniões. Com benchmark, são escolhas informadas. Dados são dados — ninguém pode negar.
+
+As evidências abaixo sustentam as decisões arquiteturais do JuPhD Care. São os 'ombros de gigantes' sobre os quais este produto foi construído.
+
+2.1 Apps de Saúde Mental com Evidência Clínica Forte
+Produto
+Estudo / Publicação
+Resultado Medido
+Relevância para JuPhD Care
+Wysa (chatbot IA)
+Inkster et al. (2018). Frontiers in Psychiatry. RCT.
+Redução de 67% nos escores PHQ-9 em 30 dias vs. controle
+Valida chatbot IA como canal terapêutico real — não apenas UX. Sustenta o módulo de chatbot do JuPhD Care.
+Woebot (chatbot CBT)
+Fitzpatrick et al. (2017). JMIR Mental Health. RCT n=70.
+Redução significativa de depressão e ansiedade em 2 semanas
+O prazo de 2 semanas justifica o threshold de 5 dias para trigger de escalada — não 1 dia.
+Headspace for Work
+Headspace Health Internal Study (2021). n=1.000 funcionários.
+14% de redução em burnout; 13% em estresse percebido
+Valida impacto de EMA diária em contexto corporativo. Referência para calcular ROI no dashboard RH.
+BetterUp
+BetterUp ROI Report (2022). n=1.500 participantes.
+56% aumento de resiliência; 31% redução de burnout; 25% queda em intenção de desligamento
+Referência de ROI para proposta comercial. Justifica investimento em well-being tech para CFO.
+Calm (uso corporativo)
+Hoge et al. (2018). JAMA Internal Medicine. 8 semanas.
+28% redução em ansiedade; 56% redução em insônia
+Valida missões de respiração e pausa como intervenções com evidência (não apenas UX agradável).
+Duolingo (gamificação compassiva)
+Streak Freeze analysis — Duolingo internal (2023).
+Retenção 73% maior em usuários com Streak Freeze ativo vs. não
+Sustenta o design do Modo Respiro com streak freeze automático. Decisão de produto, não intuição.
+
+[APROVADO]  Dado de ouro: A revisão sistemática de Linardon et al. (2020) em Psychological Medicine analisou 66 RCTs de apps de saúde mental e concluiu que apps com EMA + feedback personalizado + gamificação não-competitiva produzem efeitos significativos. Apps com gamificação competitiva não mostram diferença vs. controle. O JuPhD Care adota o modelo validado.
+
+2.2 Ciência da Formação de Hábito — O Que o 'Streak de 7 Dias' Realmente Significa
+Citação frequente: Lally et al. (2010, European Journal of Social Psychology) estudaram 96 participantes durante 12 semanas e encontraram que formação de hábito leva 18 a 254 dias — mediana de 66 dias. Não 21 dias (mito popular). Não 7 dias.
+[ATENÇÃO]  IMPLICAÇÃO DIRETA: O milestone de 7 dias consecutivos de check-in NUNCA deve ser comunicado como 'hábito formado'. A copy correta é 'Semana de cuidado ativo' (início). O marco de 66 dias é quando o hábito está estatisticamente consolidado. Isso deve estar no banco de mensagens e no roadmap de milestones.
+
+2.3 Comparativo de Modelos de Intervenção Escalonada
+Referência de mercado: o modelo de stepped care (Richards & Borglin, 2011) recomenda 3 níveis de intervenção progressivos. O JuPhD Care adota este modelo SEM o SLA de conselheiro humano em 60 segundos — que foi removido por inviabilidade operacional atual.
+Nível
+Trigger (dias)
+Intervenção
+Base Científica
+1 — Soft
+1–2 dias com Q5 negativo ou exaustão
+Check-in proativo do chatbot. Mensagem de categoria Calma ou Acolhimento.
+Lazarus & Folkman (1984) — resposta de coping adaptativo é possível nos primeiros 48h
+2 — Moderate
+3–4 dias consecutivos com sinais
+Modo Respiro ativado automaticamente + chatbot com menu HLB + agendamento de conversa com parceiro de saúde mental via plataforma integrada (futuro)
+Selye (1976) — after 72h, chronic stress phase begins; Maslach (2001) — burnout trajectory accelerates
+3 — Escalada
+5+ dias consecutivos de colapso iminente
+Protocolo de Escalada ativado: alerta confidencial para saúde ocupacional da organização + disponibilização de canais externos (CVV, CAPS, ANAMT)
+APA Clinical Practice Guidelines (2019) — immediate referral indicated for chronic presentations
+[REMOVIDO]  O SLA de conselheiro humano < 60 segundos foi REMOVIDO do produto. Ele requer parceria operacional com empresa especializada (saúde ocupacional ou clínica de bem-estar), negociação contratual e estrutura de plantão que não existe ainda. Entregar essa promessa sem infraestrutura é um risco legal (Duty of Care) maior do que não tê-la. A ausência honesta é mais segura do que a promessa não cumprida.
+
+
+3. Arquitetura Científica e Psicométrica
+3.1 Cinco Pilares Científicos
+Pilar 1 — HLB: Harmful Leader Behaviors (Almeida et al., 2022)
+Dimensão HLB
+Descrição
+Flag no Sistema
+Intimidação
+Comportamentos humilhantes, ameaças, constrangimento público
+hlb_intimidation — ativa Protocolo de Escalada Nível 3
+Falta de Cuidado
+Negligência, desrespeito ao bem-estar, distanciamento ativo
+hlb_lackcare
+Autocentramento
+Apropriação de crédito, sabotagem da equipe, egocentrismo
+hlb_self
+Pressão Excessiva
+Sobrecarga de metas, cobrança desproporcional
+hlb_pressure
+[CRÍTICO]  HLB alimenta APENAS o discovery engine e o dashboard RH. Nunca modifica o Céu Score individual. Tags HLB não geram bônus ou penalidade para o usuário.
+
+Pilar 2 — ICE: Índice de Clima Ético (Victor & Cullen, 1988; Almeida & Porto, 2019)
+6 dimensões de percepção coletiva de ética. NUNCA apresentado como índice único — o dashboard RH exibe as 6 dimensões separadamente. No check-in: pergunta ICE momentânea reformulada para EMA.
+
+Pilar 3 — ELET: Liderança Ética (validação Almeida)
+7 fatores. Restrição crítica: ELET nunca é usada isoladamente. Se ELET mostra líder ético mas check-in mostra dread crônico na equipe por 3+ semanas, o algoritmo trata como contradição que requer investigação — porque subordinados em ambientes de assédio sistematicamente superestimam a ética do líder por medo de retaliação (Kish-Gephart, Harrison & Treviño, 2010).
+
+Pilar 4 — Presenteísmo e Fator de Desconto δ
+Fórmula: P_real = Pi × (1 − δ_exaustão)   onde Pi = capacidade produtiva individual nominal
+Follow-up Q4 — 'Isso atrapalha seu trabalho?'
+Fator δ
+Capacidade Real
+Não
+0.00
+100% de Pi
+Mais ou menos
+0.20
+80% de Pi
+Sim
+0.50
+50% de Pi
+[ATENÇÃO]  CORREÇÃO v2.0 (Copilot #5): O documento anterior definia δ por categoria cognitiva (Ágil, Distraída) mas Q4 pergunta sobre energia — não cognição diretamente. O mapping correto usa o follow-up inline de Q4 como proxy de impacto funcional. Valores δ são PROVISÓRIOS — calibração empírica após 90 dias.
+
+Pilar 5 — EMA e Técnica Projetiva
+EMA (Shiffman, Stone & Hufford, 2008): coleta em múltiplos momentos elimina viés retrospectivo. Técnica Projetiva (Frank, 1939; Frank & Murray, TAT): quando a pessoa fala sobre 'outra pessoa', a ameaça percebida ao ego cai significativamente, aumentando taxa de divulgação em 40–60% em contextos de assédio (Herman, 1992; Trauma and Recovery).
+
+3.2 Três Camadas de Medição
+Camada
+Frequência
+Instrumento
+Propósito
+Check-in EMA
+Diário (1 obrigatório + 1 matinal opcional)
+6 perguntas + microcheck oportunístico
+Estado momentâneo — detecção em tempo real
+Pulse Survey
+A cada 45 dias*
+PHQ-2, GAD-2, WHO-5, HLB, ICE completo, ELET
+Estado crônico — saúde psicológica e clima ético
+Deep Assessment
+Trimestral
+PHQ-9, GAD-7, MBI, PSQI, PSC-12
+Quadro clínico completo — compliance NR-1
+*45 dias: prazo escolhido deliberadamente. Mensal (30 dias) gera fadiga de resposta. Bimensal (60 dias) perde sinal de eventos de ciclo médio. 45 dias é o equilíbrio de Goldilocks — nem rápido demais para irritar, nem lento demais para perder sinal.
+[CRÍTICO]  PHQ-9, GAD-7 e MBI são instrumentos clínicos com janela de 2 semanas a 1 mês. Usar PHQ-9 diariamente é metodologicamente incorreto e cria exposição legal — o item 9 do PHQ-9 avalia ideação suicida. Esses instrumentos NUNCA aparecem no check-in diário.
+
+
+4. Arquitetura de Produto
+4.1 Check-in Principal Diário — 6 Perguntas
+Frequência: 1x/dia, preferencialmente no fim do expediente. Tempo alvo: 45–60 segundos.
+[ATENÇÃO]  DAY_BOUNDARY_HOUR = 4 (CONSTANTE UNIVERSAL — MVP): Check-ins entre 00h e 04h são atribuídos ao work_day_date do dia anterior. Nenhuma inferência por resposta de sono. CORREÇÃO v2.0 (Copilot #6): A heurística de inferência por Q1 foi removida — acoplar work_day_date à resposta de sono cria ambiguidade determinística e viola a independência dos dados. Complexidade de turnos = fase 2 com perfil de jornada configurável.
+
+Q#
+Pergunta
+Domínio
+Tipo de Input
+Sinal Analítico Principal
+Q1
+Como foi sua noite de sono?
+Recarga
+Single choice (4 opções)
+Âncora biológica. Preditor primário do estado do dia. PSQI proxy.
+Q2
+Como você estava em relação ao trabalho hoje?
+Estado do Dia
+Single choice (4 opções)
+Ansiedade antecipatória. Dread crônico (Q2 'Com receio' por 5+ dias) = proxy de ambiente tóxico.
+Q3
+Como o dia te deixou?
+Estado do Dia
+Multi-select, máx. 3 de 8 opções
+Retrospectiva emocional. Avaliação pós-evento é mais honesta que antecipação.
+Q4
+Quanta energia você sente que tem agora?
+Recarga
+Single choice (4 opções) + follow-up inline
+Exaustão emocional — dimensão central do burnout (MBI/CBI).
+Q5
+Hoje você se sentiu apoiado(a) pelo seu ambiente de trabalho?
+Segurança Relacional
+Single choice (4 opções)
+ICE momentânea reformulada para EMA. Resposta negativa ativa chatbot com menu HLB de 2° nível.
+Q6
+O que mais influenciou como você ficou hoje?
+Contexto
+Tags múltiplas (opcional)
+Dados acionáveis para RH. Tag 'Liderança' + Q5 negativa = vetor hierárquico de risco.
+[NOTA]  CORREÇÃO v2.0 (Copilot #1): Q3 era descrita como 'Single choice (4 opções)' na tabela mas definida como multi3 de 8 opções no detalhe. Corrigido acima. A tabela agora reflete corretamente: Multi-select, máx. 3 de 8 opções.
+
+Q1 — Sono (Recarga)
+Opção
+Score
+Flag
+Com boa recuperação ✨
+4
+—
+Tranquila 🌙
+3
+—
+Demorei a dormir / Agitada 🌪
+2
+—
+Acordei cansado(a) 🪫
+1
+sleep_risk → peso de Recarga reduzido
+
+Q2 — Ansiedade Antecipatória (Estado do Dia)
+Opção
+Score
+Flag / Acumulador
+Com vontade 🔥
+4
+—
+Normal 😐
+3
+—
+Sem muita vontade 😶
+2
+—
+Com receio / Ansioso(a) 😰
+1
+dread_counter++ → chatbot ativo a partir do 5° dia consecutivo
+
+Q3 — Retrospectiva Emocional (Multi-select, máx. 3 de 8 opções)
+Copy de incentivo: 'Emoções costumam se misturar. Escolha pelo menos 2.'
+[ATENÇÃO]  CORREÇÃO v2.0 (Copilot #4 / PONTO CEGO): O multiplicador 0.8 para seleção de 1 emoção foi REMOVIDO. Não existe evidência de que relato de 1 emoção é menos válido que 2–3 (Barrett, 2004, Conceptual Act Theory — emotional granularity varia entre indivíduos e não é indicador de qualidade do relato). O multiplicador penalizava comportamento honesto de forma invisível — exatamente o que o produto deve evitar. SUBSTITUIÇÃO: dias com seleção única são acumulados como metadata single_emotion_days no discovery engine para análise longitudinal de granularidade emocional.
+Opção
+Score Base
+Categoria
+Realizado(a) 💪
+10
+Positivo
+Calmo(a) 😌
+9
+Positivo
+Aliviado(a) 😮‍💨
+8
+Positivo
+Cansado(a) 😴
+6
+Neutro
+Frustrado(a) 😤
+4
+Negativo leve
+Triste 😔
+3
+Negativo
+Ansioso(a) / Tenso(a) 😰
+3
+Negativo
+Irritado(a) / Inseguro(a) 😠
+2
+Negativo forte
+
+Q4 — Energia + Follow-up de Presenteísmo
+Opção
+Score
+Follow-up 'Atrapalha?'
+Fator δ
+Empolgado(a) ⚡
+4
+— (não exibe follow-up)
+0.00
+Disposto(a) 🔋
+3
+— (não exibe follow-up)
+0.00
+Cansado(a) 🪫
+2
+Exibe follow-up inline
+Mapeado por resposta
+Exausto(a) 🛑
+1
+Exibe follow-up inline + trigger chatbot
+Mapeado por resposta
+Follow-up inline para opções 'Cansado' e 'Exausto': 'Isso está atrapalhando seu trabalho hoje?' → Sim (δ=0.50) / Mais ou menos (δ=0.20) / Não (δ=0.00)
+
+Q5 — Segurança Relacional — ICE Momentânea Reformulada
+Opção
+Score
+Flag / Ação
+Me senti apoiado(a) e seguro(a) 🤝
+4
+—
+Foi um dia normal, sem incidentes ⚖️
+3
+— (NEUTRO — não ativa HLB)
+O clima estava pesado ou tenso 🌡️
+2
+climate_risk
+Me senti pressionado(a), isolado(a) ou constrangido(a) 🌩️
+1
+harassment_signal → chatbot com menu HLB 2° nível
+[NOTA]  CORREÇÃO v2.0 (Copilot #12): O sub-menu HLB é ativado APENAS pelas opções 3 e 4. A opção 2 ('dia normal, sem incidentes') é NEUTRA e não aciona nenhum sub-menu. A versão anterior não deixava isso explícito.
+
+Q6 — Tags de Contexto (opcional, múltipla seleção)
+Tag
+Flag
+Uso Analítico
+Volume de demandas
+workload
+Sobrecarga operacional — diferencia burnout de assédio
+Liderança / Gestão
+hlb_proxy → chatbot oferece sub-menu HLB se Q5 também negativa
+Combinado com Q5 opções 3-4 = vetor hierárquico de risco confirmado
+Colegas / Clima
+peer_risk
+Risco horizontal — mediação vs. investigação hierárquica
+Falta de Clareza de Papéis
+role_ambiguity
+JCQ — Job Demands-Resources
+Situação Pessoal
+personal
+Não alimenta dashboard RH
+Finanças
+financial_stress
+Moderador externo — não alimenta IRP
+Saúde
+health
+Não alimenta dashboard RH
+Nada em especial
+exclusive: true
+Baseline neutro — invalida demais tags se selecionada
+
+Sub-menu HLB no Chatbot (quando Q5 opção 3 ou 4 + Tag 'Liderança')
+Opção HLB
+Flag
+Ação
+Foi um impacto positivo (Apoio) 🌱
+hlb_supportive
+—
+Pressão excessiva por resultados
+hlb_pressure
+Acumula hlb_pressure_count
+Falta de suporte / Distanciamento
+hlb_lackcare
+Acumula hlb_lackcare_count
+Gestão focada em si mesma
+hlb_self
+Acumula hlb_self_count
+Intimidação / Constrangimento
+hlb_intimidation
+Protocolo de Escalada Nível 3 imediato
+
+4.2 Estado 'Abandoned' no Check-in — Protocolo de Confiança Baixa
+[NOTA]  PONTO CEGO identificado por Claude (não coberto pelo Copilot): O documento anterior definia confidence: 'low' para check-ins abandonados mas não definia O QUE é um check-in abandonado vs. parcial — e o que fazer com cada um.
+Estado
+Critério
+confidence
+Uso nos Dados
+Completo
+6/6 perguntas respondidas
+high
+Entra em todas as agregações normalmente
+Parcial
+3–5 perguntas respondidas
+medium
+Entra nas agregações com peso reduzido 0.6
+Abandonado
+1–2 perguntas respondidas
+low
+Não entra em agregações do RH. Entra no discovery engine.
+Não iniciado
+0 perguntas
+null
+Registrado como ausência. skip congela streak count.
+Discovery engine: acumula padrão de abandono por etapa. Abandono frequente em Q5 = sinal de desconforto com a pergunta relacional — dado analiticamente importante.
+
+4.3 Check-in Matinal Opcional
+2 perguntas, ~15 segundos, opt-in explícito. NÃO gera pontos solares. Apresentado após onboarding como feature adicional — nunca como obrigação.
+Pergunta
+Propósito Analítico
+Como foi sua noite de sono? (mesma Q1)
+Contexto para adaptar ordem de perguntas do check-in principal
+Como você se sente em relação ao dia que está começando?
+Ansiedade antecipatória matinal. Comparada com Q2 ao longo de semanas para detectar dread crônico longitudinal via delta de score.
+Cálculo de dread crônico longitudinal: Δ = Score_manhã − Score_tarde. Δ negativo persistente por 5+ dias = padrão clínico de piora ao longo do expediente = proxy de ambiente tóxico.
+
+4.4 Microcheck Oportunístico
+1 pergunta obrigatória + 1 opcional. Máximo 2 microchecks por dia. Dispensável com 1 toque.
+Ativado em: (1) após notificação de cuidado, (2) após missão concluída, (3) Q5 negativa por 2 dias consecutivos.
+Pergunta Principal
+Opção
+Score
+Flag
+Como você está agora?
+Seguindo bem
+4
+—
+
+Tenso(a)
+2
+follow-up ativado
+
+Cansado(a)
+2
+follow-up ativado
+
+Preciso de apoio
+1
+rota direta de acolhimento
+
+Não sei bem
+—
+emotional_numbness flag
+[NOTA]  PONTO CEGO: 'Não sei bem' é a 5ª opção obrigatória. Estados de entorpecimento emocional (alexitimia situacional, Lane & Schwartz, 1987) são frequentes em ambientes de alta pressão. Forçar seleção nomeada contamina os dados. A frequência de 'Não sei bem' é dado clínico — acumulada como emotional_numbness no discovery engine.
+
+4.5 Pulse Survey — A cada 45 dias
+Instrumento completo com Likert 5 pontos. Reverse coding obrigatório para itens invertidos.
+Fórmula: Valor_Tratado = (6 − Valor_Respondido)
+Instrumento
+Dimensões
+Pontos Solares
+PHQ-2 + GAD-2 + WHO-5
+Triagem depressão, ansiedade, bem-estar subjetivo
+15 pts (evento único)
+HLB completo (4 dim.)
+Comportamentos nocivos de liderança
+Incluído nos 15 pts
+ICE completo (6 dim.)
+Clima Ético — NUNCA índice único
+Incluído nos 15 pts
+ELET (7 fatores)
+Liderança Ética — apenas trimestral, no Deep Assessment
+Incluído no Deep
+
+
+5. Sistema Visual — Céu + Halo Solar
+[CRÍTICO]  PRINCÍPIO INVIOLÁVEL: O app nunca pune visualmente o sofrimento. Se a UI fica cinza quando o usuário está mal, ele aprende que honestidade gera experiência ruim — e para de ser honesto. Dados desonestos geram intervenções erradas.
+
+5.1 Duas Variáveis Radicalmente Independentes
+Variável
+Mede
+Comportamento
+Visível Para
+CÉU
+Estado emocional do dia
+Volátil. Muda diariamente. Sem memória. Nunca acumula.
+Usuário apenas
+HALO SOLAR
+Consistência de autocuidado
+Acumulativo semanal. NUNCA decresce por emoção.
+Usuário apenas
+[CRÍTICO]  REGRA ABSOLUTA DE CÓDIGO: Céu e Halo Solar são pipelines 100% independentes. solar-points.ts NUNCA importa de checkin-data.ts ou score-engine.ts. score-engine.ts NUNCA importa de solar-points.ts. Qualquer PR que viola esta regra é rejeitado automaticamente no code review.
+
+5.2 Cálculo do Céu Score (0–100)
+Fórmula: CÉU = (Recarga × 0.33) + (Estado_Emocional × 0.33) + (Segurança_Relacional × 0.33)
+[ATENÇÃO]  PONTO CEGO (Calibração de Pesos): Os pesos 33/33/33 são o prior conservador correto para MVP. Calibração após 90 dias de operação: calcular correlação de Pearson entre cada domínio e acionamento do botão de suporte em T+7 a T+30 após score baixo (n mínimo: 200 observações, IC 95% por bootstrap). Este é o único critério válido de ajuste de pesos. NÃO usar 'entrada em Modo Respiro' como critério — circularidade metodológica: o Modo Respiro é em parte determinado pelo Céu Score.
+
+Domínio Recarga (0–10)
+Base = score de Q1. Ajuste = score de Q4: Exausto = −1. Teto 10, piso 0.
+Domínio Estado Emocional (0–10)
+Média simples das emoções selecionadas em Q3. Se 0 emoções selecionadas: 5 neutro. Nenhum multiplicador de penalidade — vide Seção 4.1 Q3.
+Domínio Segurança Relacional (0–10)
+Score de Q5. Ajuste de tags: Tag 'Liderança' + HLB positivo = +1; HLB pressão/falta_cuidado = −1; HLB intimidação = −2. Piso 0, teto 10.
+
+5.3 Estados Visuais do Céu
+Score
+Estado
+Código
+Descrição Visual
+75–100
+Céu Aberto ☀️
+SKY_CLEAR
+Sol pleno, bordas âmbar, luz difusa dourada, halo dourado intenso
+50–74
+Parcialmente Nublado ⛅
+SKY_PARTIAL
+Nuvens suaves, sol visível, paleta azul-dourado equilibrada
+25–49
+Nuvem Protetora 🌥️
+SKY_CLOUDY
+Nuvens maiores, cinza quente (tom âmbar baixo — NUNCA cinza frio), CTAs de apoio em destaque
+0–24
+Modo Respiro 🌧️
+SKY_REST
+Interface quieta, animações desaceleram, foco em cuidado imediato
+5° estado visual (SKY_OVERCAST, score 50–75) está no backlog — implementar em S26 após dados de piloto. Distingue 'dia difícil funcional' de 'dia difícil com risco'.
+
+5.4 Matriz Céu × Halo — 4 Quadrantes
+Céu
+Halo
+Leitura Clínica
+UI e Mensagem
+Alto (75+)
+Alto (75+)
+Dia solar + cuidado consistente
+Sol pleno, halo dourado intenso, partículas animadas
+Alto (75+)
+Baixo (<35)
+Dia bom, rotina instável
+Sol visível, halo fino/prata, nudge suave para missão
+Baixo (<50)
+Alto (75+)
+Dia difícil + cuidado ativo — MAIS RELEVANTE CLINICAMENTE
+Nuvem com sol VISÍVEL atrás. Mensagem: 'você está passando por um dia difícil e continua se cuidando. Isso importa muito.'
+Baixo (<50)
+Baixo (<35)
+Dia difícil + distância do app
+Nuvem protetora, CTAs de apoio em primeiro plano
+
+5.5 Halo Solar — Espessura, Temperatura e Visibilidade
+Espessura por pontos semanais
+Pontos (janela 7 dias móveis)
+Espessura visual
+Mensagem discreta
+0–15
+1 — quase invisível
+— (nenhuma cobrança)
+16–35
+2
+—
+36–60
+3
+Você está se cuidando
+61–85
+4
+Semana de cuidado real
+86+
+5 + pulso suave
+Semana Solar
+Temperatura de cor por dias consecutivos
+Dias consecutivos
+Cor do halo
+0–1
+Branco/prata suave
+2–3
+Âmbar claro
+4–5
+Dourado
+6–7
+Dourado intenso + pulso
+7+
+Dourado + partículas solares animadas
+Ausência e retorno
+Ausência: halo perde temperatura mas NÃO perde espessura. Sequência recomeça silenciosamente. Única mensagem permitida: 'Bom ter você de volta.' — NUNCA 'Você estava sumido'.
+[ATENÇÃO]  PONTO CEGO (Modo Respiro + visibilidade em desafios coletivos): Se a UI de team challenges mostrar cadência de contribuição individual ao longo do tempo, usuários em Modo Respiro são involuntariamente expostos. REGRA: status de Modo Respiro NUNCA é visível na UI de team challenges. Contribuição individual é exibida APENAS como total agregado anônimo.
+Onboarding
+Usuário novo: halo em 50% neutro pulsante. Após primeiro check-in: transição para valor real. NÃO usar 30% (comunica 'você está mal' antes da primeira interação).
+Milestone de hábito — linguagem correta
+[NOTA]  Lally et al. (2010): hábito se forma em 18–254 dias (mediana 66). O marco de 7 dias é celebrado como 'Semana de cuidado ativo' — NUNCA como 'hábito formado'. O marco de 66 dias é quando o hábito está estatisticamente consolidado — deve ter celebração diferenciada na UI (milestone dourado com mensagem específica).
+
+
+6. Sistema de Pontuação e Motor de Missões
+[CRÍTICO]  REGRA ÉTICA HARD: Pontos são atribuídos por AÇÃO de autocuidado — NUNCA por estado emocional. awardPoints() NUNCA recebe skyState, domainScores ou respostas emocionais como parâmetros. Qualquer PR que viole esta regra é rejeitado no code review.
+
+6.1 Tabela de Pontos Solares
+Categoria A — Presença
+Ação
+Pontos
+Observação
+Check-in principal concluído (6/6)
+12
+Base do sistema — maior valor unitário
+Check-in parcial (3–5 perguntas)
+5
+Presença parcial ainda vale
+Microcheck respondido
+3
+Teto: 2/dia = máx. 6 pts
+Pulse Survey respondido
+15
+Evento mensal — proporcional
+Check-in matinal opcional
+0
+Não pontua — evita pressão velada
+Categoria B — Missões
+Tipo
+Pontos
+Exemplos
+Missão simples (≤2 min)
+5
+Beber água, alongamento, 1 respiração
+Missão média (2–5 min)
+8
+Respiração guiada, pausa sem tela, gratidão
+Missão de conexão (com moderação)
+6
+Deixar/receber mensagem de apoio
+Categoria C — Bônus de Consistência
+Evento
+Pontos
+Regra
+Sequência no mesmo dia (check-in + 2+ missões)
++5
+Calculado no fim do dia
+3 dias consecutivos de check-in
++8
+Calculado no 3° dia
+7 dias consecutivos
++15
+'Semana de cuidado ativo' — NUNCA 'hábito formado'
+66 dias consecutivos
++50
+'Hábito Solar' — marco de consolidação (Lally, 2010)
+Retorno após qualquer ausência
++3
+Silencioso. 'Bom ter você de volta.'
+Primeiro check-in da semana
++2
+Sem menção à ausência anterior
+Categoria D — O Que NÃO Gera Pontos (lista fechada e imutável)
+Ação
+Pontos
+Justificativa
+Responder que está bem/feliz
+0
+Emoção não é métrica de cuidado
+Ter Céu Score alto
+0
+Estado ≠ consistência
+Fazer denúncia ou relato crítico
+0
+Denúncia NUNCA é gamificada
+Responder positivamente em Q5
+0
+Clima positivo não é ação do usuário
+Missão não concluída
+0
+Zero pts, zero penalidade
+Dia sem check-in
+0
+Zero pts, zero desconto no saldo
+Check-in matinal opcional
+0
+Evita pressão velada de engajamento
+
+6.2 Modo Respiro — Especificação Completa
+[ATENÇÃO]  CORREÇÃO v2.0 (Copilot #7): Gap de dia sem check-in. Regra explícita: Dia sem check-in = skip que CONGELA a contagem de dias consecutivos. Não conta a favor (não incrementa streak). Não conta contra (não decrementa streak). A contagem retoma do valor anterior no próximo check-in.
+Aspecto
+Normal
+Modo Respiro
+Ativação
+—
+Automática: SKY_REST por 2 dias consecutivos OU manual pelo usuário
+Missões/dia
+3–4
+1–2 (apenas simples, ≤2 min)
+Notificações/dia
+máx. 3
+máx. 1
+Microchecks proativos
+até 2/dia
+Apenas se usuário inicia
+Streak counter
+Incrementa normalmente
+Dias protegidos — NÃO decrementam
+Pontos por ações
+Normais
+Mesmos valores — zero penalidade
+Visibilidade externa
+—
+NUNCA visível em team challenges ou para RH
+Saída
+—
+Manual pelo usuário OU SKY_PARTIAL por 2 dias consecutivos
+Reentrada
+—
+Soft welcome: 1 pergunta ('como você está hoje?') antes do check-in completo
+[NOTA]  PONTO CEGO (Reentrada do Modo Respiro): Ao sair do Modo Respiro, o sistema NÃO deve reiniciar o check-in completo imediatamente. Analogia com medicina: alta hospitalar tem protocolo de reabilitação gradual. A plataforma oferece 1 pergunta de boas-vindas antes de retomar o fluxo completo.
+
+6.3 Motor de Missões Adaptativo
+Estado
+Qtd. Missões
+Tipos
+SKY_CLEAR / PARTIAL
+3–4
+Variadas — respiração, hidratação, pausa, conexão
+SKY_CLOUDY
+2–3
+Simples e médias — foco em desativação do SNS
+SKY_REST (Modo Respiro)
+1–2
+Apenas simples ≤2 min — mínima fricção
+
+
+7. Motor de Detecção — HLB, Assédio e Risco Psicossocial
+7.1 Índice de Risco Psicossocial (IRP) — Fórmula Corrigida
+[CRÍTICO]  CORREÇÃO v2.0 (Copilot #3): A fórmula anterior IRP = ((μHLB + (6 - μICE)) / 2) × 20 produz range [20, 100] — NÃO [0, 100] como declarado. Melhor caso: μHLB=1, μICE=5 → IRP = ((1+1)/2) × 20 = 20. NUNCA 0. Fórmula corrigida abaixo normaliza corretamente para [0, 100].
+Fórmula corrigida: IRP = ((μHLB + (6 − μICE)) / 2 − 1) × 25   → range real: [0, 100]
+Verificação: μHLB=1, μICE=5 → ((1+1)/2 − 1) × 25 = 0 ✓   |   μHLB=5, μICE=1 → ((5+5)/2 − 1) × 25 = 100 ✓   |   μHLB=3, μICE=3 → ((3+3)/2 − 1) × 25 = 50 ✓
+Threshold de alerta: IRP > 70 → alerta automático confidencial para RH.
+Threshold mínimo: n ≥ 5 respondentes ativos. Se equipe < 5: dados agregados ao nível de diretoria.
+
+7.2 Vetores de Risco — Diferenciação por Padrão Temporal
+PRINCÍPIO: O sistema distingue vetores porque intervenções são radicalmente diferentes. Confundir sobrecarga com assédio gera intervenção errada — potencialmente prejudicial.
+Padrão
+Sinais (threshold temporal)
+Leitura Clínica
+Ação RH
+Sobrecarga de entrega
+Energia baixa + Tag 'Volume' + Q5 neutro por 3+ dias
+Burnout operacional — causa: demanda, não relação
+Revisão de carga / headcount
+Assédio hierárquico
+Q5 opções 3–4 + Tag 'Liderança' + HLB pressão/intimidação por 3+ dias
+Risco de assédio por líder
+Investigação HLB — protocolo confidencial
+Assédio horizontal
+Q5 opções 3–4 + Tag 'Colegas' por 3+ dias
+Conflito de pares ou bullying
+Mediação de clima
+Dread crônico
+Q2 'Com receio' por 5+ dias consecutivos
+Proxy clínico de ambiente tóxico persistente
+Cruzar com IRP da equipe
+Colapso iminente
+Q4 'Exausto' + Q3 negativo + Q5 opções 3–4 por 5+ dias
+Padrão pré-afastamento
+Protocolo de Escalada Nível 3
+
+7.3 Protocolo de Escalada Gradual — Substituto do SLA Removido
+Em substituição ao SLA de conselheiro humano < 60s (removido por inviabilidade operacional), o produto adota o modelo de stepped care (Richards & Borglin, 2011) com três níveis:
+Nível
+Trigger
+Intervenção Disponível
+Nota de Implementação
+1 — Suporte Imediato (IA)
+Q5 opção 4 OR Q4 'Exausto' — primeiro evento
+Chatbot ativo com escuta empática. Banco de mensagens categoria 'Acolhimento'. Menu HLB opcional.
+Disponível agora — já implementado no chatbot
+2 — Recursos Externos
+Trigger de qualquer sinal por 3+ dias
+Chatbot apresenta recursos externos: CVV (188), CAPS da cidade, ANAMT (saúde do trabalhador). Agendamento de conversa com parceiro de saúde mental (futuro — requer parceria).
+Recursos externos: implementar imediatamente. Parceiro de saúde: fase 2.
+3 — Escalada Organizacional
+Sinal de colapso iminente ou hlb_intimidation
+Alerta confidencial para saúde ocupacional da organização (RH não recebe PII). Protocolo documentado com timestamp. Duty of Care registrado.
+Requer configuração do parceiro de saúde ocupacional na contratação
+
+
+8. Dashboard RH e People Analytics
+8.1 Princípio Absoluto de Agregação
+[CRÍTICO]  O RH NUNCA vê dados individuais. Threshold mínimo: n ≥ 5 respondentes ativos. Equipes com menos de 5 pessoas têm dados agregados ao nível de diretoria/divisão.
+
+8.2 Componentes do Dashboard
+Mapa de calor psicossocial por departamento (IRP em tempo real com fórmula corrigida)
+Tendência de IRP por período (semanal, mensal, trimestral)
+Breakdown das 4 dimensões HLB por equipe — nunca índice único
+Breakdown das 6 dimensões ICE por equipe — nunca índice único
+ICC por equipe: ICC < 0.10 exibe sinalização 'Dados com alta dispersão — requer análise qualitativa'
+Predição de burnout: exaustão × pressão × desânimo por 5+ dias
+Fator δ de presenteísmo por equipe (capacidade produtiva real vs. nominal)
+Painel de vetores de risco diferenciados (sobrecarga vs. assédio hierárquico vs. horizontal)
+Tab de ROI: correlação IRP com absenteísmo CID-10 F40-F48, retenção, evolução de bem-estar
+Trilha de auditoria: registro de alertas gerados + resposta documentada do RH (Duty of Care)
+
+8.3 Feature 'Meus Dados' — Contrato de Confiança
+[ATENÇÃO]  PONTO CEGO identificado por Claude: A feature 'Meus Dados' não é uma feature opcional de UX. É a FUNDAÇÃO do contrato de confiança com o usuário. Nielsen & Einarsen (2012, Work & Stress): em sistemas de monitoramento organizacional, a percepção de transparência é pré-requisito para adesão voluntária sustentada. Sem 'Meus Dados', toda a arquitetura de anonimato é construída sobre areia — o usuário não tem como verificar que as promessas são cumpridas.
+Endpoint
+O que expõe
+LGPD
+GET /api/my-data
+Todos os check-ins, scores, missões, flags, alertas enviados ao RH — em JSON legível
+Art. 18, V — portabilidade
+DELETE /api/my-data
+Exclusão completa e irreversível de todos os dados pessoais
+Art. 18, VI — eliminação
+Sem penalidade no halo. Sem notificação ao RH sobre a exclusão. Revogação tratada como ausência normal — streak congela, não decresce.
+
+
+9. Linguagem, UX Writing e Banco de Mensagens
+9.1 Princípios de Linguagem (lista fechada)
+Princípio
+Regra Operacional
+Não-diretivo
+A plataforma 'convida' — nunca 'exige'
+Não-patologização
+Proibido em toda interface visível: 'depressão', 'burnout', 'transtorno', 'síndrome'. Regra de code review para strings.
+Normalização
+Cansaço e tensão são parte natural da jornada — nunca sintomas vergonhosos
+Agência
+Foco no que o usuário PODE fazer — nunca no que está errado
+Transparência de anonimato
+Toda interface sensível exibe lembrete visual de confidencialidade
+Notificação como valor
+Notificação entrega valor mesmo sem abertura do app. KPI: impressão na tela de bloqueio — NÃO taxa de abertura.
+
+9.2 Matching de Categoria por Estado do Céu
+Estado do Céu
+Categoria Prioritária
+SKY_CLEAR
+Leveza / Coragem
+SKY_PARTIAL
+Leveza / Acolhimento
+SKY_CLOUDY
+Calma / Acolhimento
+SKY_REST (Modo Respiro)
+Calma — EXCLUSIVAMENTE
+Trigger de assédio ativo
+Acolhimento — EXCLUSIVAMENTE
+
+9.3 Banco de Mensagens — 4 Categorias
+Categoria 1 — Calma (desativação do SNS — indicada para SKY_CLOUDY e SKY_REST)
+'Hoje não precisa dar conta de tudo.'
+'Respira. Esse momento passa.'
+'Desacelerar não é parar.'
+'O cansaço também é informação.'
+'Você não precisa resolver tudo agora.'
+
+Categoria 2 — Coragem (agência pelo sofrimento — indicada para SKY_CLEAR e SKY_PARTIAL)
+'Pedir ajuda é força, não fraqueza.'
+'Dizer não quando precisa é uma das coisas mais corajosas.'
+'Seu valor não depende do que produziu hoje.'
+'Você já passou por dias difíceis antes. E passou.'
+
+Categoria 3 — Acolhimento (segurança radical — indicada quando trigger de assédio ativo)
+'Você importa.'
+'Dias difíceis não definem quem você é.'
+'Está tudo bem precisar de apoio hoje.'
+'Aqui não tem julgamento.'
+'Você não está sozinho(a) nisso.'
+
+Categoria 4 — Leveza (reframing cognitivo / ACT defusion)
+'Amanhã é outra chance.'
+'Nem tudo precisa ser urgente.'
+'Diminua o zoom. Veja o todo.'
+'Um passo de cada vez já vale.'
+
+9.4 Regras de Notificação
+Máximo 3 push/dia no modo normal. Máximo 1 no Modo Respiro.
+Opt-in explícito. Quiet hours configuráveis.
+Sem push sensível no horário de reunião (integração de calendário — fase 2).
+Preview discreto em tela de bloqueio — cópia sem dados sensíveis.
+
+
+10. Arquitetura Técnica, Stack e Constraints de Código
+10.1 Stack — Atual vs. Futuro
+[ATENÇÃO]  CORREÇÃO v2.0 (Copilot #2): A versão anterior listava Next.js como frontend, conflitando com a Seção 9.2 que referenciava corretamente Vite + wouter. Separação explícita abaixo.
+Stack Atual — Implementado
+Camada
+Tecnologia
+Versão / Nota
+Frontend
+Vite + React 18 + TypeScript + Tailwind CSS + Framer Motion + Lucide React
+Roteamento: wouter (não Next.js, sem SSR)
+Backend
+Node.js + Express 5 + Drizzle ORM
+APIs REST — sem GraphQL no MVP
+Banco de Dados
+PostgreSQL (produção) / SQLite (desenvolvimento)
+Schema via drizzle-zod
+Chatbot
+Persona estruturada via XML — modelo de linguagem via API
+Perfis: usuário geral, líder, não-líder
+Stack Futuro — Planejado (não implementado)
+Camada
+Tecnologia
+Quando
+Infra de produção
+AWS Lambda + DynamoDB + S3
+S26+
+Busca semântica / RAG
+AWS Bedrock + OpenSearch
+S26+
+Migração de frontend
+Next.js (se SSR for necessário)
+Apenas se requisito de SEO/performance justificar
+
+10.2 Estrutura de Arquivos — Módulos Críticos
+Arquivo
+Responsabilidade
+Status
+Restrição
+client/src/lib/checkin-data.ts
+Perguntas, computeDomainScores(), deriveSkyState()
+EXISTE
+NÃO importa de solar-points.ts
+client/src/lib/solar-points.ts
+SolarPointsState, awardPoints(), computeHaloMetrics()
+CRIAR em S22
+NUNCA importa de checkin-data.ts ou score-engine.ts. NUNCA recebe skyState ou emoções.
+client/src/lib/score-engine.ts
+IRP corrigido, reverse coding, ICC por equipe
+EXISTE — ATUALIZAR
+NÃO importa de solar-points.ts
+client/src/lib/mission-engine.ts
+Motor adaptativo de missões, selectMissions() por nível
+EXISTE
+Pontos via solar-points.ts — nunca condiciona pontos a score emocional
+client/src/lib/support-engine.ts
+Modo Respiro, isRespiroActive(), streak freeze, reentrada gradual
+EXISTE — ATUALIZAR
+Streak NUNCA decresce durante Respiro. Protocolo de Escalada em 3 níveis.
+client/src/lib/notification-engine.ts
+Cap 3/dia, quiet hours, matching categoria por skyState
+EXISTE — ATUALIZAR
+Cap 1/dia no Modo Respiro. Categoria mapeada por skyState.
+shared/schema.ts
+Tabelas: daily_checkins, solar_streaks, solar_points, team_challenges, protected_reports
+EXISTE — ATUALIZAR
+Adicionar: confidence, single_emotion_days, emotional_numbness, skip_count
+shared/constants.ts
+DAY_BOUNDARY_HOUR, ANONYMITY_THRESHOLD, POINT_VALUES, DELTA_FATIGUE
+TO CREATE
+Fonte única de verdade. Nada hardcoded em outros arquivos.
+[ATENÇÃO]  CORREÇÃO v2.0 (Copilot #8): shared/constants.ts não existe no codebase atual. Marcado como TO CREATE. Deve ser o PRIMEIRO arquivo criado em S22 — todas as constantes dos outros arquivos devem ser migradas para ele antes de qualquer nova feature.
+
+10.3 As 3 Regras Absolutas de Code Review
+[CRÍTICO]  Regra 1: solar-points.ts NUNCA importa de checkin-data.ts ou score-engine.ts
+[CRÍTICO]  Regra 2: awardPoints() NUNCA recebe skyState, domainScores ou respostas emocionais como parâmetros
+[CRÍTICO]  Regra 3: suporte-engine.ts#evaluateRespiro → streak é congelado (protected), nunca penalizado
+
+10.4 Schema — Tabelas Novas ou Atualizadas
+Tabela
+Campos Novos / Alterados
+Observação
+solar_points
+userId, date, action, points, createdAt
+Ledger imutável
+solar_streaks
+userId, currentStreak, weekPoints, lastCheckinDate, frozenDays, inRespiroMode, lastUpdated
+frozenDays acumula durante Modo Respiro
+daily_checkins
+userId, work_day_date, moment, answers (JSON), domainScores, skyState, confidence ('high'|'medium'|'low'), abandonedAtQuestion, single_emotion_days, emotional_numbness
+work_day_date usa DAY_BOUNDARY_HOUR=4 universal
+team_challenges
+teamId, challengeType, target, current, month, contributions[] (anônimo — sem userId)
+contributions é array anônimo
+protected_reports
+encryptedId, categoryHLB, timestamp, status, escalationLevel (1|2|3)
+Nunca PII. anônimo: true travado.
+
+10.5 APIs Principais
+Endpoint
+Método
+Responsabilidade
+/api/checkin
+POST
+Submete check-in. Pipeline: score-engine → mission-engine → support-engine → solar-points (nesta ordem, sem retorno cruzado).
+/api/solar/award
+POST
+Atribui pontos por ação. NÃO recebe dados emocionais.
+/api/solar/status
+GET
+Retorna { weekPoints, streakDays, haloMetrics, inRespiroMode }.
+/api/sky/current
+GET
+Retorna { skyState, domainScores, confidence } do dia atual.
+/api/dashboard/team/:id
+GET
+IRP, HLB, ICE da equipe — retorna null se n<5.
+/api/my-data
+GET
+Exportação completa dos dados do usuário — LGPD Art. 18.
+/api/my-data
+DELETE
+Exclusão completa — LGPD Art. 18. Zero penalidade no halo.
+/api/support/escalate
+POST
+Protocolo de Escalada — registra nível e timestamp. NÃO conecta conselheiro em <60s.
+
+
+11. Roadmap de Implementação
+S22 — Halo Solar: Foundation (2 semanas)
+PRIMEIRO: Criar shared/constants.ts. Migrar todas as constantes hardcoded. Sem nova feature antes disso.
+solar-points.ts: SolarPointsState, awardPoints() pure function, computeHaloMetrics(). Zero dependências emocionais.
+Streak Freeze: isRespiroActive() em support-engine.ts. Dias Respiro = protected_days. Streak retoma na saída.
+Halo Visual no SkyHeader: anel SVG com strokeWidth por espessura e temperatura de cor. Pulso para streak ≥ 6.
+Onboarding Halo: 50% neutro pulsante. Transição para valor real após primeiro check-in.
+Q5 ICE momentânea: substituir Q5 atual. Sub-menu HLB ativo apenas em opções 3 e 4.
+Opção 'Não sei bem' no microcheck: 5ª opção com flag emotional_numbness.
+Check-in parcial: campo confidence e abandonedAtQuestion no schema.
+
+S23 — Cloud Redesign + Feature 'Meus Dados' (2 semanas)
+Nuvem SVG paramétrica: 3–4 ellipses sobrepostos, gradiente teal clareaando com solarHaloLevel.
+Feature 'Meus Dados': GET /api/my-data, DELETE /api/my-data. Tela de transparência completa.
+Protocolo de Escalada: /api/support/escalate com níveis 1, 2, 3. Integração de recursos CVV/CAPS em nível 2.
+
+S24 — Pontuação Persistente no Servidor (2 semanas)
+Schema solar_points + solar_streaks no Drizzle ORM.
+IStorage: awardSolarPoints(), getSolarStreak(), getWeekPoints(). Validação contra domainScores.
+Dashboard integration: SkyHeader consome haloMetrics do servidor.
+IRP corrigido: fórmula ((μHLB + (6 − μICE)) / 2 − 1) × 25 em score-engine.ts.
+
+S25 — Refinamentos e Mensagens (1 semana)
+Milestone de 66 dias: celebração 'Hábito Solar' com copy científico correto.
+Modo Respiro reentrada gradual: 1 pergunta de boas-vindas antes do check-in completo.
+Matching de categoria por skyState no notification-engine.ts.
+'Não sei bem' acúmulo longitudinal: single_emotion_days e emotional_numbness no discovery engine.
+
+Backlog (milestones futuros)
+Pulse Survey mensal completo com Likert 5 pontos e ICC por equipe
+Calibração de pesos 33/33/33 após n≥200 check-ins (Pearson + bootstrap IC 95%)
+Fator δ calibrado empiricamente após 90 dias (substituir valores provisórios)
+5° estado visual SKY_OVERCAST (score 50–75) — aguardar dados de piloto
+Parceria com empresa de saúde ocupacional para Protocolo de Escalada Nível 2 completo
+Integração com hard data de absenteísmo CID-10 (fase 3)
+Integração de calendário para quiet hours automáticos em reuniões
+
+
+12. Ética, Privacidade e LGPD Compliance
+12.1 Privacy by Design — Regras Absolutas
+Regra
+Implementação Técnica
+k-anonymity (n≥5)
+GET /api/dashboard/team/:id retorna null para equipes < 5 respondentes ativos.
+Anonimato em denúncias
+anônimo: true travado por padrão em protected_reports. Usuário opta explicitamente por identificação.
+Dados individuais fora do RH
+Nenhum endpoint de dashboard retorna userId, nome ou qualquer PII.
+'Meus Dados'
+GET + DELETE. Usuário vê exatamente o que foi coletado, o que foi alertado ao RH, o que foi agregado.
+Revogação sem penalidade
+DELETE /api/my-data não decresce halo, não penaliza streak, não gera notificação ao RH.
+Modo Respiro invisível
+Status de Modo Respiro NUNCA aparece em team challenges, dashboard RH, ou para gestores.
+
+12.2 Compliance NR-1 (Revisada 2024)
+Monitoramento contínuo de fatores de risco psicossocial
+Registro e trilha de auditoria de alertas gerados (Duty of Care documentado com timestamp)
+Relatórios periódicos para RH com IRP por equipe
+Protocolo de escalada documentado por nível de risco com resposta obrigatória do RH
+[CRÍTICO]  DUTY OF CARE: O app gera registro de risco sinalizado. Organizações que não agem após alerta de IRP > 70 têm exposição legal crescente nos tribunais trabalhistas brasileiros. O produto DEVE incluir formulário de resposta do RH a cada alerta — com timestamp e responsável nomeado. Sem esse registro, o Duty of Care é documentado mas não cumprido.
+
+12.3 LGPD — Política de Retenção de Dados
+[ATENÇÃO]  CORREÇÃO v2.0 (Copilot #10): A versão anterior não definia período de retenção, expurgo pós-desligamento ou portabilidade — lacuna de compliance para produto B2B regulado.
+Tipo de Dado
+Período de Retenção
+Ação Pós-Prazo
+Fundamento LGPD
+check-ins individuais
+Durante vínculo ativo + 2 anos após desligamento
+Anonimização irreversível (não exclusão — mantém agregados)
+Art. 16, I — obrigação legal
+dados agregados (IRP, HLB)
+5 anos após coleta
+Exclusão definitiva
+Art. 16, IV — interesse legítimo
+protected_reports (denúncias)
+10 anos — prazo trabalhista (CLT Art. 11)
+Exclusão definitiva
+Art. 16, I — obrigação legal
+Dados exportados (Meus Dados)
+Exportação pontual — não retida
+—
+Art. 18, V — portabilidade
+Logs de autenticação
+1 ano
+Exclusão automática
+Art. 46 — segurança
+
+12.4 Limites Éticos do Produto
+O Produto É
+O Produto NÃO É
+Ferramenta de gestão de risco organizacional
+Substituto de psicoterapia ou atendimento clínico
+Canal seguro de reporte e escuta ativa
+Sistema de vigilância individual
+Assistente de bem-estar com IA
+Psicóloga ou profissional de saúde mental
+Plataforma de engajamento compassivo
+App de gamificação de performance emocional
+Mecanismo de proteção coletiva
+Ferramenta de avaliação individual para demissões
+
+
+13. Glossário Técnico
+Termo
+Definição
+CÉU SCORE
+Score diário 0–100. Três domínios com pesos iguais (33/33/33). Representa estado do dia. NÃO acumula.
+HALO SOLAR
+Pontos acumulados semanais (0–100+). Consistência de autocuidado. Pipeline independente do Céu.
+SKY_REST / MODO RESPIRO
+Estado de interface quieta. Ativo quando Céu < 25 por 2 dias consecutivos ou ativação manual.
+HLB
+Harmful Leader Behaviors — 4 dimensões (Almeida et al., 2022). Alimenta dashboard RH e discovery engine.
+ICE
+Índice de Clima Ético — 6 dimensões (Victor & Cullen, 1988; Almeida & Porto, 2019). NUNCA índice único.
+IRP
+Índice de Risco Psicossocial — score 0–100 por equipe. Fórmula corrigida v2.0: ((μHLB + (6−μICE)) / 2 − 1) × 25.
+EMA
+Ecological Momentary Assessment — múltiplas capturas ao dia para eliminar viés retrospectivo.
+k-anonymity
+Dados individuais nunca expostos se equipe tem < n=5 respondentes ativos.
+ICC
+Coeficiente de Correlação Intraclasse. ICC < 0.10 = clima não compartilhado = dado com alta dispersão.
+Reverse coding
+Inversão de itens negativos: Valor_Tratado = (6 − Valor_Respondido).
+Fator δ
+Fator de desconto de exaustão. P_real = Pi × (1 − δ). Valores provisórios: Mais ou menos=0.20, Sim=0.50.
+Dread crônico
+Q2 'Com receio' por 5+ dias consecutivos. Proxy clínico de ambiente tóxico persistente.
+confidence: low
+Check-in com 1–2 perguntas respondidas. Não entra em agregações RH.
+DAY_BOUNDARY_HOUR
+Constante = 4. Check-ins entre 00h–04h atribuídos ao work_day_date do dia anterior.
+ANONYMITY_THRESHOLD
+Constante = 5. Mínimo de respondentes para exibição no dashboard RH.
+emotional_numbness
+Flag do discovery engine para 'Não sei bem' frequente no microcheck.
+single_emotion_days
+Metadata do discovery engine para dias com seleção única em Q3. NÃO modifica score.
+Duty of Care
+Obrigação legal de agir após alertas documentados. Exposição legal cresce sem resposta registrada.
+Stepped Care
+Modelo de intervenção em 3 níveis progressivos (Richards & Borglin, 2011). Substitui SLA removido.
+Protocolo de Escalada
+Substituição do SLA de conselheiro < 60s. Três níveis: IA → recursos externos → saúde ocupacional.
+
+
+FIM DO DOCUMENTO — Source of Truth v2.0
+JuPhD Care © 2026   |   Documento confidencial para uso interno exclusivo   |   Revisão: trimestral
