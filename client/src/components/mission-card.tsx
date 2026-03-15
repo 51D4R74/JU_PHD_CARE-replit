@@ -1,8 +1,15 @@
-import { useState } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check } from "@phosphor-icons/react";
+import { Check, Sparkle } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+} from "@/components/ui/drawer";
 
 export type MissionStatus = "pending" | "done";
 
@@ -15,38 +22,12 @@ export interface MissionDef {
   category: string;
 }
 
-type MissionCardProps = Readonly<{
+type MissionMiniCardProps = Readonly<{
   mission: MissionDef;
   status: MissionStatus;
-  onComplete: (missionId: string) => void;
-  className?: string;
+  onSelect: (mission: MissionDef) => void;
 }>;
 
-/** Tiny sparkles that burst outward on mission completion. */
-function CompletionSparkles() {
-  const particles = Array.from({ length: 6 }, (_, i) => {
-    const angle = (i / 6) * 360;
-    const rad = (angle * Math.PI) / 180;
-    const dist = 28 + Math.random() * 16;
-    return { id: i, x: Math.cos(rad) * dist, y: Math.sin(rad) * dist };
-  });
-
-  return (
-    <AnimatePresence>
-      {particles.map((p) => (
-        <motion.span
-          key={p.id}
-          initial={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-          animate={{ opacity: 0, scale: 0.3, x: p.x, y: p.y }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.55, ease: "easeOut" }}
-          className="pointer-events-none absolute left-1/2 top-1/2 h-1.5 w-1.5 rounded-full"
-          style={{ backgroundColor: p.id % 2 === 0 ? "hsl(var(--brand-gold))" : "hsl(var(--warmth-coral))" }}
-        />
-      ))}
-    </AnimatePresence>
-  );
-}
 const ENCOURAGEMENTS = [
   "Bom pra você! ☀️",
   "Pequeno gesto, grande cuidado.",
@@ -64,93 +45,208 @@ function pickEncouragement(missionId: string): string {
   return ENCOURAGEMENTS[Math.abs(hash) % ENCOURAGEMENTS.length];
 }
 
-export default function MissionCard({
+export function MissionMiniCard({ mission, status, onSelect }: MissionMiniCardProps) {
+  const isDone = status === "done";
+  const Icon = mission.icon;
+
+  return (
+    <motion.button
+      whileTap={isDone ? {} : { scale: 0.95 }}
+      onClick={() => !isDone && onSelect(mission)}
+      className={`flex flex-col items-center gap-1.5 rounded-2xl p-3 text-center transition-all min-h-[100px] w-full ${
+        isDone
+          ? "bg-emerald-50 border border-emerald-200/60 opacity-80"
+          : "glass-card hover:border-brand-teal/25 hover:shadow-sm cursor-pointer"
+      }`}
+      aria-label={isDone ? `${mission.title} — concluída` : mission.title}
+    >
+      <div
+        className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+          isDone ? "bg-emerald-500" : "bg-brand-navy/8"
+        }`}
+      >
+        {isDone ? (
+          <Check className="w-4.5 h-4.5 text-white" weight="bold" />
+        ) : (
+          <Icon className="w-4.5 h-4.5 text-brand-navy" weight="duotone" />
+        )}
+      </div>
+      <span
+        className={`text-[11px] font-medium leading-tight line-clamp-2 ${
+          isDone ? "line-through text-muted-foreground" : "text-foreground"
+        }`}
+      >
+        {mission.title}
+      </span>
+      <span
+        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+          isDone
+            ? "bg-emerald-100 text-emerald-700"
+            : "bg-brand-gold/15 text-brand-gold-dark"
+        }`}
+      >
+        +{mission.points} ☀️
+      </span>
+    </motion.button>
+  );
+}
+
+type MissionDetailDrawerProps = Readonly<{
+  mission: MissionDef | null;
+  status: MissionStatus;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onComplete: (missionId: string) => void;
+}>;
+
+export function MissionDetailDrawer({
   mission,
   status,
+  open,
+  onOpenChange,
   onComplete,
-  className = "",
-}: MissionCardProps) {
-  const [animating, setAnimating] = useState(false);
-  const isDone = status === "done" || animating;
+}: MissionDetailDrawerProps) {
+  const [celebrating, setCelebrating] = useState(false);
+  const isDone = status === "done" || celebrating;
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function handleTap() {
-    if (isDone) return;
-    setAnimating(true);
-    // Short delay for the check animation, then notify parent
-    setTimeout(() => onComplete(mission.id), 400);
-  }
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const handleComplete = useCallback(() => {
+    if (!mission || isDone) return;
+    setCelebrating(true);
+    onComplete(mission.id);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      setCelebrating(false);
+      onOpenChange(false);
+      timerRef.current = null;
+    }, 1200);
+  }, [mission, isDone, onComplete, onOpenChange]);
+
+  if (!mission) return null;
 
   const Icon = mission.icon;
 
   return (
-    <Card
-      className={`overflow-hidden transition-colors ${isDone ? "opacity-70" : "cursor-pointer hover:border-brand-navy/15"} ${className}`.trim()}
-      onClick={handleTap}
-      role="button"
-      aria-label={isDone ? `${mission.title} — concluída` : `Completar: ${mission.title}`}
-      data-testid={`mission-${mission.id}`}
-    >
-      <CardContent className="flex items-center gap-3 p-4">
-        {/* Icon / check circle */}
-        <div className="relative flex-shrink-0">
-          {animating && <CompletionSparkles />}
-          <motion.div
-            animate={isDone ? { scale: [1, 1.2, 1], backgroundColor: "hsl(var(--score-good))" } : {}}
-            transition={{ duration: 0.3 }}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-              isDone ? "bg-emerald-500" : "bg-brand-navy/10"
-            }`}
-          >
-            {isDone ? (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-w-lg mx-auto">
+        <DrawerHeader className="text-center pt-6 pb-2">
+          <div className="relative mx-auto mb-3">
+            <AnimatePresence>
+              {celebrating && <CelebrationBurst />}
+            </AnimatePresence>
+            <motion.div
+              animate={celebrating ? { scale: [1, 1.2, 1] } : {}}
+              transition={{ duration: 0.4 }}
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto ${
+                isDone ? "bg-emerald-500" : "bg-brand-navy/8"
+              }`}
+            >
+              {isDone ? (
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                >
+                  <Check className="w-7 h-7 text-white" weight="bold" />
+                </motion.div>
+              ) : (
+                <Icon className="w-7 h-7 text-brand-navy" weight="duotone" />
+              )}
+            </motion.div>
+          </div>
+          <DrawerTitle className="text-base font-semibold">
+            {mission.title}
+          </DrawerTitle>
+          <DrawerDescription className="text-sm leading-relaxed mt-1">
+            {mission.description}
+          </DrawerDescription>
+          <div className="flex justify-center mt-3">
+            <span
+              className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                isDone
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-brand-gold/15 text-brand-gold-dark"
+              }`}
+            >
+              +{mission.points} ☀️
+            </span>
+          </div>
+        </DrawerHeader>
+
+        <DrawerFooter className="pb-8">
+          <AnimatePresence mode="wait">
+            {celebrating ? (
               <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                key="celebration"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="text-center py-2"
               >
-                <Check className="w-5 h-5 text-white" />
+                <p className="text-sm font-medium text-warmth-coral">
+                  {pickEncouragement(mission.id)}
+                </p>
+              </motion.div>
+            ) : isDone ? (
+              <motion.div
+                key="done"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-2"
+              >
+                <p className="text-sm text-emerald-600 font-medium flex items-center justify-center gap-1.5">
+                  <Check className="w-4 h-4" weight="bold" />
+                  Concluída
+                </p>
               </motion.div>
             ) : (
-              <Icon className="w-5 h-5 text-brand-navy" />
+              <motion.button
+                key="cta"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleComplete}
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-gradient-to-r from-brand-teal to-brand-navy text-white font-semibold text-sm shadow-md shadow-brand-teal/15 transition-all hover:shadow-lg hover:brightness-110 active:scale-[0.98]"
+              >
+                <Sparkle className="w-4 h-4" weight="fill" />
+                Marcar como feita
+              </motion.button>
             )}
-          </motion.div>
-        </div>
+          </AnimatePresence>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  );
+}
 
-        {/* Text */}
-        <div className="flex-1 min-w-0">
-          <p className={`text-sm font-medium leading-snug ${isDone ? "line-through text-muted-foreground" : ""}`}>
-            {mission.title}
-          </p>
-          <p className="text-xs text-muted-foreground mt-0.5 truncate">
-            {mission.description}
-          </p>
-        </div>
+function CelebrationBurst() {
+  const particles = Array.from({ length: 8 }, (_, i) => {
+    const angle = (i / 8) * 360;
+    const rad = (angle * Math.PI) / 180;
+    const dist = 36 + Math.random() * 16;
+    return { id: i, x: Math.cos(rad) * dist, y: Math.sin(rad) * dist };
+  });
 
-        {/* Points badge */}
-        <motion.div
-          animate={isDone ? { scale: [1, 1.25, 1] } : {}}
-          transition={{ duration: 0.35, delay: 0.1 }}
-          className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold ${
-            isDone
-              ? "bg-emerald-100 text-emerald-700"
-              : "bg-brand-gold/15 text-brand-gold-dark"
-          }`}
-        >
-          +{mission.points} ☀️
-        </motion.div>
-      </CardContent>
-      <AnimatePresence>
-        {animating && (
-          <motion.p
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="px-4 pb-3 text-xs text-warmth-coral font-medium text-center"
-          >
-            {pickEncouragement(mission.id)}
-          </motion.p>
-        )}
-      </AnimatePresence>
-    </Card>
+  return (
+    <>
+      {particles.map((p) => (
+        <motion.span
+          key={p.id}
+          initial={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+          animate={{ opacity: 0, scale: 0.2, x: p.x, y: p.y }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="pointer-events-none absolute left-1/2 top-1/2 h-2 w-2 rounded-full"
+          style={{
+            backgroundColor: p.id % 2 === 0 ? "hsl(var(--brand-gold))" : "hsl(var(--warmth-coral))",
+          }}
+        />
+      ))}
+    </>
   );
 }

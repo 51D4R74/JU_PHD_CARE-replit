@@ -2,11 +2,10 @@ import { useState, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { devNow } from "@shared/dev-clock";
-import { CaretLeft, ChatCircleDots } from "@phosphor-icons/react";
+import { CaretLeft, ChatCircleDots, SealCheck, Sparkle } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import MissionCard, { type MissionDef, type MissionStatus } from "@/components/mission-card";
-import LuminaCard from "@/components/lumina-card";
+import { MissionMiniCard, MissionDetailDrawer, type MissionDef, type MissionStatus } from "@/components/mission-card";
 import SolarPointsBadge from "@/components/solar-points-badge";
 import ConstancyDots from "@/components/constancy-dots";
 import Microcheck from "@/components/microcheck";
@@ -26,8 +25,6 @@ const EMPTY_SCORES: TodayScores = {
   hasCheckedIn: false,
 };
 
-// ── Page ──────────────────────────────────────────
-
 export default function MissionCenterPage() {
   const [, navigate] = useLocation();
   const { user } = useAuth();
@@ -35,6 +32,8 @@ export default function MissionCenterPage() {
   const userId = user?.id ?? "";
   const [microcheckOpen, setMicrocheckOpen] = useState(false);
   const [microcheckCount, setMicrocheckCount] = useState(0);
+  const [selectedMission, setSelectedMission] = useState<MissionDef | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const { data: scores = EMPTY_SCORES } = useQuery<TodayScores>({
     queryKey: ["/api/scores/user", userId, "today"],
@@ -98,7 +97,6 @@ export default function MissionCenterPage() {
     },
   });
 
-  // Adaptive mission selection via engine
   const missions: MissionDef[] = useMemo(() => {
     return selectMissions({
       skyState: scores.skyState,
@@ -114,7 +112,6 @@ export default function MissionCenterPage() {
   ).length;
   const progress = totalMissions > 0 ? Math.round((completedCount / totalMissions) * 100) : 0;
 
-  // Points: check-in + mission completions (microcheck + constancy migrated to server in S15)
   const missionPoints = completedMissions.reduce((sum, m) => sum + m.pointsEarned, 0);
   const checkinPoints = scores.hasCheckedIn ? POINT_VALUES.checkin : 0;
   const totalPoints = checkinPoints + missionPoints;
@@ -124,15 +121,13 @@ export default function MissionCenterPage() {
     const mission = missions.find((m) => m.id === missionId);
     const pts = mission?.points ?? 5;
     completeMissionMut.mutate({ missionId, pointsEarned: pts });
-    // Trigger microcheck after mission (max 2/day)
     if (microcheckCount < POINT_VALUES.microchecksMaxPerDay) {
-      setTimeout(() => setMicrocheckOpen(true), 600);
+      setTimeout(() => setMicrocheckOpen(true), 1400);
     }
   }, [completedIds, missions, microcheckCount, completeMissionMut]);
 
   const handleMicrocheckRespond = useCallback(
     (mood: MicroMoodId, _context?: string) => {
-      // BACKLOG: POST /api/microchecks — server microcheck API [future milestone]
       setMicrocheckCount((c) => c + 1);
       if (mood === "need-support") {
         recordNeedSupport();
@@ -146,13 +141,17 @@ export default function MissionCenterPage() {
     return completedIds.includes(missionId) ? "done" : "pending";
   }
 
+  const handleSelectMission = useCallback((mission: MissionDef) => {
+    setSelectedMission(mission);
+    setDrawerOpen(true);
+  }, []);
+
   return (
     <div className="min-h-screen gradient-sunrise">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-brand-gold/8 rounded-full blur-[150px]" />
       </div>
 
-      {/* Header */}
       <header className="relative z-10 px-4 pt-6 pb-2 flex items-center gap-3 max-w-lg mx-auto">
         <button
           onClick={() => navigate("/dashboard")}
@@ -167,11 +166,22 @@ export default function MissionCenterPage() {
             Pequenas ações de cuidado escolhidas pra você
           </p>
         </div>
-        {/* Solar Points badge */}
         <SolarPointsBadge points={totalPoints} />
       </header>
 
       <main className="relative z-10 max-w-lg mx-auto px-4 pb-24">
+        {/* Slogan banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08, duration: 0.4 }}
+          className="mt-3 text-center"
+        >
+          <p className="text-base font-bold bg-gradient-to-r from-brand-teal via-brand-navy to-brand-gold bg-clip-text text-transparent">
+            Você é seu melhor projeto!
+          </p>
+        </motion.div>
+
         {/* Progress bar */}
         <motion.section
           initial={{ opacity: 0, y: 16 }}
@@ -195,36 +205,68 @@ export default function MissionCenterPage() {
           </div>
           {completedCount === totalMissions && totalMissions > 0 && (
             <p className="text-xs text-emerald-600 font-medium mt-2 text-center">
-              🎉 Você completou tudo! Parabéns!
+              Você completou tudo! Parabéns!
             </p>
           )}
         </motion.section>
 
-        {/* Lumina companion — mission rationale */}
-        <LuminaCard
-          context="missions"
-          compact
-          delay={0.12}
-          className="mt-3"
-          onTap={() => navigate("/support")}
-        />
-
-        {/* Mission list */}
-        <section className="mt-4 space-y-3">
-          {missions.map((m, i) => (
-            <motion.div
-              key={m.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 + i * 0.07 }}
-            >
-              <MissionCard
-                mission={m}
-                status={getStatus(m.id)}
-                onComplete={handleComplete}
+        {/* JuPHD institutional card */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12, duration: 0.4 }}
+          className="mt-3 relative overflow-hidden rounded-2xl border border-brand-teal/15 bg-card shadow-sm"
+        >
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.04]"
+            style={{
+              background: "linear-gradient(135deg, hsl(183 41% 36%), hsl(43 82% 58%) 60%, transparent 80%)",
+            }}
+            aria-hidden="true"
+          />
+          <div className="relative flex items-center gap-3 px-4 py-3.5">
+            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0" style={{ background: "linear-gradient(145deg, hsl(183 41% 36% / 0.08), hsl(43 82% 58% / 0.06))" }}>
+              <img
+                src="/juphd-icon.png"
+                alt="JuPHD"
+                className="h-full w-full object-contain p-[8%]"
+                style={{ filter: "drop-shadow(0 2px 6px rgba(42,166,166,0.15))" }}
               />
-            </motion.div>
-          ))}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <img src="/juphd-nome.png" alt="JuPHD" className="h-3.5 object-contain" />
+                <SealCheck className="w-3.5 h-3.5 text-brand-teal flex-shrink-0" weight="fill" />
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Pequenas ações, grande cuidado. Escolhemos isso especialmente pra você.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Mission grid — 3 per row */}
+        <section className="mt-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkle className="w-4 h-4 text-brand-gold" weight="fill" />
+            <h2 className="text-sm font-semibold">Suas missões de hoje</h2>
+          </div>
+          <div className="grid grid-cols-3 gap-2.5">
+            {missions.map((m, i) => (
+              <motion.div
+                key={m.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 + i * 0.06 }}
+              >
+                <MissionMiniCard
+                  mission={m}
+                  status={getStatus(m.id)}
+                  onSelect={handleSelectMission}
+                />
+              </motion.div>
+            ))}
+          </div>
         </section>
 
         {/* Check-in points reminder */}
@@ -268,6 +310,15 @@ export default function MissionCenterPage() {
       </main>
 
       <BottomNav />
+
+      {/* Mission detail drawer */}
+      <MissionDetailDrawer
+        mission={selectedMission}
+        status={selectedMission ? getStatus(selectedMission.id) : "pending"}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        onComplete={handleComplete}
+      />
 
       {/* Microcheck sheet */}
       <Microcheck
