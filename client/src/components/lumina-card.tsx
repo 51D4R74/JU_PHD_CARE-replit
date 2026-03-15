@@ -11,6 +11,7 @@
 
 import { motion } from "framer-motion";
 import { CaretRight, SealCheck } from "@phosphor-icons/react";
+import { GradientButton } from "@/components/ui/gradient-button";
 import {
   type LuminaContext,
   selectLuminaMessage,
@@ -131,22 +132,9 @@ export default function LuminaCard({
             {msg.text}
           </p>
 
-          {/* CTA — full width */}
-          <button
-            type="button"
-            onClick={onTap}
-            className={
-              "mt-7 flex w-full min-h-12 items-center justify-center gap-2.5 rounded-2xl " +
-              "bg-gradient-to-r from-brand-teal to-brand-navy " +
-              "px-7 py-3.5 text-base font-semibold text-white " +
-              "shadow-md shadow-brand-teal/15 " +
-              "transition-all hover:shadow-lg hover:shadow-brand-teal/25 hover:brightness-110 " +
-              "active:scale-[0.98]"
-            }
-          >
+          <GradientButton onClick={onTap} showCaret className="mt-7">
             {msg.cta}
-            <CaretRight className="h-4 w-4" weight="bold" />
-          </button>
+          </GradientButton>
         </div>
       </motion.div>
     );
