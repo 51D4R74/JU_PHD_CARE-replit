@@ -46,6 +46,12 @@ Corporate mental health platform focused on employee well-being (prevention and 
 - Dashboard uses `variant="dark"` (glass-nav-dark); all other pages use default light variant
 - Sub-route mapping: `/report` → Sua Jornada active, `/team-challenge` → Pra Você active, `/checkin` → Início active
 
+## Community Messages
+- **Tables**: `community_messages` (id, userId, authorName, anonymous, body, category, likeCount, createdAt) + `message_likes` (id, messageId, userId, createdAt)
+- **API**: `GET /api/community-messages?limit=20&offset=0`, `POST /api/community-messages` (body, anonymous, category?), `POST /api/community-messages/:id/like` (toggle)
+- **Frontend**: `CommunityFeed` component renders message cards with like buttons, ranking (top message), sort by recent/popular
+- **Location**: Wired into the "Deixar" tab of the Apoio (Support) page with anonymous toggle
+
 ## User Flows
 1. **Login** → Dashboard (collaborator) or RH Dashboard (hr role)
 2. **Dashboard** → Check-in wizard (5 steps) → Save → Back to dashboard

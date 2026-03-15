@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, desc } from "drizzle-orm";
+import { eq, and, gte, lte, desc, sql } from "drizzle-orm";
 import {
   users,
   checkIns,
@@ -10,6 +10,8 @@ import {
   solarStreaks,
   pulseResponses,
   teamChallengeContributions,
+  communityMessages,
+  messageLikes,
 } from "@shared/schema";
 import type {
   User,
@@ -29,6 +31,9 @@ import type {
   InsertPulseResponse,
   TeamChallengeContribution,
   InsertTeamChallengeContribution,
+  CommunityMessage,
+  InsertCommunityMessage,
+  MessageLike,
 } from "@shared/schema";
 import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
@@ -324,6 +329,65 @@ export class DrizzleStorage extends BaseStorage {
       );
   }
 
+  async createCommunityMessage(insert: InsertCommunityMessage): Promise<CommunityMessage> {
+    const rows = await getDb()
+      .insert(communityMessages)
+      .values({ id: randomUUID(), ...insert, likeCount: 0, createdAt: new Date() })
+      .returning();
+    const record = rows.at(0);
+    if (!record) throw new Error("Falha ao criar mensagem comunitária");
+    return record;
+  }
+
+  async getCommunityMessages(limit: number, offset: number): Promise<CommunityMessage[]> {
+    return getDb()
+      .select()
+      .from(communityMessages)
+      .orderBy(desc(communityMessages.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getCommunityMessageById(id: string): Promise<CommunityMessage | undefined> {
+    const rows = await getDb().select().from(communityMessages).where(eq(communityMessages.id, id)).limit(1);
+    return rows.at(0);
+  }
+
+  async toggleMessageLike(messageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
+    const db = getDb();
+    const existing = await db
+      .select()
+      .from(messageLikes)
+      .where(and(eq(messageLikes.messageId, messageId), eq(messageLikes.userId, userId)))
+      .limit(1);
+
+    if (existing.length > 0) {
+      await db.delete(messageLikes).where(eq(messageLikes.id, existing[0].id));
+      const updated = await db
+        .update(communityMessages)
+        .set({ likeCount: sql`GREATEST(0, ${communityMessages.likeCount} - 1)` })
+        .where(eq(communityMessages.id, messageId))
+        .returning();
+      return { liked: false, likeCount: updated[0]?.likeCount ?? 0 };
+    }
+
+    await db.insert(messageLikes).values({ id: randomUUID(), messageId, userId, createdAt: new Date() });
+    const updated = await db
+      .update(communityMessages)
+      .set({ likeCount: sql`${communityMessages.likeCount} + 1` })
+      .where(eq(communityMessages.id, messageId))
+      .returning();
+    return { liked: true, likeCount: updated[0]?.likeCount ?? 0 };
+  }
+
+  async getUserLikedMessageIds(userId: string): Promise<string[]> {
+    const rows = await getDb()
+      .select({ messageId: messageLikes.messageId })
+      .from(messageLikes)
+      .where(eq(messageLikes.userId, userId));
+    return rows.map((r) => r.messageId);
+  }
+
   async deleteUserData(userId: string): Promise<void> {
     const db = getDb();
     await db.delete(checkIns).where(eq(checkIns.userId, userId));
@@ -334,6 +398,8 @@ export class DrizzleStorage extends BaseStorage {
     await db.delete(pulseResponses).where(eq(pulseResponses.userId, userId));
     await db.delete(userSettings).where(eq(userSettings.userId, userId));
     await db.delete(teamChallengeContributions).where(eq(teamChallengeContributions.userId, userId));
+    await db.delete(messageLikes).where(eq(messageLikes.userId, userId));
+    await db.delete(communityMessages).where(eq(communityMessages.userId, userId));
     await db.delete(users).where(eq(users.id, userId));
   }
 
@@ -346,5 +412,7 @@ export class DrizzleStorage extends BaseStorage {
     await db.delete(solarStreaks).where(eq(solarStreaks.userId, userId));
     await db.delete(pulseResponses).where(eq(pulseResponses.userId, userId));
     await db.delete(teamChallengeContributions).where(eq(teamChallengeContributions.userId, userId));
+    await db.delete(messageLikes).where(eq(messageLikes.userId, userId));
+    await db.delete(communityMessages).where(eq(communityMessages.userId, userId));
   }
 }

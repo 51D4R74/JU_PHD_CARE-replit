@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type CheckIn, type InsertCheckIn, type MomentCheckIn, type InsertMomentCheckIn, type IncidentReport, type InsertIncidentReport, type UserMission, type InsertUserMission, type UserSettings, type CheckInHistoryRecord, type SolarPoints, type InsertSolarPoints, type TeamChallengeContribution, type InsertTeamChallengeContribution, type PulseResponse, type InsertPulseResponse } from "@shared/schema";
+import { type User, type InsertUser, type CheckIn, type InsertCheckIn, type MomentCheckIn, type InsertMomentCheckIn, type IncidentReport, type InsertIncidentReport, type UserMission, type InsertUserMission, type UserSettings, type CheckInHistoryRecord, type SolarPoints, type InsertSolarPoints, type TeamChallengeContribution, type InsertTeamChallengeContribution, type PulseResponse, type InsertPulseResponse, type CommunityMessage, type InsertCommunityMessage, type MessageLike } from "@shared/schema";
 import { ANONYMITY_THRESHOLD, getWorkdayDate } from "@shared/constants";
 import { devNow } from "@shared/dev-clock";
 import { randomUUID } from "node:crypto";
@@ -277,6 +277,12 @@ export interface IStorage {
   createTeamContribution(data: InsertTeamChallengeContribution): Promise<TeamChallengeContribution>;
   getTeamContributionsByChallengeAndMonth(challengeId: string, startDate: string, endDate: string): Promise<TeamChallengeContribution[]>;
   getUserTodayTeamContributions(userId: string, challengeId: string, date: string): Promise<TeamChallengeContribution[]>;
+  // ── Community messages ──────────────────────────────
+  createCommunityMessage(msg: InsertCommunityMessage): Promise<CommunityMessage>;
+  getCommunityMessages(limit: number, offset: number): Promise<CommunityMessage[]>;
+  getCommunityMessageById(id: string): Promise<CommunityMessage | undefined>;
+  toggleMessageLike(messageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }>;
+  getUserLikedMessageIds(userId: string): Promise<string[]>;
 }
 
 /** Algorithm-heavy computed methods shared across all storage backends. */
@@ -309,6 +315,11 @@ export abstract class BaseStorage implements IStorage {
   abstract createTeamContribution(data: InsertTeamChallengeContribution): Promise<TeamChallengeContribution>;
   abstract getTeamContributionsByChallengeAndMonth(challengeId: string, startDate: string, endDate: string): Promise<TeamChallengeContribution[]>;
   abstract getUserTodayTeamContributions(userId: string, challengeId: string, date: string): Promise<TeamChallengeContribution[]>;
+  abstract createCommunityMessage(msg: InsertCommunityMessage): Promise<CommunityMessage>;
+  abstract getCommunityMessages(limit: number, offset: number): Promise<CommunityMessage[]>;
+  abstract getCommunityMessageById(id: string): Promise<CommunityMessage | undefined>;
+  abstract toggleMessageLike(messageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }>;
+  abstract getUserLikedMessageIds(userId: string): Promise<string[]>;
 
   async getTodayScoresByUserId(userId: string): Promise<TodayScoresSnapshot> {
     const todayCheckIn = (await this.getCheckInsByUserIdAndDate(userId, getWorkdayDate(devNow()))).at(0);
@@ -519,6 +530,8 @@ export class MemStorage extends BaseStorage {
   private readonly solarPointsMap: Map<string, SolarPoints>;
   private readonly pulseResponsesMap: Map<string, PulseResponse>;
   private readonly teamContributionsMap: Map<string, TeamChallengeContribution>;
+  private readonly communityMessagesMap: Map<string, CommunityMessage>;
+  private readonly messageLikesMap: Map<string, MessageLike>;
 
   constructor() {
     super();
@@ -531,6 +544,8 @@ export class MemStorage extends BaseStorage {
     this.solarPointsMap = new Map();
     this.pulseResponsesMap = new Map();
     this.teamContributionsMap = new Map();
+    this.communityMessagesMap = new Map();
+    this.messageLikesMap = new Map();
     this.seedData();
   }
 
@@ -1004,6 +1019,56 @@ export class MemStorage extends BaseStorage {
     );
   }
 
+  async createCommunityMessage(insert: InsertCommunityMessage): Promise<CommunityMessage> {
+    const id = randomUUID();
+    const msg: CommunityMessage = {
+      ...insert,
+      id,
+      anonymous: insert.anonymous ?? true,
+      authorName: insert.authorName ?? null,
+      category: insert.category ?? null,
+      likeCount: 0,
+      createdAt: devNow(),
+    };
+    this.communityMessagesMap.set(id, msg);
+    return msg;
+  }
+
+  async getCommunityMessages(limit: number, offset: number): Promise<CommunityMessage[]> {
+    return Array.from(this.communityMessagesMap.values())
+      .toSorted((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0))
+      .slice(offset, offset + limit);
+  }
+
+  async getCommunityMessageById(id: string): Promise<CommunityMessage | undefined> {
+    return this.communityMessagesMap.get(id);
+  }
+
+  async toggleMessageLike(messageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
+    const existing = Array.from(this.messageLikesMap.values()).find(
+      (l) => l.messageId === messageId && l.userId === userId,
+    );
+    const msg = this.communityMessagesMap.get(messageId);
+    if (!msg) throw new Error("Mensagem não encontrada");
+
+    if (existing) {
+      this.messageLikesMap.delete(existing.id);
+      msg.likeCount = Math.max(0, msg.likeCount - 1);
+      return { liked: false, likeCount: msg.likeCount };
+    }
+
+    const like: MessageLike = { id: randomUUID(), messageId, userId, createdAt: devNow() };
+    this.messageLikesMap.set(like.id, like);
+    msg.likeCount += 1;
+    return { liked: true, likeCount: msg.likeCount };
+  }
+
+  async getUserLikedMessageIds(userId: string): Promise<string[]> {
+    return Array.from(this.messageLikesMap.values())
+      .filter((l) => l.userId === userId)
+      .map((l) => l.messageId);
+  }
+
   async deleteUserData(userId: string): Promise<void> {
     this.users.delete(userId);
     this.removeEntriesForUser(this.checkIns, userId);
@@ -1012,9 +1077,9 @@ export class MemStorage extends BaseStorage {
     this.removeEntriesForUser(this.solarPointsMap, userId);
     this.removeEntriesForUser(this.pulseResponsesMap, userId);
     this.userSettingsMap.delete(userId);
-    // Incident reports with userId=null (anonymous) are not deleted
     this.removeEntriesForUser(this.incidentReports, userId);
     this.removeEntriesForUser(this.teamContributionsMap, userId);
+    this.removeEntriesForUser(this.communityMessagesMap, userId);
   }
 
   async resetUserActivity(userId: string): Promise<void> {
@@ -1025,6 +1090,7 @@ export class MemStorage extends BaseStorage {
     this.removeEntriesForUser(this.pulseResponsesMap, userId);
     this.removeEntriesForUser(this.incidentReports, userId);
     this.removeEntriesForUser(this.teamContributionsMap, userId);
+    this.removeEntriesForUser(this.communityMessagesMap, userId);
   }
 }
 

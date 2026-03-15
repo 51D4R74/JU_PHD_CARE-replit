@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import rateLimit from "express-rate-limit";
 import type { IStorage } from "./storage";
 import { requireAuth, requireOwner, requireRole } from "./middleware";
-import { insertCheckInSchema, insertMomentCheckInSchema, insertUserMissionSchema, submitIncidentReportSchema, submitPulseResponseSchema, type PulseResponse } from "@shared/schema";
+import { insertCheckInSchema, insertMomentCheckInSchema, insertUserMissionSchema, submitIncidentReportSchema, submitPulseResponseSchema, submitCommunityMessageSchema, type PulseResponse } from "@shared/schema";
 import { getWorkday, getWorkdayDate, POINT_VALUES } from "@shared/constants";
 import { selectMonthlyChallenge, getMonthBounds } from "@shared/challenges";
 import { buildCurrentPulseState, getPulseDefinitionByKey, hasCompletePulseAnswerSet, parsePulseScoreSummary, scorePulseAnswers, toPulseAnswerRecord, type LatestPulseSnapshot } from "@shared/pulse-survey";
@@ -571,6 +571,76 @@ export async function registerRoutes(
     await storage.createTeamContribution({ userId, challengeId, amount: 1, date: today });
     const newTotal = currentProgress + 1;
     return res.json({ accepted: true, newTotal });
+  });
+
+  // ── Community messages ───────────────────────────────────────────────
+
+  app.get("/api/community-messages", requireAuth, async (req, res) => {
+    const limitParam = req.query.limit;
+    const offsetParam = req.query.offset;
+    const limit = typeof limitParam === "string" ? Math.min(50, Math.max(1, Number.parseInt(limitParam, 10) || 20)) : 20;
+    const offset = typeof offsetParam === "string" ? Math.max(0, Number.parseInt(offsetParam, 10) || 0) : 0;
+
+    const messages = await storage.getCommunityMessages(limit, offset);
+    const userId = req.userId!;
+    const likedIds = await storage.getUserLikedMessageIds(userId);
+    const likedSet = new Set(likedIds);
+
+    const result = messages.map((msg) => ({
+      id: msg.id,
+      body: msg.body,
+      authorName: msg.anonymous ? null : msg.authorName,
+      anonymous: msg.anonymous,
+      category: msg.category,
+      likeCount: msg.likeCount,
+      liked: likedSet.has(msg.id),
+      createdAt: msg.createdAt?.toISOString() ?? null,
+    }));
+
+    return res.json(result);
+  });
+
+  app.post("/api/community-messages", requireAuth, async (req, res) => {
+    try {
+      const data = submitCommunityMessageSchema.parse(req.body);
+      const userId = req.userId!;
+      const user = await storage.getUser(userId);
+      const authorName = data.anonymous ? null : (user?.name ?? null);
+
+      const msg = await storage.createCommunityMessage({
+        userId,
+        body: data.body,
+        anonymous: data.anonymous,
+        authorName,
+        category: data.category ?? null,
+      });
+
+      return res.json({
+        id: msg.id,
+        body: msg.body,
+        authorName: msg.anonymous ? null : msg.authorName,
+        anonymous: msg.anonymous,
+        category: msg.category,
+        likeCount: msg.likeCount,
+        liked: false,
+        createdAt: msg.createdAt?.toISOString() ?? null,
+      });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Dados inválidos";
+      return res.status(400).json({ message });
+    }
+  });
+
+  app.post("/api/community-messages/:id/like", requireAuth, async (req, res) => {
+    const messageId = param(req, "id");
+    const userId = req.userId!;
+    try {
+      const result = await storage.toggleMessageLike(messageId, userId);
+      return res.json(result);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Erro ao curtir";
+      return res.status(400).json({ message });
+    }
   });
 
   // ── Baseline status ──────────────────────────────────────────────────

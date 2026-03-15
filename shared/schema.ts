@@ -118,6 +118,24 @@ export const pulseResponses = pgTable("pulse_responses", {
   submittedAt: timestamp("submitted_at").defaultNow(),
 });
 
+export const communityMessages = pgTable("community_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  authorName: text("author_name"),
+  anonymous: boolean("anonymous").notNull().default(true),
+  body: text("body").notNull(),
+  category: text("category"),
+  likeCount: integer("like_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const messageLikes = pgTable("message_likes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  messageId: varchar("message_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // ── Insert schemas ────────────────────────────────
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -249,6 +267,20 @@ export const insertPulseResponseSchema = createInsertSchema(pulseResponses).pick
   scoreSummary: true,
 });
 
+export const insertCommunityMessageSchema = createInsertSchema(communityMessages).pick({
+  userId: true,
+  authorName: true,
+  anonymous: true,
+  body: true,
+  category: true,
+});
+
+export const submitCommunityMessageSchema = z.object({
+  body: z.string().trim().min(10).max(280),
+  anonymous: z.boolean(),
+  category: z.string().max(40).nullable().optional(),
+});
+
 export const pulseAnswerValueSchema = z.enum(["never", "rarely", "often", "always"]);
 
 export const pulseSubmissionAnswerSchema = z.object({
@@ -289,6 +321,10 @@ export type InsertPulseResponse = z.infer<typeof insertPulseResponseSchema>;
 export type PulseResponse = typeof pulseResponses.$inferSelect;
 export type PulseSubmissionAnswer = z.infer<typeof pulseSubmissionAnswerSchema>;
 export type SubmitPulseResponse = z.infer<typeof submitPulseResponseSchema>;
+export type InsertCommunityMessage = z.infer<typeof insertCommunityMessageSchema>;
+export type CommunityMessage = typeof communityMessages.$inferSelect;
+export type MessageLike = typeof messageLikes.$inferSelect;
+export type SubmitCommunityMessage = z.infer<typeof submitCommunityMessageSchema>;
 export type IncidentReportMode = z.infer<typeof incidentReportModeSchema>;
 export type IncidentOccurrenceWindow = z.infer<typeof incidentOccurrenceWindowSchema>;
 export type IncidentSeverity = z.infer<typeof incidentSeveritySchema>;

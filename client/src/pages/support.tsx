@@ -1,15 +1,17 @@
 import { useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { CaretLeft, Heart, Sparkle, ArrowsClockwise, PaperPlaneRight, PencilLine, Waves, Flame, HandHeart, Leaf } from "@phosphor-icons/react";
+import { CaretLeft, Heart, Sparkle, ArrowsClockwise, PaperPlaneRight, PencilLine, Waves, Flame, HandHeart, Leaf, EyeSlash, Eye } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import SupportMessageCard from "@/components/support-message-card";
 import LuminaCard from "@/components/lumina-card";
 import SolarPointsBadge from "@/components/solar-points-badge";
+import CommunityFeed from "@/components/community-feed";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { SUPPORT_CATEGORIES, type SupportCategory, type SupportMessage } from "@/lib/support-messages";
 import {
   selectSupportMessage,
@@ -59,8 +61,11 @@ export default function SupportCenterPage() {
 
   const isRespiro = evaluateRespiro(scores);
 
+  const queryClient = useQueryClient();
+
   const [tab, setTab] = useState<Tab>("receive");
   const [authorText, setAuthorText] = useState("");
+  const [authorAnonymous, setAuthorAnonymous] = useState(true);
   const [authorSubmitted, setAuthorSubmitted] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<SupportCategory | null>(null);
   const [currentMessage, setCurrentMessage] = useState<SupportMessage | null>(null);
@@ -94,9 +99,24 @@ export default function SupportCenterPage() {
     setFavMessages(getFavoriteMessages());
   }, []);
 
+  const submitMessageMutation = useMutation({
+    mutationFn: async (payload: { body: string; anonymous: boolean }) => {
+      const res = await apiRequest("POST", "/api/community-messages", payload);
+      return res.json();
+    },
+    onSuccess: () => {
+      setAuthorSubmitted(true);
+      setAuthorText("");
+      queryClient.invalidateQueries({ queryKey: ["/api/community-messages"] });
+      toast({ title: "Mensagem enviada", description: "Obrigado por cuidar de alguém." });
+    },
+    onError: () => {
+      toast({ title: "Erro", description: "Não foi possível enviar. Tente de novo.", variant: "destructive" });
+    },
+  });
+
   const handleDeactivateRespiro = useCallback(() => {
     deactivateRespiro();
-    // Force re-render by navigating to same page
     navigate("/support");
   }, [navigate]);
 
@@ -314,7 +334,7 @@ export default function SupportCenterPage() {
                     <Sparkle className="w-8 h-8 text-brand-teal mx-auto mb-3" weight="fill" />
                     <p className="text-sm font-medium">Obrigado por cuidar de alguém.</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Sua mensagem será revisada antes de chegar a outra pessoa.
+                      Sua mensagem já está no mural da comunidade.
                     </p>
                     <button
                       onClick={() => { setAuthorSubmitted(false); setAuthorText(""); }}
@@ -338,10 +358,28 @@ export default function SupportCenterPage() {
                         onChange={(e) => setAuthorText(e.target.value.slice(0, 280))}
                         className="min-h-[100px] bg-background/40 border-border/40 focus:border-brand-teal/40 resize-none rounded-xl"
                       />
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-xs text-muted-foreground">
-                          {authorText.length}/280
-                        </span>
+                      <div className="flex items-center justify-between mt-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setAuthorAnonymous(!authorAnonymous)}
+                            className={`flex items-center gap-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5 transition-colors ${
+                              authorAnonymous
+                                ? "text-brand-teal bg-brand-teal/10"
+                                : "text-muted-foreground bg-muted/50"
+                            }`}
+                          >
+                            {authorAnonymous ? (
+                              <EyeSlash className="w-3.5 h-3.5" weight="bold" />
+                            ) : (
+                              <Eye className="w-3.5 h-3.5" weight="bold" />
+                            )}
+                            {authorAnonymous ? "Anônimo" : "Com nome"}
+                          </button>
+                          <span className="text-xs text-muted-foreground">
+                            {authorText.length}/280
+                          </span>
+                        </div>
                         <button
                           onClick={() => {
                             if (authorText.trim().length < 10) {
@@ -352,14 +390,12 @@ export default function SupportCenterPage() {
                               });
                               return;
                             }
-                            // BACKLOG: POST /api/support-messages — requires moderation pipeline [future milestone]
-                            setAuthorSubmitted(true);
-                            toast({
-                              title: "Mensagem enviada",
-                              description: "Obrigado por cuidar de alguém.",
+                            submitMessageMutation.mutate({
+                              body: authorText.trim(),
+                              anonymous: authorAnonymous,
                             });
                           }}
-                          disabled={authorText.trim().length < 10}
+                          disabled={authorText.trim().length < 10 || submitMessageMutation.isPending}
                           className="flex items-center gap-1.5 text-sm font-medium text-white bg-brand-teal hover:bg-brand-teal/90 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 rounded-xl transition-colors"
                         >
                           <PaperPlaneRight className="w-3.5 h-3.5" weight="bold" />
@@ -367,11 +403,12 @@ export default function SupportCenterPage() {
                         </button>
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground text-center px-4">
-                      Todas as mensagens são revisadas antes de chegar a outra pessoa.
-                    </p>
                   </div>
                 )}
+
+                <div className="mt-6">
+                  <CommunityFeed />
+                </div>
               </section>
             </motion.div>
           )}
