@@ -5,9 +5,12 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Heart } from "@phosphor-icons/react";
+import { Heart, Waves, Flame, HandHeart, Leaf } from "@phosphor-icons/react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import type { SupportMessage, SupportCategory } from "@/lib/support-messages";
 import { SUPPORT_CATEGORIES } from "@/lib/support-messages";
+
+const ICON_MAP: Record<string, PhosphorIcon> = { Waves, Flame, HandHeart, Leaf };
 
 interface SupportMessageCardProps {
   readonly message: SupportMessage;
@@ -49,7 +52,8 @@ export default function SupportMessageCard({
         <span
           className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${colors.bg} ${colors.text} ${colors.border}`}
         >
-          {cat?.emoji} {cat?.label}
+          <CategoryIcon iconName={cat?.icon} />
+          {cat?.label}
         </span>
         <motion.button
           whileTap={{ scale: 0.85 }}
@@ -71,4 +75,10 @@ export default function SupportMessageCard({
       </p>
     </motion.div>
   );
+}
+
+function CategoryIcon({ iconName }: Readonly<{ iconName?: string }>) {
+  if (!iconName || !ICON_MAP[iconName]) return null;
+  const Ic = ICON_MAP[iconName];
+  return <Ic className="w-3.5 h-3.5" weight="duotone" />;
 }
