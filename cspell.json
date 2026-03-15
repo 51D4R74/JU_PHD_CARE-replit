@@ -1,0 +1,155 @@
+{
+  "version": "0.2",
+  "language": "en,pt-BR",
+  "import": ["@cspell/dict-pt-br/cspell-ext.json"],
+  "words": [
+    // Brand / project names
+    "JUPHD",
+    "JUPHDCARE",
+    "juphd",
+    "Lumina",
+    "lumina",
+
+    // PT-BR terms not in standard dictionary (ASCII route/code forms or specialized)
+    "Protecao", "protecao", "Denuncia", "denuncia",
+    "Gestao", "gestao",
+    "Psicossociais", "psicossociais",
+    "Psicossocial", "psicossocial",
+    "previsao",
+    "saude", "lideranca",
+
+    // PT-BR informal/diminutive forms used in companion tone
+    "curtinhas", "pouquinho", "voltinha",
+
+    // Proper nouns (seed data)
+    "Mendes",
+
+    // App domain terms
+    "checkin", "checkins", "Checkin", "Checkins",
+    "endday",
+    "sublabel",
+    "testid",
+    "chatbot",
+    "recarga",
+    "respiro", "Respiro",
+    "solares",
+    "halo",
+    "hlb", "HLB",
+    "IRP",
+    "CVV",
+    "momentanea",
+    "escalacao",
+
+    // Product feature names (intentional compound words)
+    "microcheck", "microchecks", "Microcheck", "Microchecks",
+    "juphdcare",
+
+    // PT-BR identifiers used without accents (ASCII-safe keys/routes)
+    "seguranca",
+
+    // Abbreviated identifiers (intentional in code context)
+    "favs",
+    "notif", "Notif",
+
+    // Internal function/variable names
+    "dayseed",
+
+    // Valid English words flagged by cspell
+    "cooldown",
+    "deprioritized",
+    "swipeable",
+
+    // Brazilian legislation acronym
+    "LGPD",
+
+    // Tech / stack terms
+    "binarizes",
+    "Vite", "vite",
+    "Drizzle", "drizzle",
+    "wouter",
+    "shadcn",
+    "lucide",
+    "tabler",
+    "cspell",
+    "gstatic",
+    "Zod", "zod",
+    "Radix",
+    "tsconfig",
+    "tsx",
+    "esbuild",
+    "tailwindcss",
+    "postcss",
+    "pnpm",
+    "Embla", "embla",
+    "cmdk",
+    "vaul",
+    "replit",
+    "Wordmark", "wordmark",
+    "memorystore",
+    "firewalled",
+    "openat",
+    "syscalls",
+    "openai",
+    "esnext",
+    "jridgewell",
+    "cartesian",
+    "displayname",
+    "github",
+    "nums",
+    "tanstack",
+    "trunc",
+    "unvalidated",
+
+    // Tabler icon official names (unconventional but intentional)
+    "Confuzed",
+    "Wrrr",
+
+    // Design / storybook content terms
+    "Hierarchia",
+    "microprovas",
+
+    // Intentional dummy bcrypt hash used for constant-time comparison
+    "invalidhashtopreventtimingattac",
+
+    // Storage / database terms
+    "upsert", "Upsert",
+    "resave",
+    "dedup",
+    "Contribs", "contribs",
+
+    // Design benchmark references (code comments)
+    "metaball", "Dribbble",
+
+    // Sky hero image engine terms
+    "fullbleed",
+    "radiante", "Radiante",
+    "resguardo", "Resguardo",
+
+    // cSpell itself
+    "streetsidesoftware"
+  ],
+  "ignoreWords": [],
+  "ignorePaths": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    ".git/**",
+    "package-lock.json",
+    "**/*.min.js",
+    "**/*.min.css",
+    "DOCS/**",
+    "replit.md"
+  ],
+  "overrides": [
+    {
+      // Relax checking inside TS type annotations and template literals
+      "filename": "**/*.{ts,tsx}",
+      "ignoreRegExpList": [
+        // hex colors
+        "#[0-9a-fA-F]{3,8}",
+        // tailwind class strings (long utility chains)
+        "(?:className|class)=['\"`][^'\"` ]{40,}"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+
+# Playwright MCP browser automation artifacts
+.playwright-mcp/
+
+# Debug/validation screenshots
+*.png
+
+# Local docs & reference materials (not project source)
+DOCS/

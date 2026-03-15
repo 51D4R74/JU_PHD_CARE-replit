@@ -1,0 +1,32 @@
+{
+  // Code Spell Checker — English (primary) + Portuguese BR (secondary)
+  // Install companion extension for PT-BR dictionary:
+  //   streetsidesoftware.code-spell-checker-portuguese-brazilian
+  "cSpell.language": "en,pt-BR",
+
+  // File types to check
+  "cSpell.enableFiletypes": [
+    "typescript",
+    "typescriptreact",
+    "javascript",
+    "javascriptreact",
+    "markdown",
+    "json",
+    "html"
+  ],
+
+  // Patterns to ignore (generated files, node_modules, etc.)
+  "cSpell.ignorePaths": [
+    "node_modules",
+    "dist",
+    "build",
+    ".git",
+    "package-lock.json",
+    "*.min.js",
+    "*.min.css"
+  ],
+
+  // Allow Copilot agent to kill stale processes (e.g. EADDRINUSE)
+  "github.copilot.chat.agent.terminalCommands.denyList": [],
+  "chat.agent.maxRequests": 1000
+}
