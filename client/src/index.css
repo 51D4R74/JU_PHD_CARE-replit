@@ -413,6 +413,33 @@
   .gentle-pulse {
     animation: gentle-pulse 3s ease-in-out infinite;
   }
+
+  /* ── Lumina companion visual tokens ── */
+
+  .lumina-status-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: hsl(var(--score-good));
+    box-shadow: 0 0 6px hsl(var(--score-good) / 0.5);
+    animation: lumina-dot-pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes lumina-dot-pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 6px hsl(var(--score-good) / 0.5); }
+    50% { opacity: 0.6; box-shadow: 0 0 3px hsl(var(--score-good) / 0.3); }
+  }
+
+  @keyframes lumina-halo-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .lumina-halo {
+    animation: lumina-halo-rotate 12s linear infinite;
+    border-style: dashed !important;
+  }
 }
 
 /* ------------------------------------------------------------------ */

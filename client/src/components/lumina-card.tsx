@@ -10,7 +10,7 @@
  */
 
 import { motion } from "framer-motion";
-import { CaretRight } from "@phosphor-icons/react";
+import { CaretRight, SealCheck } from "@phosphor-icons/react";
 import {
   type LuminaContext,
   selectLuminaMessage,
@@ -51,12 +51,104 @@ export default function LuminaCard({
           "transition-colors hover:border-brand-teal/30 " + className
         }
       >
-        <LuminaAvatar size={32} />
-        <p className="flex-1 text-sm leading-snug text-foreground">
-          {msg.text}
-        </p>
+        <LuminaAvatar size={36} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="text-[10px] font-bold tracking-wide text-brand-teal uppercase">JuPHD</span>
+            <span className="text-[9px] text-muted-foreground/60">·</span>
+            <span className="text-[9px] text-muted-foreground/60">IA Psicossocial</span>
+          </div>
+          <p className="text-sm leading-snug text-foreground">
+            {msg.text}
+          </p>
+        </div>
         <CaretRight className="h-4 w-4 flex-shrink-0 text-brand-teal/60" weight="bold" />
       </motion.button>
+    );
+  }
+
+  if (featured) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className={
+          "relative overflow-hidden rounded-[28px] border border-brand-teal/15 " +
+          "bg-card shadow-lg " + className
+        }
+      >
+        {/* Aurora gradient wash */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: "linear-gradient(135deg, hsl(183 41% 36% / 0.06) 0%, hsl(202 56% 21% / 0.04) 40%, hsl(43 82% 58% / 0.05) 80%, transparent 100%)",
+          }}
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute -top-20 -right-20 w-[280px] h-[280px] rounded-full"
+          style={{
+            background: "radial-gradient(circle, hsl(183 41% 36% / 0.06) 0%, transparent 70%)",
+          }}
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute -bottom-16 -left-16 w-[200px] h-[200px] rounded-full"
+          style={{
+            background: "radial-gradient(circle, hsl(43 82% 58% / 0.05) 0%, transparent 70%)",
+          }}
+          aria-hidden="true"
+        />
+
+        <div className="relative flex flex-col items-center px-6 py-8 text-center sm:px-8 sm:py-10">
+          {/* Identity header */}
+          <div className="flex flex-col items-center gap-3 mb-6">
+            <LuminaAvatar size={88} showHalo />
+
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-base font-bold tracking-tight text-brand-navy">JuPHD</span>
+                <SealCheck className="w-4 h-4 text-brand-teal" weight="fill" />
+              </div>
+              <span className="text-[11px] font-medium text-muted-foreground tracking-wide">
+                IA especializada em Saúde Psicossocial
+              </span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="lumina-status-dot" aria-hidden="true" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-score-good/80">
+                  Ativa
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="w-12 h-px bg-gradient-to-r from-transparent via-brand-teal/20 to-transparent mb-6" />
+
+          {/* Message */}
+          <p className="max-w-sm text-[1.1rem] leading-8 text-foreground font-medium sm:text-lg">
+            {msg.text}
+          </p>
+
+          {/* CTA */}
+          <button
+            type="button"
+            onClick={onTap}
+            className={
+              "mt-8 inline-flex min-h-12 items-center gap-2.5 rounded-2xl " +
+              "bg-gradient-to-r from-brand-teal to-brand-navy " +
+              "px-7 py-3.5 text-base font-semibold text-white " +
+              "shadow-md shadow-brand-teal/15 " +
+              "transition-all hover:shadow-lg hover:shadow-brand-teal/25 hover:brightness-110 " +
+              "active:scale-[0.98]"
+            }
+          >
+            {msg.cta}
+            <CaretRight className="h-4 w-4" weight="bold" />
+          </button>
+        </div>
+      </motion.div>
     );
   }
 
@@ -66,71 +158,47 @@ export default function LuminaCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className={
-        "relative overflow-hidden rounded-[28px] border border-brand-teal/20 " +
+        "relative overflow-hidden rounded-[24px] border border-brand-teal/15 " +
         "bg-card shadow-sm " + className
       }
     >
-      {/* Subtle gradient wash — Lumina's signature */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.04]"
         style={{
-          background: "linear-gradient(135deg, hsl(187 62% 44%), hsl(44 90% 51%) 60%, transparent 80%)",
+          background: "linear-gradient(135deg, hsl(183 41% 36%), hsl(43 82% 58%) 60%, transparent 80%)",
         }}
         aria-hidden="true"
       />
 
-      <div
-        className={
-          featured
-            ? "relative flex min-h-[54svh] flex-col items-center justify-center px-6 py-8 text-center sm:min-h-[420px] sm:px-8 sm:py-10"
-            : "relative flex items-start gap-3.5 px-4 py-4"
-        }
-      >
-        {featured ? (
-          <>
-            <LuminaAvatar size={88} />
+      <div className="relative flex items-start gap-3.5 px-4 py-4">
+        <div className="flex flex-col items-center gap-1 flex-shrink-0">
+          <LuminaAvatar size={44} />
+          <span className="text-[9px] font-bold tracking-wide text-brand-teal/70 uppercase mt-0.5">JuPHD</span>
+        </div>
 
-            <p className="mt-5 max-w-xl text-[1.08rem] leading-8 text-foreground sm:text-lg">
-              {msg.text}
-            </p>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-[10px] font-medium text-muted-foreground">IA em Saúde Psicossocial</span>
+            <span className="lumina-status-dot" aria-hidden="true" />
+          </div>
+          <p className="text-sm leading-relaxed text-foreground">
+            {msg.text}
+          </p>
 
-            <button
-              type="button"
-              onClick={onTap}
-              className={
-                "mt-8 inline-flex min-h-12 items-center gap-2 rounded-2xl " +
-                "bg-brand-teal/10 px-5 py-3 text-base font-medium text-brand-teal " +
-                "transition-colors hover:bg-brand-teal/16 active:bg-brand-teal/20"
-              }
-            >
-              {msg.cta}
-              <CaretRight className="h-4 w-4" weight="bold" />
-            </button>
-          </>
-        ) : (
-          <>
-            <LuminaAvatar size={40} />
-
-            <div className="min-w-0 flex-1">
-              <p className="text-sm leading-relaxed text-foreground">
-                {msg.text}
-              </p>
-
-              <button
-                type="button"
-                onClick={onTap}
-                className={
-                  "mt-3 inline-flex items-center gap-1.5 rounded-xl " +
-                  "bg-brand-teal/10 px-3.5 py-2 text-sm font-medium text-brand-teal " +
-                  "transition-colors hover:bg-brand-teal/16 active:bg-brand-teal/20"
-                }
-              >
-                {msg.cta}
-                <CaretRight className="h-3.5 w-3.5" weight="bold" />
-              </button>
-            </div>
-          </>
-        )}
+          <button
+            type="button"
+            onClick={onTap}
+            className={
+              "mt-3 inline-flex items-center gap-1.5 rounded-xl " +
+              "bg-gradient-to-r from-brand-teal/12 to-brand-navy/8 " +
+              "px-3.5 py-2 text-sm font-semibold text-brand-teal " +
+              "transition-colors hover:from-brand-teal/18 hover:to-brand-navy/12 active:from-brand-teal/22"
+            }
+          >
+            {msg.cta}
+            <CaretRight className="h-3.5 w-3.5" weight="bold" />
+          </button>
+        </div>
       </div>
     </motion.div>
   );
@@ -138,23 +206,52 @@ export default function LuminaCard({
 
 // ── Avatar sub-component ───────────────────────────────
 
-function LuminaAvatar({ size }: Readonly<{ size: number }>) {
+function LuminaAvatar({ size, showHalo = false }: Readonly<{ size: number; showHalo?: boolean }>) {
+  const ringSpread = showHalo ? 4 : 2;
+  const outerSpread = showHalo ? 8 : 0;
+
   return (
     <div
-      className="relative flex-shrink-0 rounded-full"
-      style={{ width: size, height: size }}
+      className="relative flex-shrink-0"
+      style={{ width: size + outerSpread * 2, height: size + outerSpread * 2 }}
     >
-      <img
-        src="/logoCARE.png"
-        alt="JuPHD"
-        className="h-full w-full rounded-full object-cover"
-        style={{ filter: "drop-shadow(0 2px 8px rgba(42,166,166,0.18))" }}
-      />
-      {/* Breathing ring — companion presence indicator */}
+      {/* Outer gold halo ring (featured only) */}
+      {showHalo && (
+        <span
+          className="lumina-halo absolute rounded-full"
+          style={{
+            inset: 0,
+            border: "1.5px solid hsl(43 82% 58% / 0.25)",
+          }}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Breathing teal ring */}
       <span
-        className="companion-breathing absolute inset-[-2px] rounded-full border border-brand-teal/25"
+        className="companion-breathing absolute rounded-full"
+        style={{
+          inset: showHalo ? outerSpread - ringSpread : -ringSpread,
+          border: `1.5px solid hsl(183 41% 36% / 0.30)`,
+        }}
         aria-hidden="true"
       />
+
+      {/* Avatar circle with gradient background */}
+      <div
+        className="absolute rounded-full overflow-hidden"
+        style={{
+          inset: outerSpread,
+          background: "linear-gradient(145deg, hsl(183 41% 36% / 0.08) 0%, hsl(43 82% 58% / 0.06) 100%)",
+        }}
+      >
+        <img
+          src="/juphd-icon.png"
+          alt="JuPHD — IA em Saúde Psicossocial"
+          className="h-full w-full object-contain p-[8%]"
+          style={{ filter: "drop-shadow(0 2px 8px rgba(42,166,166,0.18))" }}
+        />
+      </div>
     </div>
   );
 }
