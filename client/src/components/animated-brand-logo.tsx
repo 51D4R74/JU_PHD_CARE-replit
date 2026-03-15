@@ -16,26 +16,23 @@ export default function AnimatedBrandLogo({
   if (compact) {
     return (
       <div className={"flex items-center gap-3" + (className ? " " + className : "")}>
-        <motion.div
+        <motion.img
+          src="/juphd-icon.png"
+          alt="JuPhD Care"
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="w-12 h-12 rounded-full overflow-hidden shrink-0"
-          style={{ boxShadow: "0 4px 16px rgba(10,18,40,0.15)" }}
-        >
-          <img
-            src="/juphd-logo-horizontal.png"
-            alt="JuPhD Care"
-            className="w-full h-full object-cover"
-            style={{ objectPosition: "left center" }}
-          />
-        </motion.div>
+          className="w-10 h-10 object-contain shrink-0"
+        />
         {showWordmark && (
-          <div className="space-y-0.5">
-            <h1 className="text-base font-bold tracking-[-0.03em]" style={{ color: "hsl(var(--text-heading))" }}>
-              JuPhD <span className="font-extrabold">Care</span>
-            </h1>
-          </div>
+          <motion.img
+            src="/juphd-nome.png"
+            alt="JuPhD Care"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="h-6 w-auto object-contain"
+          />
         )}
       </div>
     );
@@ -44,24 +41,33 @@ export default function AnimatedBrandLogo({
   return (
     <div className={"flex flex-col items-center gap-4 text-center" + (className ? " " + className : "")}>
       <motion.img
-        src="/juphd-logo-horizontal.png"
+        src="/juphd-icon.png"
         alt="JuPhD Care"
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-        className="h-20 w-auto object-contain"
-        style={{ mixBlendMode: "multiply", filter: "drop-shadow(0 4px 16px rgba(10,18,40,0.10))" }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="w-28 h-28 object-contain"
+        style={{ filter: "drop-shadow(0 6px 24px rgba(10,18,40,0.18))" }}
       />
       {showWordmark && (
-        <motion.p
+        <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-          className="text-xs font-medium tracking-[0.07em] uppercase opacity-60"
-          style={{ color: "hsl(var(--text-body))" }}
+          transition={{ duration: 0.4, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          className="flex flex-col items-center gap-2"
         >
-          Inteligência em saúde psicossocial
-        </motion.p>
+          <img
+            src="/juphd-nome.png"
+            alt="JuPhD Care"
+            className="h-9 w-auto object-contain"
+          />
+          <p
+            className="text-xs font-medium tracking-[0.07em] uppercase opacity-55"
+            style={{ color: "hsl(var(--text-body))" }}
+          >
+            Inteligência em saúde psicossocial
+          </p>
+        </motion.div>
       )}
     </div>
   );
