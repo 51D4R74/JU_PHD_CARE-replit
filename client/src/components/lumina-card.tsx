@@ -106,11 +106,11 @@ export default function LuminaCard({
         <div className="relative flex flex-col px-6 py-7 sm:px-8 sm:py-9">
           {/* Identity header row */}
           <div className="flex items-center gap-3.5 mb-6">
-            <LuminaAvatar size={72} showHalo />
+            <LuminaAvatar size={88} showHalo />
 
             <div className="flex flex-col gap-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-lg font-bold tracking-tight text-brand-navy">JuPHD</span>
+                <img src="/juphd-nome.png" alt="JuPHD" className="h-5 object-contain" />
                 <SealCheck className="w-4 h-4 text-brand-teal flex-shrink-0" weight="fill" />
               </div>
               <span className="text-[11px] font-medium text-muted-foreground tracking-wide">
