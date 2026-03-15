@@ -915,10 +915,10 @@ export default function DashboardPage() {
             <div className="mb-3 flex items-center justify-between rounded-2xl border border-brand-gold/20 bg-brand-gold/8 px-4 py-2.5">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-brand-gold-dark">
-                  Check-in de hoje
+                  Como você está chegando hoje?
                 </p>
                 <p className="text-sm text-foreground">
-                  Já está pronto aqui no início.
+                  Um momento só seu — conta como tá.
                 </p>
               </div>
               <span className="rounded-full bg-white/70 px-2.5 py-1 text-[11px] font-semibold text-brand-navy">
