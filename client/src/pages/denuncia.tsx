@@ -3,9 +3,9 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, Phone, AlertTriangle, ChevronLeft, Heart,
-  Users, Eye, Lock, Scale, Weight, UserX,
-  Headphones, Sun, MessageCircleHeart, Sparkles, ShieldAlert,
-  Ban, Siren, X, BookOpen, FileText, BadgeAlert, Paperclip
+  LifeBuoy, CircleHelp, Lock, Scale, BriefcaseBusiness, UserX, UserMinus,
+  Headphones, Sun, MessageCircleHeart, Sparkles, MessageSquareWarning,
+  WandSparkles, Siren, X, BookOpen, FileText, BadgeAlert, Paperclip
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,19 +42,19 @@ const severityOptions: ReadonlyArray<{
 ];
 
 const globalRisks = [
-  { label: "Assédio Sexual (Art. 216-A CP)", icon: Ban, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
-  { label: "Assédio Moral (CLT Art. 483)", icon: ShieldAlert, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
+  { label: "Assédio Sexual (Art. 216-A CP)", icon: AlertTriangle, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
+  { label: "Assédio Moral (CLT Art. 483)", icon: MessageSquareWarning, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
   { label: "Situação Violenta/Traumática", icon: Siren, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
 ];
 
 const psychSafety = [
-  { label: "Falta de clareza", icon: Eye, color: "text-brand-teal", bgColor: "from-brand-teal/20 to-brand-teal/5" },
+  { label: "Falta de clareza", icon: CircleHelp, color: "text-brand-teal", bgColor: "from-brand-teal/20 to-brand-teal/5" },
   { label: "Esforço sem reconhecimento", icon: Heart, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
-  { label: "Falta de suporte", icon: Users, color: "text-brand-teal", bgColor: "from-brand-teal/20 to-brand-teal/5" },
-  { label: "Falta de autonomia", icon: Lock, color: "text-score-moderate", bgColor: "from-score-moderate/20 to-score-moderate/5" },
+  { label: "Falta de suporte", icon: LifeBuoy, color: "text-brand-teal", bgColor: "from-brand-teal/20 to-brand-teal/5" },
+  { label: "Falta de autonomia", icon: WandSparkles, color: "text-score-moderate", bgColor: "from-score-moderate/20 to-score-moderate/5" },
   { label: "Sensação de injustiça", icon: Scale, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
-  { label: "Sobrecarga", icon: Weight, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
-  { label: "Relações ruins", icon: UserX, color: "text-brand-navy", bgColor: "from-brand-navy/20 to-brand-navy/5" },
+  { label: "Sobrecarga", icon: BriefcaseBusiness, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
+  { label: "Relações ruins", icon: UserMinus, color: "text-brand-navy", bgColor: "from-brand-navy/20 to-brand-navy/5" },
   { label: "Isolamento", icon: UserX, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
 ];
 
