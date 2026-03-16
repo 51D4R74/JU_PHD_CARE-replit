@@ -22,11 +22,13 @@ const LEGACY_TOOLTIP_DISMISSED_KEY = "juphdcare_solar_tooltip_dismissed";
 interface SolarPointsBadgeProps {
   readonly points: number;
   readonly className?: string;
+  readonly compact?: boolean;
 }
 
 export default function SolarPointsBadge({
   points,
   className = "",
+  compact = false,
 }: Readonly<SolarPointsBadgeProps>) {
   const [showHint, setShowHint] = useState(false);
 
@@ -51,12 +53,14 @@ export default function SolarPointsBadge({
       initial={{ scale: 0.85, opacity: 0.7 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 22 }}
-      className={`inline-flex items-center gap-2 rounded-full border border-brand-gold/20 bg-card px-3 py-1.5 shadow-sm ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border border-brand-gold/20 bg-card px-3 py-1.5 shadow-sm ${className}`}
     >
-      <Sun className="w-3.5 h-3.5 text-brand-gold-dark" />
-      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-        Solar
-      </span>
+      <Sun className="w-3.5 h-3.5 text-brand-gold-dark" weight="fill" />
+      {!compact && (
+        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+          Solar
+        </span>
+      )}
       <span className="text-sm font-bold text-foreground tabular-nums">
         {points}
       </span>
