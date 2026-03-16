@@ -19,7 +19,7 @@ export default function PanicButton() {
     <motion.button
       type="button"
       onClick={() => navigate("/denuncia")}
-      className="fixed bottom-20 right-4 z-30 w-14 h-14 rounded-full bg-red-600 shadow-lg shadow-red-600/30 flex items-center justify-center hover:bg-red-700 active:scale-95 transition-all"
+      className="fixed bottom-20 right-2 z-30 w-14 h-14 rounded-full bg-red-600 shadow-lg shadow-red-600/30 flex items-center justify-center hover:bg-red-700 active:scale-95 transition-all"
       whileTap={{ scale: 0.9 }}
       aria-label="Denúncia — relatar situação"
       data-testid="panic-button"
