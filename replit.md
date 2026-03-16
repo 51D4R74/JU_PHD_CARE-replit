@@ -69,6 +69,13 @@ Corporate mental health platform focused on employee well-being (prevention and 
 - Mission-type notifications in NotificationDrawer navigate to `/missions` on click
 - Uses wouter `navigate()` from the drawer component
 
+## Chat Orchestrator (JuPHD Pro)
+- **Lambda URL**: `https://tmh2e2ojppixtgl3fcs56um74y0ilkpx.lambda-url.us-east-1.on.aws/`
+- **Env var**: `CHAT_ORCHESTRATOR_URL` (fallback to hardcoded URL if unset)
+- **Server proxy**: `POST /api/chat` — validates message, builds orchestrator payload (`query: "query: <msg>"`, `userId`, `clientId: "juphd-care"`, `chatbotId: "juphd-pro"`, `session_id`, `conversationId`), returns `{ reply, session_id, conversation_id }`
+- **Session close**: `POST /api/chat/close` — sends `closeSession: true` to orchestrator (best-effort)
+- **Client**: `client/src/components/chatbot-drawer.tsx` — tracks `sessionId`/`conversationId` in state; re-sends on every turn for session continuity; calls `/api/chat/close` on X button; resets state on close
+
 ## User Flows
 1. **Login** → Dashboard (collaborator) or RH Dashboard (hr role)
 2. **Dashboard** → Check-in wizard (5 steps) → Save → Back to dashboard

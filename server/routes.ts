@@ -464,40 +464,102 @@ export async function registerRoutes(
     return res.json({ level, message: "Escalação registrada" });
   });
 
-  // ── Chatbot proxy (PRD v2.0 — RAG endpoint) ─────────────────────────
+  // ── Chat Orchestrator proxy (JuPHD Pro) ──────────────────────────────
+  //
+  // Connects to the Lambda-backed chat orchestrator.
+  // Session continuity is maintained by passing session_id + conversationId
+  // returned by the orchestrator back to the client, which re-sends them
+  // on every subsequent turn.
 
-  const CHATBOT_API_URL = process.env.CHATBOT_API_URL || "";
+  const CHAT_ORCHESTRATOR_URL =
+    process.env.CHAT_ORCHESTRATOR_URL ||
+    process.env.CHATBOT_API_URL ||
+    "https://tmh2e2ojppixtgl3fcs56um74y0ilkpx.lambda-url.us-east-1.on.aws/";
+
+  const CHATBOT_ID = "juphd-pro";
+  const CLIENT_ID = "juphd-care";
 
   app.post("/api/chat", requireAuth, async (req, res) => {
-    const { message } = req.body;
-    if (!message || typeof message !== "string" || message.length > 2000) {
+    const { message, sessionId, conversationId } = req.body as {
+      message: unknown;
+      sessionId?: string;
+      conversationId?: string;
+    };
+
+    if (!message || typeof message !== "string" || message.trim().length === 0 || message.length > 2000) {
       return res.status(400).json({ message: "Mensagem inválida" });
     }
 
-    // If RAG chatbot is configured, proxy the request
-    if (CHATBOT_API_URL) {
-      try {
-        const response = await fetch(CHATBOT_API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message, userId: req.userId }),
-        });
-        if (!response.ok) {
-          return res.status(502).json({ message: "Serviço de IA temporariamente indisponível" });
-        }
-        const data = await response.json();
-        return res.json(data);
-      } catch (e: unknown) {
-        console.error("Chatbot proxy error:", e);
+    try {
+      const payload: Record<string, unknown> = {
+        query: `query: ${message.trim()}`,
+        userId: req.userId ?? "anonymous",
+        clientId: CLIENT_ID,
+        chatbotId: CHATBOT_ID,
+      };
+      if (sessionId) payload.session_id = sessionId;
+      if (conversationId) payload.conversationId = conversationId;
+
+      const response = await fetch(CHAT_ORCHESTRATOR_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text().catch(() => "");
+        console.error("Chat orchestrator error:", response.status, errText);
         return res.status(502).json({ message: "Serviço de IA temporariamente indisponível" });
       }
+
+      const data = await response.json() as {
+        status?: string;
+        response?: string;
+        session_id?: string;
+        conversation_id?: string;
+      };
+
+      return res.json({
+        reply: data.response ?? "Desculpe, não consegui processar sua mensagem.",
+        session_id: data.session_id ?? null,
+        conversation_id: data.conversation_id ?? null,
+      });
+    } catch (e: unknown) {
+      console.error("Chat orchestrator proxy error:", e);
+      return res.status(502).json({ message: "Serviço de IA temporariamente indisponível" });
+    }
+  });
+
+  app.post("/api/chat/close", requireAuth, async (req, res) => {
+    const { sessionId, conversationId } = req.body as {
+      sessionId?: string;
+      conversationId?: string;
+    };
+
+    if (!sessionId && !conversationId) {
+      return res.json({ closed: true });
     }
 
-    // Fallback: no RAG configured, return a static supportive response
-    return res.json({
-      reply: "Estou aqui para ajudar. No momento, o serviço de IA está sendo configurado. Se precisar de apoio imediato, ligue para o CVV: 188.",
-      source: "fallback",
-    });
+    try {
+      const payload: Record<string, unknown> = {
+        closeSession: true,
+        userId: req.userId ?? "anonymous",
+        clientId: CLIENT_ID,
+        chatbotId: CHATBOT_ID,
+      };
+      if (sessionId) payload.session_id = sessionId;
+      if (conversationId) payload.conversationId = conversationId;
+
+      await fetch(CHAT_ORCHESTRATOR_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch (e: unknown) {
+      console.error("Chat close session error:", e);
+    }
+
+    return res.json({ closed: true });
   });
 
   // ── Team challenges ──────────────────────────────────────────────────

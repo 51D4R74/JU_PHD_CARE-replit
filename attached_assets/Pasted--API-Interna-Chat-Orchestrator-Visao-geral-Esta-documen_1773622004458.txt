@@ -1,0 +1,213 @@
+# API Interna: Chat Orchestrator
+
+## Visao geral
+Esta documentacao descreve o contrato da variavel CHAT_ORCHESTRATOR_URL, usada pelo backend para integracao com o orquestrador de chat.
+
+Base URL:
+https://tmh2e2ojppixtgl3fcs56um74y0ilkpx.lambda-url.us-east-1.on.aws/
+
+Data de validacao:
+2026-03-16
+
+## Endpoint
+
+### POST /
+Executa uma interacao de chat ou encerra uma sessao.
+
+### OPTIONS /
+Preflight/CORS.
+
+## CORS observado
+- Access-Control-Allow-Origin: *
+- Access-Control-Allow-Methods: OPTIONS, POST
+- Access-Control-Allow-Headers: accept, content-type, authorization, x-conversation-id, x-session-id
+- Access-Control-Expose-Headers: x-conversation-id, x-session-id
+
+## Autenticacao
+Nos testes diretos nesta URL nao foi exigido header Authorization.
+
+## Contrato de request
+
+### 1. Chat minimo
+
+#### Body
+json
+{
+  "query": "Oi, preciso de ajuda"
+}
+
+
+#### Regras
+- query: obrigatorio, string
+
+### 2. Chat completo recomendado
+Usar este formato quando for necessario controlar sessao, usuario e contexto de chatbot.
+
+#### Body
+json
+{
+  "query": "query: Ola",
+  "userId": "user-123",
+  "clientId": "client-456",
+  "chatbotId": "juphd-pro",
+  "session_id": "511eba63-ca1e-4e8c-bc9a-c463be4cffe8",
+  "conversationId": "0ffa9935-f6e0-433f-a555-0919b073b1fb"
+}
+
+
+#### Campos
+- query: string obrigatorio
+- userId: string opcional
+- clientId: string opcional
+- chatbotId: string opcional
+- session_id: string opcional
+- conversationId: string opcional
+
+### 3. Encerrar sessao
+
+#### Body
+json
+{
+  "closeSession": true,
+  "userId": "user-123",
+  "clientId": "client-456",
+  "chatbotId": "juphd-pro",
+  "session_id": "511eba63-ca1e-4e8c-bc9a-c463be4cffe8",
+  "conversationId": "0ffa9935-f6e0-433f-a555-0919b073b1fb"
+}
+
+
+## Contrato de response
+
+### 1. Resposta de chat
+
+#### HTTP 200 OK
+json
+{
+  "status": "ok",
+  "response": "Oi! To por aqui.\n\nO que ta rolando?",
+  "session_id": "ead92139-380e-4897-bc17-024bd4644835",
+  "conversation_id": "f2b02149-1507-4c51-af2a-bbaab0d6d853"
+}
+
+
+#### Headers relevantes
+- x-session-id
+- x-conversation-id
+
+### 2. Resposta de encerramento
+
+#### HTTP 200 OK
+json
+{
+  "status": "ok",
+  "closed": true,
+  "session_summary": {
+    "app_name": "JuPhD Pro",
+    "client_id": "client-456",
+    "chatbot_id": "juphd-pro",
+    "user_id": "user-123",
+    "session_id": "511eba63-ca1e-4e8c-bc9a-c463be4cffe8",
+    "conversation_id": "0ffa9935-f6e0-433f-a555-0919b073b1fb",
+    "last_response_timestamp": 1773620353,
+    "session_categories": [],
+    "categories_last_6_interactions": [],
+    "last_6_interactions": [
+      {
+        "role": "user",
+        "message": "query: teste completo",
+        "timestamp": 1773620333
+      }
+    ]
+  }
+}
+
+
+## Erros conhecidos
+
+### Requisicao sem query
+
+#### HTTP 400 Bad Request
+json
+{
+  "error": "Query e obrigatoria"
+}
+
+
+## Regras de integracao
+- Enviar sempre Content-Type: application/json.
+- Para continuar a mesma conversa, reaproveitar session_id e conversation_id retornados pela API.
+- O formato mais confiavel para continuidade de sessao e enviar os IDs no body.
+- Inferencia baseada em teste: mandar apenas x-session-id e x-conversation-id no header nao demonstrou reaproveitamento de sessao.
+- O backend atual monta o campo query neste formato:
+
+text
+routeContext: {...}
+
+query: <mensagem do usuario>
+
+
+- Se a chamada for direta para a Lambda e voce quiser replicar o comportamento do backend, siga esse padrao.
+
+## Exemplos
+
+### cURL
+bash
+curl -X POST 'https://tmh2e2ojppixtgl3fcs56um74y0ilkpx.lambda-url.us-east-1.on.aws/' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "query": "query: Ola",
+    "userId": "user-123",
+    "clientId": "client-456",
+    "chatbotId": "juphd-pro"
+  }'
+
+
+### fetch
+ts
+const response = await fetch("https://tmh2e2ojppixtgl3fcs56um74y0ilkpx.lambda-url.us-east-1.on.aws/", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    query: "query: Ola",
+    userId: "user-123",
+    clientId: "client-456",
+    chatbotId: "juphd-pro",
+    session_id: existingSessionId,
+    conversationId: existingConversationId
+  })
+})
+
+const data = await response.json()
+
+
+## Uso no backend
+
+### Fluxo de assistente
+O adapter de assistente usa:
+- query
+- routeContext opcional
+- sessionId interno convertido para session_id
+
+Referencia:
+- /src/services/chat_orchestrator.ts
+
+### Fluxo de chatbot
+O adapter de chatbot usa:
+- query
+- userId
+- clientId
+- chatbotId
+- session_id
+- conversationId
+
+Referencia:
+- /src/services/chatbot_orchestrator.ts
+
+## Observacoes internas
+- O backend usa este endpoint tanto no fluxo de assistente quanto no chatbot juphd-pro.
+- No adapter do backend, sessionId interno e convertido para session_id antes da chamada externa.
+- O backend tambem le x-session-id e x-conversation-id da resposta para sincronizar sessao local.
+- O endpoint aceitou o payload completo de chatbot e confirmou continuidade de conversa quando session_id e conversationId foram reenviados no body.
