@@ -5,7 +5,7 @@ import {
   Shield, Phone, Warning, CaretLeft, Heart,
   Lifebuoy, Question, Lock, Scales, Briefcase, UserMinus, UserCircleMinus,
   Headphones, ChatSlash, MagicWand, Siren, X, FileText, SealWarning, Paperclip,
-  SealCheck, ChatCircleDots,
+  SealCheck, ChatCircleDots, Brain,
 } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,8 @@ const severityOptions: ReadonlyArray<{
 const globalRisks = [
   { label: "Assédio Sexual (Art. 216-A CP)", icon: Warning, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
   { label: "Assédio Moral (CLT Art. 483)", icon: ChatSlash, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
-  { label: "Situação Violenta/Traumática", icon: Siren, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
+  { label: "Situação Violenta", icon: Siren, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5" },
+  { label: "Situação Traumática", icon: Brain, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5" },
 ];
 
 const psychSafety = [
