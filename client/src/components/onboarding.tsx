@@ -33,8 +33,8 @@ interface OnboardingScreen {
 const SCREENS: OnboardingScreen[] = [
   {
     id: "welcome",
-    title: "Seu companheiro de autocuidado",
-    subtitle: "A JuPHD acompanha seu bem-estar todos os dias, de um jeito acolhedor e privado. Tudo começa por aqui.",
+    title: "Chegou no lugar certo",
+    subtitle: "Você cuida de tantos. Aqui tem um espaço só pra você — rápido, privado e sem julgamento.",
     visual: (
       <div className="flex flex-col items-center gap-4">
         <AnimatedBrandLogo size="hero" showWordmark />
@@ -44,8 +44,8 @@ const SCREENS: OnboardingScreen[] = [
   },
   {
     id: "sky-halo",
-    title: "Seu céu mostra como você está",
-    subtitle: "Céu aberto = dia leve. Nuvens = momento de cuidado. O halo dourado aparece quando você se cuida com constância.",
+    title: "Um minuto que diz muito",
+    subtitle: "Todo dia, seis perguntas rápidas criam um retrato honesto de como você está chegando — e como está saindo. O céu reflete esse estado.",
     visual: (
       <div className="flex gap-4">
         <div className="flex-1 space-y-2">
@@ -61,8 +61,8 @@ const SCREENS: OnboardingScreen[] = [
   },
   {
     id: "scores",
-    title: "Três dimensões do seu dia",
-    subtitle: "Recarga (energia e sono), Estado do dia (humor e foco) e Segurança relacional (clima com as pessoas). De 0 a 100, sem julgamento.",
+    title: "Três dimensões, uma visão",
+    subtitle: "Recarga (sono e energia), Estado do dia (humor e foco) e Clima relacional (como está com as pessoas). De 0 a 100 — sem certo ou errado.",
     visual: (
       <div className="space-y-2">
         {[
@@ -85,8 +85,8 @@ const SCREENS: OnboardingScreen[] = [
   },
   {
     id: "missions",
-    title: "Pra Você — autocuidado diário",
-    subtitle: "Atividades escolhidas pro seu momento. Complete e ganhe Pontos Solares ☀️ — sem pressão, no seu ritmo.",
+    title: "Cuidado real, no seu ritmo",
+    subtitle: "Cada dia aparecem atividades feitas pro seu momento. São curtas, práticas e rendem Pontos Solares ☀️ — a Lumina que cresce com você.",
     visual: (
       <div className="space-y-2">
         {[
@@ -112,8 +112,8 @@ const SCREENS: OnboardingScreen[] = [
   },
   {
     id: "lets-go",
-    title: "Pronto pra começar?",
-    subtitle: "Seu primeiro check-in leva menos de 1 minuto. Depois disso, o céu é seu.",
+    title: "Seu céu começa agora",
+    subtitle: "Menos de 1 minuto. Cada check-in clareia um pouco mais o seu dia.",
     visual: (
       <div className="flex flex-col items-center gap-4">
         <motion.div
@@ -157,7 +157,7 @@ export default function OnboardingPage() {
   const goNext = useCallback(() => {
     if (isLast) {
       markOnboardingComplete();
-      navigate("/checkin");
+      navigate("/dashboard");
       return;
     }
     setDirection(1);
@@ -256,7 +256,7 @@ export default function OnboardingPage() {
           >
             {isLast ? (
               <>
-                Fazer meu primeiro check-in
+                Começar meu check-in
                 <ArrowRight className="w-4 h-4 ml-2" />
               </>
             ) : (
