@@ -36,10 +36,7 @@ const SCREENS: OnboardingScreen[] = [
     title: "Chegou no lugar certo",
     subtitle: "Você cuida de tantos. Aqui tem um espaço só pra você — rápido, privado e sem julgamento.",
     visual: (
-      <div className="flex flex-col items-center gap-4">
-        <AnimatedBrandLogo size="hero" showWordmark />
-        <SkyHeader skyState="clear" solarHaloLevel={0.8} size="hero" />
-      </div>
+      <AnimatedBrandLogo size="hero" showWordmark />
     ),
   },
   {
