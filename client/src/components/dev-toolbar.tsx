@@ -24,6 +24,7 @@ export default function DevToolbar() {
   const qc = useQueryClient();
   const [display, setDisplay] = useState(() => formatSimTime(devNow()));
   const [busy, setBusy] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   // Sync from server on mount
   useEffect(() => {
@@ -74,6 +75,8 @@ export default function DevToolbar() {
     "px-2 py-1 rounded text-[11px] font-medium transition-colors " +
     "bg-zinc-700 hover:bg-zinc-600 text-zinc-100 disabled:opacity-40";
 
+  if (dismissed) return null;
+
   return (
     <div className="fixed bottom-2 left-2 z-[9999] flex items-center gap-2 rounded-lg border border-zinc-600 bg-zinc-800/90 px-3 py-1.5 shadow-lg backdrop-blur text-[12px] text-zinc-300 font-mono">
       <span className="mr-1 select-none" title="Relógio simulado">⏱</span>
@@ -82,6 +85,14 @@ export default function DevToolbar() {
       <button type="button" className={btnClass} disabled={busy} onClick={() => void advance("advance6h")}>+6h</button>
       <button type="button" className={btnClass} disabled={busy} onClick={() => void advance("advance1d")}>+1d</button>
       <button type="button" className={`${btnClass} bg-red-800 hover:bg-red-700`} disabled={busy} onClick={() => void reset()}>Reset</button>
+      <button
+        type="button"
+        title="Fechar barra de tempo"
+        onClick={() => setDismissed(true)}
+        className="ml-1 rounded p-0.5 text-zinc-500 hover:text-zinc-200 transition-colors"
+      >
+        ✕
+      </button>
     </div>
   );
 }
