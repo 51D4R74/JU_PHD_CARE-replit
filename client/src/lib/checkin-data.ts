@@ -421,12 +421,12 @@ export const DAILY_STEPS: CheckInStep[] = [
       ],
     },
   },
-  // Q3: Emotional state → Estado do dia (multi3, 6 options, up to 3 selections)
+  // Q3: Emotional state → Estado do dia (multi3, 6 options, exactly 2 selections)
   {
     id: "emotion",
     type: "multi3",
     question: "Como você está se sentindo?",
-    sublabel: "Pode escolher até 3.",
+    sublabel: "Escolha 2 que mais se aproximam do que você está sentindo agora.",
     options: [
       { id: "good", label: "Bem", icon: TbMoodHappy, score: 4, color: "text-score-good", bgColor: "from-score-good/20 to-score-good/5" },
       { id: "motivated", label: "Motivado(a)", icon: TbRocket, score: 4, color: "text-score-good", bgColor: "from-score-good/20 to-score-good/5" },

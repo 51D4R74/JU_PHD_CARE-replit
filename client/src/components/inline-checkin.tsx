@@ -115,7 +115,7 @@ function InlineGridCard({
       </span>
       {selected && (
         <motion.div
-          layoutId="inline-grid-check"
+          layoutId={`check-${option.id}`}
           className="absolute top-2 right-2"
         >
           <Check className="w-3.5 h-3.5 text-primary" />
@@ -283,6 +283,14 @@ function InlineStepView({
     ? selected.length > 0
     : selected !== "";
 
+  // multi3 (Q3 emotion): auto-advance when exactly 2 items selected
+  useEffect(() => {
+    if (step.type === "multi3" && Array.isArray(selected) && selected.length === 2) {
+      const timer = setTimeout(() => onAnswer(step.id, selected, null), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [selected, step.type, step.id, onAnswer]);
+
   return (
     <div className="flex flex-col gap-3">
       {/* Question */}
@@ -311,15 +319,29 @@ function InlineStepView({
         </div>
       )}
 
-      {/* Multi2 / Multi3 */}
-      {(step.type === "multi2" || step.type === "multi3") && (
+      {/* Multi3 — 3×2 icon grid, auto-advances on 2nd selection */}
+      {step.type === "multi3" && (
+        <div className="grid grid-cols-3 gap-2.5">
+          {step.options.map((opt) => (
+            <InlineGridCard
+              key={opt.id}
+              option={opt}
+              selected={isMultiSelected(opt.id)}
+              onClick={() => handleMulti(opt, 2)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Multi2 — vertical list with Continuar button */}
+      {step.type === "multi2" && (
         <div className="flex flex-col gap-1.5">
           {step.options.map((opt) => (
             <InlineOptionCard
               key={opt.id}
               option={opt}
               selected={isMultiSelected(opt.id)}
-              onClick={() => handleMulti(opt, step.type === "multi3" ? 3 : 2)}
+              onClick={() => handleMulti(opt, 2)}
               compact
             />
           ))}
