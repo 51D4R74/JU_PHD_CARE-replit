@@ -62,8 +62,8 @@ export default function AnimatedBrandLogo({
             className="h-9 w-auto object-contain"
           />
           <p
-            className="text-xs font-medium tracking-[0.07em] uppercase opacity-55"
-            style={{ color: "hsl(var(--text-body))" }}
+            className="text-[11px] font-semibold tracking-[0.12em] uppercase"
+            style={{ color: "hsl(var(--brand-navy))", opacity: 0.72 }}
           >
             protegendo o que importa.
           </p>
