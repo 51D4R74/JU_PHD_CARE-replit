@@ -899,26 +899,8 @@ export default function DashboardPage() {
         checkedInDates={checkedInDates}
         onOpenNotifications={() => setDrawerOpen(true)}
         onOpenSettings={() => navigate("/settings")}
+        onNavigateDomains={() => navigate("/meu-cuidado?section=domains")}
       />
-
-      {/* Domain indicator strip — below the hero photo */}
-      <div className="flex items-center justify-center gap-3 border-b border-border/40 bg-background px-4 py-2.5">
-        {[
-          { id: "recarga", label: "Energia", icon: "⚡" },
-          { id: "estado-do-dia", label: "Dia", icon: "☀" },
-          { id: "seguranca-relacional", label: "Clima", icon: "🌤" },
-        ].map(({ id, label, icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => navigate("/meu-cuidado?section=domains")}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border/50 bg-muted/60 px-3 py-1 text-[11px] font-semibold text-foreground/70 transition-colors hover:bg-muted"
-          >
-            <span aria-hidden="true">{icon}</span>
-            <span>{label}</span>
-          </button>
-        ))}
-      </div>
 
       <AnimatePresence>
         {drawerOpen && (

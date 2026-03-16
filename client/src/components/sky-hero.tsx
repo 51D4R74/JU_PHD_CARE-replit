@@ -1,13 +1,13 @@
 /**
  * SkyHero — fullbleed dashboard hero with progressive sky photography.
  *
- * Shows a sky photo (SOL_01–SOL_06) that reflects the user's composite
- * wellness score. Top bar has compact solar badge (left) and Bell/Gear (right).
- * Domain indicators live below the hero in the dashboard.
+ * Shows a sky photo (SOL_01–SOL_06) reflecting the user's composite score.
+ * Top bar: compact solar badge (left) + Bell/Gear (right).
+ * Bottom bar: domain indicator pills overlapping the lower edge of the photo.
  */
 
 import { motion } from "framer-motion";
-import { GearSix } from "@phosphor-icons/react";
+import { GearSix, Lightning, Sun, Cloud } from "@phosphor-icons/react";
 import ConstancyDots from "@/components/constancy-dots";
 import SolarPointsBadge from "@/components/solar-points-badge";
 import NotificationBadge from "@/components/notification-badge";
@@ -22,7 +22,14 @@ type SkyHeroProps = Readonly<{
   checkedInDates: ReadonlyArray<string>;
   onOpenNotifications: () => void;
   onOpenSettings: () => void;
+  onNavigateDomains: () => void;
 }>;
+
+const DOMAIN_PILLS = [
+  { id: "recarga",               label: "Energia", Icon: Lightning, color: "text-orange-300" },
+  { id: "estado-do-dia",         label: "Dia",     Icon: Sun,       color: "text-yellow-300" },
+  { id: "seguranca-relacional",  label: "Clima",   Icon: Cloud,     color: "text-sky-300"    },
+] as const;
 
 function getGreeting(): string {
   const hour = devNow().getHours();
@@ -40,7 +47,7 @@ function resolveHero(scores: TodayScores): SkyHeroData {
 
 function buildBottomScrim(dimOverlay: number): string {
   const peakAlpha = Math.min(0.75, dimOverlay + 0.22);
-  const midAlpha = Math.min(0.55, dimOverlay + 0.08);
+  const midAlpha  = Math.min(0.55, dimOverlay + 0.08);
   return `linear-gradient(to top, rgba(0,0,0,${peakAlpha.toFixed(2)}) 0%, rgba(0,0,0,${midAlpha.toFixed(2)}) 35%, rgba(0,0,0,0.12) 60%, transparent 80%)`;
 }
 
@@ -51,15 +58,16 @@ export default function SkyHero({
   checkedInDates,
   onOpenNotifications,
   onOpenSettings,
+  onNavigateDomains,
 }: SkyHeroProps) {
-  const hero = resolveHero(scores);
-
+  const hero     = resolveHero(scores);
   const headline = scores.hasCheckedIn
     ? hero.label
     : `${getGreeting()}, ${firstName}`;
 
   return (
-    <section className="relative w-full min-h-[42svh] sm:min-h-[52vh]">
+    <section className="relative w-full min-h-[44svh] sm:min-h-[54vh]">
+      {/* Background photo */}
       <motion.img
         key={hero.src}
         src={hero.src}
@@ -71,37 +79,13 @@ export default function SkyHero({
         draggable={false}
       />
 
-      <div
-        className="absolute inset-0"
-        style={{ background: buildBottomScrim(hero.dimOverlay) }}
-        aria-hidden="true"
-      />
+      {/* Scrims */}
+      <div className="absolute inset-0" style={{ background: buildBottomScrim(hero.dimOverlay) }} aria-hidden="true" />
+      <div className="absolute inset-x-0 top-0 h-24 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.12) 50%, transparent 100%)" }} aria-hidden="true" />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 90% 45% at 50% 68%, rgba(0,0,0,0.18) 0%, transparent 100%)" }} aria-hidden="true" />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 85%, rgba(255,180,50,0.08) 0%, transparent 55%)" }} aria-hidden="true" />
 
-      <div
-        className="absolute inset-x-0 top-0 h-24 pointer-events-none"
-        style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.12) 50%, transparent 100%)",
-        }}
-        aria-hidden="true"
-      />
-
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: "radial-gradient(ellipse 90% 45% at 50% 68%, rgba(0,0,0,0.18) 0%, transparent 100%)",
-        }}
-        aria-hidden="true"
-      />
-
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: "radial-gradient(ellipse at 50% 85%, rgba(255,180,50,0.08) 0%, transparent 55%)",
-        }}
-        aria-hidden="true"
-      />
-
-      {/* Controls bar */}
+      {/* Top controls bar */}
       <div className="relative z-10 px-4 pt-4">
         <motion.div
           initial={{ opacity: 0, y: -8 }}
@@ -110,7 +94,6 @@ export default function SkyHero({
           className="sky-controls-band flex items-center justify-between px-2 py-2"
         >
           <SolarPointsBadge points={solarPoints} compact />
-
           <div className="flex items-center gap-2">
             <NotificationBadge onClick={onOpenNotifications} />
             <button
@@ -125,8 +108,11 @@ export default function SkyHero({
         </motion.div>
       </div>
 
-      {/* Hero content — bottom-anchored */}
-      <div className="relative z-10 flex h-full flex-col items-center justify-end px-4 pb-6 pt-6 sm:pb-8" style={{ minHeight: "calc(40svh - 60px)" }}>
+      {/* Hero content — headline + constancy dots */}
+      <div
+        className="relative z-10 flex flex-col items-center px-4 pb-16 pt-6 sm:pb-20"
+        style={{ minHeight: "calc(40svh - 60px)" }}
+      >
         <motion.h1
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -145,6 +131,28 @@ export default function SkyHero({
           <ConstancyDots checkedInDates={checkedInDates} days={7} variant="hero" />
         </motion.div>
       </div>
+
+      {/* Domain pills — anchored to bottom of photo */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.45 }}
+        className="absolute inset-x-0 bottom-0 z-10 flex gap-2 px-3 pb-3"
+      >
+        {DOMAIN_PILLS.map(({ id, label, Icon, color }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={onNavigateDomains}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-white/20 px-3 py-2 backdrop-blur-md transition-colors hover:bg-white/30"
+          >
+            <Icon className={`h-3.5 w-3.5 flex-shrink-0 ${color}`} weight="fill" />
+            <span className="text-[10px] font-semibold tracking-wide text-white/90">
+              {label}
+            </span>
+          </button>
+        ))}
+      </motion.div>
     </section>
   );
 }
