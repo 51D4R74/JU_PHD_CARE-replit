@@ -141,13 +141,14 @@ export default function SkyHero({
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="sky-controls-band flex items-center px-2 py-2"
+          className="sky-controls-band grid items-center px-2 py-2"
+          style={{ gridTemplateColumns: "1fr auto 1fr" }}
         >
-          <div className="flex-none">
+          <div className="flex items-center justify-start">
             <SolarPointsBadge points={solarPoints} />
           </div>
 
-          <div className="flex flex-1 justify-center gap-3">
+          <div className="flex items-center justify-center gap-3">
             {domains.map((d) => (
               <DomainPill
                 key={d.id}
@@ -157,7 +158,7 @@ export default function SkyHero({
             ))}
           </div>
 
-          <div className="flex flex-none items-center gap-2">
+          <div className="flex items-center justify-end gap-2">
             <NotificationBadge onClick={onOpenNotifications} />
             <button
               type="button"
