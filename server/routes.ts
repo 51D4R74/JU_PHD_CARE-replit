@@ -543,16 +543,13 @@ export async function registerRoutes(
             orchestratorConversationId: orchConversationId,
           });
           convId = conv.id;
-        } else {
-          if (orchSessionId || orchConversationId) {
-            await storage.updateChatConversation(convId, {
-              orchestratorSessionId: orchSessionId ?? undefined,
-              orchestratorConversationId: orchConversationId ?? undefined,
-            });
-          }
         }
         await storage.createChatMessage({ conversationId: convId, role: "user", content: message.trim() });
         await storage.createChatMessage({ conversationId: convId, role: "assistant", content: replyText });
+        await storage.updateChatConversation(convId, {
+          ...(orchSessionId ? { orchestratorSessionId: orchSessionId } : {}),
+          ...(orchConversationId ? { orchestratorConversationId: orchConversationId } : {}),
+        });
       } catch (e: unknown) {
         console.error("Chat persistence error (non-fatal):", e);
       }
