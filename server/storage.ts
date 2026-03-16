@@ -1092,7 +1092,21 @@ export class MemStorage extends BaseStorage {
       .map((l) => l.messageId);
   }
 
+  private deleteChatDataForUser(userId: string): void {
+    const convIds: string[] = [];
+    for (const [id, conv] of this.chatConversationsMap) {
+      if (conv.userId === userId) convIds.push(id);
+    }
+    for (const cid of convIds) {
+      this.chatConversationsMap.delete(cid);
+      for (const [mid, msg] of this.chatMessagesMap) {
+        if (msg.conversationId === cid) this.chatMessagesMap.delete(mid);
+      }
+    }
+  }
+
   async deleteUserData(userId: string): Promise<void> {
+    this.deleteChatDataForUser(userId);
     this.users.delete(userId);
     this.removeEntriesForUser(this.checkIns, userId);
     this.removeEntriesForUser(this.momentCheckIns, userId);
@@ -1106,6 +1120,7 @@ export class MemStorage extends BaseStorage {
   }
 
   async resetUserActivity(userId: string): Promise<void> {
+    this.deleteChatDataForUser(userId);
     this.removeEntriesForUser(this.checkIns, userId);
     this.removeEntriesForUser(this.momentCheckIns, userId);
     this.removeEntriesForUser(this.userMissionsMap, userId);

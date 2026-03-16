@@ -400,6 +400,11 @@ export class DrizzleStorage extends BaseStorage {
 
   async deleteUserData(userId: string): Promise<void> {
     const db = getDb();
+    const userConvs = await db.select({ id: chatConversations.id }).from(chatConversations).where(eq(chatConversations.userId, userId));
+    for (const c of userConvs) {
+      await db.delete(chatMessages).where(eq(chatMessages.conversationId, c.id));
+    }
+    await db.delete(chatConversations).where(eq(chatConversations.userId, userId));
     await db.delete(checkIns).where(eq(checkIns.userId, userId));
     await db.delete(momentCheckIns).where(eq(momentCheckIns.userId, userId));
     await db.delete(userMissions).where(eq(userMissions.userId, userId));
@@ -415,6 +420,11 @@ export class DrizzleStorage extends BaseStorage {
 
   async resetUserActivity(userId: string): Promise<void> {
     const db = getDb();
+    const userConvs = await db.select({ id: chatConversations.id }).from(chatConversations).where(eq(chatConversations.userId, userId));
+    for (const c of userConvs) {
+      await db.delete(chatMessages).where(eq(chatMessages.conversationId, c.id));
+    }
+    await db.delete(chatConversations).where(eq(chatConversations.userId, userId));
     await db.delete(checkIns).where(eq(checkIns.userId, userId));
     await db.delete(momentCheckIns).where(eq(momentCheckIns.userId, userId));
     await db.delete(userMissions).where(eq(userMissions.userId, userId));
