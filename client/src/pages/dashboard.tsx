@@ -895,7 +895,6 @@ export default function DashboardPage() {
       <SkyHero
         firstName={firstName}
         scores={scores}
-        solarPoints={solarPoints}
         checkedInDates={checkedInDates}
         onOpenNotifications={() => setDrawerOpen(true)}
         onOpenSettings={() => navigate("/settings")}

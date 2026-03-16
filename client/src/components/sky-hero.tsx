@@ -9,7 +9,6 @@
 import { motion } from "framer-motion";
 import { GearSix, Lightning, Sun, Cloud, type Icon } from "@phosphor-icons/react";
 import ConstancyDots from "@/components/constancy-dots";
-import SolarPointsBadge from "@/components/solar-points-badge";
 import NotificationBadge from "@/components/notification-badge";
 import { type TodayScores, getDomainMeta } from "@/lib/score-engine";
 import { getSkyHero, getDefaultSkyHero, getCompositeScore, type SkyHeroData } from "@/lib/sky-image";
@@ -19,7 +18,6 @@ import { devNow } from "@shared/dev-clock";
 type SkyHeroProps = Readonly<{
   firstName: string;
   scores: TodayScores;
-  solarPoints: number;
   checkedInDates: ReadonlyArray<string>;
   onOpenNotifications: () => void;
   onOpenSettings: () => void;
@@ -80,7 +78,6 @@ function DomainPill({
 export default function SkyHero({
   firstName,
   scores,
-  solarPoints,
   checkedInDates,
   onOpenNotifications,
   onOpenSettings,
@@ -141,24 +138,23 @@ export default function SkyHero({
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="sky-controls-band grid items-center px-2 py-2"
-          style={{ gridTemplateColumns: "1fr auto 1fr" }}
+          className="sky-controls-band relative flex items-center justify-end px-2 py-2"
         >
-          <div className="flex items-center justify-start">
-            <SolarPointsBadge points={solarPoints} />
+          {/* Pills — true geometric center of the bar */}
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="pointer-events-auto flex items-center gap-3">
+              {domains.map((d) => (
+                <DomainPill
+                  key={d.id}
+                  domainId={d.id}
+                  onClick={onNavigateDomains}
+                />
+              ))}
+            </div>
           </div>
 
-          <div className="flex items-center justify-center gap-3">
-            {domains.map((d) => (
-              <DomainPill
-                key={d.id}
-                domainId={d.id}
-                onClick={onNavigateDomains}
-              />
-            ))}
-          </div>
-
-          <div className="flex items-center justify-end gap-2">
+          {/* Right side — Bell + Gear */}
+          <div className="relative z-10 flex items-center gap-2">
             <NotificationBadge onClick={onOpenNotifications} />
             <button
               type="button"
