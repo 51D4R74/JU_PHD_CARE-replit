@@ -148,7 +148,7 @@ export default function SkyHero({
             <AnimatedBrandLogo size="compact" showWordmark={false} />
           </div>
 
-          <div className="flex flex-1 justify-center gap-2">
+          <div className="flex flex-1 justify-center gap-3">
             {domains.map((d) => (
               <DomainPill
                 key={d.id}
