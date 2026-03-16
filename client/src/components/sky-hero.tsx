@@ -169,16 +169,13 @@ export default function SkyHero({
             </button>
           </div>
         </motion.div>
-      </div>
 
-      {/* Hero content — bottom-anchored */}
-      <div className="relative z-10 flex h-full flex-col items-center justify-end px-4 pb-6 pt-10 sm:pb-8" style={{ minHeight: "calc(40svh - 60px)" }}>
-        {/* Domain pills */}
+        {/* Domain pills — anchored in the header */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.5 }}
-          className="flex flex-wrap justify-center gap-2"
+          transition={{ delay: 0.15, duration: 0.4 }}
+          className="flex justify-center gap-2 pt-2 pb-1"
         >
           {domains.map((d) => (
             <DomainPill
@@ -190,7 +187,10 @@ export default function SkyHero({
             />
           ))}
         </motion.div>
+      </div>
 
+      {/* Hero content — bottom-anchored */}
+      <div className="relative z-10 flex h-full flex-col items-center justify-end px-4 pb-6 pt-6 sm:pb-8" style={{ minHeight: "calc(40svh - 60px)" }}>
         {/* Status headline */}
         <motion.h1
           initial={{ opacity: 0, y: 12 }}
