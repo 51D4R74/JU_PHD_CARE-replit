@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CaretRight, CheckCircle, Sparkle, BellRinging, DownloadSimple,
-  ChatCircleDots, Heart,
+  ChatCircleDots, Heart, X,
 } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -259,11 +259,12 @@ function PulseCard({
   onDismiss: () => void;
   canDismiss: boolean;
 }>) {
+  const [, navigate] = useLocation();
   const tone = getPulseCardTone(pulseState.isDue);
   const estimatedMinutes = Math.round(pulseState.definition.estimatedSeconds / 60);
   const bodyCopy = pulseState.isDue
     ? `${pulseState.definition.description} ${getPulseLeadText(pulseState)} ${pulseState.definition.questions.length} itens, cerca de ${estimatedMinutes} minuto.`
-    : `Respondida neste ciclo. Ela reaparece na próxima janela mensal. ${getPulseLeadText(pulseState)}`;
+    : `Respondida neste ciclo. Toque para ver seu resultado.`;
 
   return (
     <motion.section
@@ -272,7 +273,13 @@ function PulseCard({
       transition={{ delay: 0.43 }}
       className="mt-4"
     >
-      <div className={`w-full rounded-2xl border bg-card px-4 py-4 text-left shadow-sm transition-colors ${tone.container}`}>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => navigate("/meu-cuidado?section=pulse")}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") navigate("/meu-cuidado?section=pulse"); }}
+        className={`w-full cursor-pointer rounded-2xl border bg-card px-4 py-4 text-left shadow-sm transition-colors ${tone.container}`}
+      >
         <div className="flex items-start gap-3">
           <div className={`mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${tone.icon}`}>
             <ChatCircleDots className="h-5 w-5" weight="fill" />
@@ -294,10 +301,11 @@ function PulseCard({
                 {canDismiss ? (
                   <button
                     type="button"
-                    onClick={onDismiss}
-                    className="rounded-full px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    onClick={(e) => { e.stopPropagation(); onDismiss(); }}
+                    aria-label="Dispensar"
+                    className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >
-                    Dispensar
+                    <X className="h-3.5 w-3.5" weight="bold" />
                   </button>
                 ) : null}
               </div>
@@ -309,7 +317,7 @@ function PulseCard({
             {pulseState.isDue && (
               <button
                 type="button"
-                onClick={onOpen}
+                onClick={(e) => { e.stopPropagation(); onOpen(); }}
                 className="mt-3 flex items-center gap-2 text-sm font-medium text-brand-teal"
               >
                 <span>Responder agora</span>

@@ -2,7 +2,7 @@ import { useState, useMemo, useReducer, useEffect, useRef } from "react";
 import { useLocation, useSearch } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { devNow } from "@shared/dev-clock";
-import { CaretLeft, CaretRight, Star, TrendUp, FileText, Heart, Lightning, SunHorizon, Handshake, Sparkle } from "@phosphor-icons/react";
+import { CaretLeft, CaretRight, Star, TrendUp, FileText, Heart, Lightning, SunHorizon, Handshake, Sparkle, ChatCircleDots } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import {
   ResponsiveContainer,
@@ -24,6 +24,8 @@ import { computeDiscoveries, daysUntilDiscovery, DISCOVERY_MIN_RECORDS } from "@
 import { getFavoriteMessages, toggleFavorite, isFavorite } from "@/lib/support-engine";
 import { useAuth } from "@/lib/auth";
 import type { CheckInHistoryRecord } from "@shared/schema";
+import { fetchCurrentRelationalPulse } from "@/lib/pulse-client";
+import { PULSE_DIMENSION_LABELS, type CurrentPulseState, type PulseDimension } from "@shared/pulse-survey";
 
 // ── Chart config ────────────────────────────────────────────
 
@@ -131,12 +133,31 @@ const EMPTY_SCORES: TodayScores = {
 
 // ── Page ──────────────────────────────────────────
 
+function getPulseDimensionIcon(dim: PulseDimension) {
+  if (dim === "pressure_predictability") return Lightning;
+  if (dim === "support_care") return Heart;
+  if (dim === "peer_relations") return Handshake;
+  return Sparkle;
+}
+
+function getPulseScoreLabel(score: number): { label: string; colorClass: string; bgClass: string; barClass: string } {
+  if (score >= 75) return { label: "Ótimo", colorClass: "text-score-good", bgClass: "bg-score-good/12", barClass: "bg-score-good" };
+  if (score >= 50) return { label: "Bom", colorClass: "text-score-moderate", bgClass: "bg-score-moderate/12", barClass: "bg-score-moderate" };
+  if (score >= 25) return { label: "Regular", colorClass: "text-score-attention", bgClass: "bg-score-attention/12", barClass: "bg-score-attention" };
+  return { label: "Baixo", colorClass: "text-score-critical", bgClass: "bg-score-critical/12", barClass: "bg-score-critical" };
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("pt-BR", { day: "numeric", month: "long" });
+}
+
 export default function MeuCuidadoPage() {
   const [, navigate] = useLocation();
   const searchString = useSearch();
   const { user } = useAuth();
   const [range, setRange] = useState<7 | 30>(7);
   const domainsSectionRef = useRef<HTMLDivElement>(null);
+  const pulseSectionRef = useRef<HTMLDivElement>(null);
 
   // Server-canonical check-in history — primary data source
   const { data: allHistory = [] } = useQuery<CheckInHistoryRecord[]>({
@@ -147,6 +168,13 @@ export default function MeuCuidadoPage() {
   // Today's scores for domain cards
   const { data: scores = EMPTY_SCORES } = useQuery<TodayScores>({
     queryKey: ["/api/scores/user", user?.id ?? "", "today"],
+    enabled: !!user?.id,
+  });
+
+  // Pulse state for the pulse section
+  const { data: pulseState } = useQuery<CurrentPulseState>({
+    queryKey: ["/api/pulses/user", user?.id ?? "", "current"],
+    queryFn: () => fetchCurrentRelationalPulse(user!.id),
     enabled: !!user?.id,
   });
 
@@ -192,9 +220,16 @@ export default function MeuCuidadoPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(searchString);
-    if (params.get("section") === "domains" && domainsSectionRef.current) {
+    const section = params.get("section");
+    if (section === "domains" && domainsSectionRef.current) {
       const timeout = setTimeout(() => {
         domainsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 350);
+      return () => clearTimeout(timeout);
+    }
+    if (section === "pulse" && pulseSectionRef.current) {
+      const timeout = setTimeout(() => {
+        pulseSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 350);
       return () => clearTimeout(timeout);
     }
@@ -454,6 +489,81 @@ export default function MeuCuidadoPage() {
             )}
           </AnimatePresence>
         </motion.section>
+
+        {/* ── Pulse mensal ── */}
+        {pulseState && (
+          <motion.section
+            ref={pulseSectionRef}
+            id="pulse"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12 }}
+            className="mb-4"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <ChatCircleDots className="w-4 h-4 text-brand-teal" weight="fill" />
+              <h2 className="text-sm font-semibold">Pulse relacional mensal</h2>
+            </div>
+
+            {pulseState.latestResponse ? (
+              <div className="rounded-2xl border border-border/40 bg-card px-4 py-4">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-xs text-muted-foreground">
+                    Respondida em {formatDate(pulseState.latestResponse.submittedAt)}
+                  </p>
+                  {(() => {
+                    const { label, colorClass, bgClass } = getPulseScoreLabel(pulseState.latestResponse!.scoreSummary.overallScore);
+                    return (
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${bgClass} ${colorClass}`}>
+                        Geral {label}
+                      </span>
+                    );
+                  })()}
+                </div>
+                <div className="space-y-2">
+                  {(Object.entries(pulseState.latestResponse.scoreSummary.dimensionScores) as [PulseDimension, number][]).map(([dim, score]) => {
+                    const Icon = getPulseDimensionIcon(dim);
+                    const { label, colorClass, bgClass, barClass } = getPulseScoreLabel(score);
+                    const barPct = score;
+                    return (
+                      <div key={dim} className="flex items-center gap-3">
+                        <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl ${bgClass}`}>
+                          <Icon className={`h-4 w-4 ${colorClass}`} weight="bold" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-xs font-medium text-foreground leading-none">
+                              {PULSE_DIMENSION_LABELS[dim]}
+                            </p>
+                            <p className={`text-[11px] font-semibold ${colorClass}`}>{label}</p>
+                          </div>
+                          <div className="h-1.5 w-full rounded-full bg-border/30 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${barClass}`}
+                              style={{ width: `${barPct}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-border/40 bg-card px-4 py-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-brand-teal/10 flex items-center justify-center flex-shrink-0">
+                  <ChatCircleDots className="w-5 h-5 text-brand-teal" weight="fill" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Pesquisa disponível</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Responda no dashboard para ver seus resultados aqui.
+                  </p>
+                </div>
+              </div>
+            )}
+          </motion.section>
+        )}
 
         {/* ── Discoveries ── */}
         <motion.section
