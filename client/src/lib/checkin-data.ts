@@ -457,7 +457,7 @@ export const DAILY_STEPS: CheckInStep[] = [
       { id: "supported", label: "Me senti apoiado(a)", icon: TbHeartHandshake, score: 4, color: "text-score-good", bgColor: "from-score-good/20 to-score-good/5" },
       { id: "normal", label: "Dia normal", icon: TbMoodEmpty, score: 3, color: "text-score-moderate", bgColor: "from-score-moderate/20 to-score-moderate/5" },
       { id: "tense", label: "Clima tenso", icon: TbAlertTriangle, score: 2, color: "text-score-attention", bgColor: "from-score-attention/20 to-score-attention/5", flag: "climate_risk" },
-      { id: "pressured", label: "Me senti pressionado(a)", icon: TbCloudBolt, score: 1, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5", flag: "harassment_signal", triggerChat: true },
+      { id: "pressured", label: "Me senti pressionado(a)", icon: TbCloudBolt, score: 1, color: "text-score-critical", bgColor: "from-score-critical/20 to-score-critical/5", flag: "harassment_signal" },
     ],
   },
   // Q6: Context tags (optional, no score) — PRD v2.0 S5
