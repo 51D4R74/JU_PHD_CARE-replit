@@ -8,7 +8,6 @@
 
 import { motion } from "framer-motion";
 import { GearSix, Lightning, Sun, Cloud, type Icon } from "@phosphor-icons/react";
-import AnimatedBrandLogo from "@/components/animated-brand-logo";
 import ConstancyDots from "@/components/constancy-dots";
 import SolarPointsBadge from "@/components/solar-points-badge";
 import NotificationBadge from "@/components/notification-badge";
@@ -142,13 +141,9 @@ export default function SkyHero({
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="sky-controls-band flex items-center px-2 py-2"
+          className="sky-controls-band flex items-center justify-between px-2 py-2"
         >
-          <div className="sky-logo-glass flex items-center justify-center rounded-full">
-            <AnimatedBrandLogo size="compact" showWordmark={false} />
-          </div>
-
-          <div className="flex flex-1 justify-center gap-3">
+          <div className="flex items-center gap-2">
             {domains.map((d) => (
               <DomainPill
                 key={d.id}
