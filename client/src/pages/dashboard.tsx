@@ -933,10 +933,10 @@ export default function DashboardPage() {
             <div className="mb-3 flex items-center gap-3 rounded-2xl border border-brand-gold/20 bg-brand-gold/8 px-4 py-2.5">
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-wide text-brand-gold-dark">
-                  Como você está chegando hoje?
+                  Check-in do dia
                 </p>
                 <p className="text-sm text-foreground">
-                  Um momento só seu — conta como tá.
+                  Sono, humor, energia e relações. Seis perguntas que atualizam seu céu.
                 </p>
               </div>
               <span className="flex-shrink-0 rounded-full bg-white/70 px-2.5 py-1 text-[11px] font-semibold text-brand-navy">
