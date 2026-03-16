@@ -528,6 +528,13 @@ export async function registerRoutes(
 
       let convId = dbConversationId ?? null;
       try {
+        if (convId) {
+          const existingConv = await storage.getChatConversation(convId);
+          if (!existingConv || existingConv.userId !== userId) {
+            convId = null;
+          }
+        }
+
         if (!convId) {
           const conv = await storage.createChatConversation({
             userId,

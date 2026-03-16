@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useLocation, useSearch } from "wouter";
+import { useSearch } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -61,8 +61,15 @@ function formatConvDate(iso: string | null): string {
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }
 
+function goBack() {
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    window.location.href = "/dashboard";
+  }
+}
+
 export default function ChatPage() {
-  const [, navigate] = useLocation();
   const searchString = useSearch();
   const params = new URLSearchParams(searchString);
   const initialQuery = params.get("q");
@@ -88,11 +95,35 @@ export default function ChatPage() {
     },
   });
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, loading]);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv || !containerRef.current) return;
+
+    function onResize() {
+      if (!containerRef.current || !vv) return;
+      const offsetTop = vv.offsetTop;
+      containerRef.current.style.height = `${vv.height}px`;
+      containerRef.current.style.transform = `translateY(${offsetTop}px)`;
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    }
+
+    vv.addEventListener("resize", onResize);
+    vv.addEventListener("scroll", onResize);
+    return () => {
+      vv.removeEventListener("resize", onResize);
+      vv.removeEventListener("scroll", onResize);
+    };
+  }, []);
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -216,11 +247,11 @@ export default function ChatPage() {
   const hasMessages = messages.length > 0;
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-sky-50/80 via-white to-sky-50/40">
+    <div ref={containerRef} className="fixed inset-0 flex flex-col bg-gradient-to-b from-sky-50/80 via-white to-sky-50/40" style={{ height: "100dvh" }}>
       <header className="relative z-10 flex items-center gap-3 border-b border-border/30 bg-white/80 px-4 py-3 backdrop-blur-sm">
         <button
           type="button"
-          onClick={() => navigate("/dashboard")}
+          onClick={goBack}
           className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           aria-label="Voltar"
         >
