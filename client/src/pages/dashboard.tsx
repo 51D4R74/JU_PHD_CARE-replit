@@ -17,6 +17,7 @@ import { fetchCurrentRelationalPulse, submitRelationalPulse } from "@/lib/pulse-
 import { type TodayScores } from "@/lib/score-engine";
 import { computeDiscoveries, DISCOVERY_MIN_RECORDS } from "@/lib/discovery-engine";
 import { POINT_VALUES, selectMissions } from "@/lib/mission-engine";
+import { getSolarState } from "@/lib/solar-points";
 import { useMissionNotificationScheduler } from "@/hooks/use-mission-notification-scheduler";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -688,6 +689,9 @@ export default function DashboardPage() {
   // Track local completion to show celebration immediately (before server refetch)
   const [justCompleted, setJustCompleted] = useState(false);
 
+  // Solar points — read accumulated total from localStorage (written by awardPoints() on check-in)
+  const [solarTotal, setSolarTotal] = useState(() => getSolarState().totalPoints);
+
   const { data: scores = EMPTY_SCORES } = useQuery<TodayScores>({
     queryKey: ["/api/scores/user", userId, "today"],
     enabled: !!userId,
@@ -730,7 +734,7 @@ export default function DashboardPage() {
   );
 
   const missionPointsToday = todayMissions.reduce((sum, m) => sum + m.pointsEarned, 0);
-  const solarPoints = (checkedIn ? POINT_VALUES.checkin : 0) + missionPointsToday;
+  const solarPoints = solarTotal + missionPointsToday;
 
   useEffect(() => {
     if (pulseDialogOpen) {
@@ -798,6 +802,7 @@ export default function DashboardPage() {
   });
 
   const handleCheckinComplete = useCallback(() => {
+    setSolarTotal(getSolarState().totalPoints);
     setJustCompleted(true);
     navigate("/meu-cuidado");
   }, [navigate]);

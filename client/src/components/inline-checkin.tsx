@@ -23,6 +23,7 @@ import {
   detectChatTrigger,
 } from "@/lib/checkin-data";
 import { computeCheckInResult } from "@/lib/score-engine";
+import { awardPoints } from "@/lib/solar-points";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -484,6 +485,9 @@ export default function InlineCheckin({
           chatTriggered: false,
           confidence,
         });
+
+        // Award solar points for completing the check-in
+        awardPoints("checkin");
 
         // Invalidate all relevant queries
         queryClient.invalidateQueries({ queryKey: ["/api/checkins/user", userId, "today"] });
