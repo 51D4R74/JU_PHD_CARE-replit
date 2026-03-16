@@ -480,20 +480,23 @@ export async function registerRoutes(
   const CLIENT_ID = "juphd-care";
 
   app.post("/api/chat", requireAuth, async (req, res) => {
-    const { message, sessionId, conversationId } = req.body as {
+    const { message, sessionId, conversationId, dbConversationId } = req.body as {
       message: unknown;
       sessionId?: string;
       conversationId?: string;
+      dbConversationId?: string;
     };
 
     if (!message || typeof message !== "string" || message.trim().length === 0 || message.length > 2000) {
       return res.status(400).json({ message: "Mensagem inválida" });
     }
 
+    const userId = req.userId!;
+
     try {
       const payload: Record<string, unknown> = {
         query: `query: ${message.trim()}`,
-        userId: req.userId ?? "anonymous",
+        userId,
         clientId: CLIENT_ID,
         chatbotId: CHATBOT_ID,
       };
@@ -519,15 +522,88 @@ export async function registerRoutes(
         conversation_id?: string;
       };
 
+      const replyText = data.response ?? "Desculpe, não consegui processar sua mensagem.";
+      const orchSessionId = data.session_id ?? null;
+      const orchConversationId = data.conversation_id ?? null;
+
+      let convId = dbConversationId ?? null;
+      try {
+        if (!convId) {
+          const conv = await storage.createChatConversation({
+            userId,
+            title: message.trim().slice(0, 80),
+            orchestratorSessionId: orchSessionId,
+            orchestratorConversationId: orchConversationId,
+          });
+          convId = conv.id;
+        } else {
+          if (orchSessionId || orchConversationId) {
+            await storage.updateChatConversation(convId, {
+              orchestratorSessionId: orchSessionId ?? undefined,
+              orchestratorConversationId: orchConversationId ?? undefined,
+            });
+          }
+        }
+        await storage.createChatMessage({ conversationId: convId, role: "user", content: message.trim() });
+        await storage.createChatMessage({ conversationId: convId, role: "assistant", content: replyText });
+      } catch (e: unknown) {
+        console.error("Chat persistence error (non-fatal):", e);
+      }
+
       return res.json({
-        reply: data.response ?? "Desculpe, não consegui processar sua mensagem.",
-        session_id: data.session_id ?? null,
-        conversation_id: data.conversation_id ?? null,
+        reply: replyText,
+        session_id: orchSessionId,
+        conversation_id: orchConversationId,
+        db_conversation_id: convId,
       });
     } catch (e: unknown) {
       console.error("Chat orchestrator proxy error:", e);
       return res.status(502).json({ message: "Serviço de IA temporariamente indisponível" });
     }
+  });
+
+  app.get("/api/chat/conversations", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const conversations = await storage.getChatConversationsByUserId(userId);
+    const result = await Promise.all(
+      conversations.map(async (conv) => {
+        const msgs = await storage.getChatMessagesByConversationId(conv.id);
+        const firstBotMsg = msgs.find((m) => m.role === "assistant");
+        return {
+          id: conv.id,
+          title: conv.title,
+          preview: firstBotMsg?.content?.slice(0, 120) ?? null,
+          messageCount: msgs.length,
+          orchestratorSessionId: conv.orchestratorSessionId,
+          orchestratorConversationId: conv.orchestratorConversationId,
+          createdAt: conv.createdAt?.toISOString() ?? null,
+          updatedAt: conv.updatedAt?.toISOString() ?? null,
+        };
+      }),
+    );
+    return res.json(result);
+  });
+
+  app.get("/api/chat/conversations/:id/messages", requireAuth, async (req, res) => {
+    const convId = param(req, "id");
+    const conv = await storage.getChatConversation(convId);
+    if (!conv) return res.status(404).json({ message: "Conversa não encontrada" });
+    if (conv.userId !== req.userId) return res.status(403).json({ message: "Acesso não autorizado" });
+    const msgs = await storage.getChatMessagesByConversationId(convId);
+    return res.json({
+      conversation: {
+        id: conv.id,
+        title: conv.title,
+        orchestratorSessionId: conv.orchestratorSessionId,
+        orchestratorConversationId: conv.orchestratorConversationId,
+      },
+      messages: msgs.map((m) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        createdAt: m.createdAt?.toISOString() ?? null,
+      })),
+    });
   });
 
   app.post("/api/chat/close", requireAuth, async (req, res) => {

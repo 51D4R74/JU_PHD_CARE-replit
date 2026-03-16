@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type CheckIn, type InsertCheckIn, type MomentCheckIn, type InsertMomentCheckIn, type IncidentReport, type InsertIncidentReport, type UserMission, type InsertUserMission, type UserSettings, type CheckInHistoryRecord, type SolarPoints, type InsertSolarPoints, type TeamChallengeContribution, type InsertTeamChallengeContribution, type PulseResponse, type InsertPulseResponse, type CommunityMessage, type InsertCommunityMessage, type MessageLike } from "@shared/schema";
+import { type User, type InsertUser, type CheckIn, type InsertCheckIn, type MomentCheckIn, type InsertMomentCheckIn, type IncidentReport, type InsertIncidentReport, type UserMission, type InsertUserMission, type UserSettings, type CheckInHistoryRecord, type SolarPoints, type InsertSolarPoints, type TeamChallengeContribution, type InsertTeamChallengeContribution, type PulseResponse, type InsertPulseResponse, type CommunityMessage, type InsertCommunityMessage, type MessageLike, type ChatConversation, type InsertChatConversation, type ChatMessage, type InsertChatMessage } from "@shared/schema";
 import { ANONYMITY_THRESHOLD, getWorkdayDate } from "@shared/constants";
 import { devNow } from "@shared/dev-clock";
 import { randomUUID } from "node:crypto";
@@ -283,6 +283,13 @@ export interface IStorage {
   getCommunityMessageById(id: string): Promise<CommunityMessage | undefined>;
   toggleMessageLike(messageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }>;
   getUserLikedMessageIds(userId: string): Promise<string[]>;
+  // ── Chat conversations ─────────────────────────────
+  createChatConversation(conv: InsertChatConversation): Promise<ChatConversation>;
+  updateChatConversation(id: string, updates: Partial<Pick<ChatConversation, "title" | "orchestratorSessionId" | "orchestratorConversationId">>): Promise<ChatConversation | undefined>;
+  getChatConversationsByUserId(userId: string): Promise<ChatConversation[]>;
+  getChatConversation(id: string): Promise<ChatConversation | undefined>;
+  createChatMessage(msg: InsertChatMessage): Promise<ChatMessage>;
+  getChatMessagesByConversationId(conversationId: string): Promise<ChatMessage[]>;
 }
 
 /** Algorithm-heavy computed methods shared across all storage backends. */
@@ -320,6 +327,12 @@ export abstract class BaseStorage implements IStorage {
   abstract getCommunityMessageById(id: string): Promise<CommunityMessage | undefined>;
   abstract toggleMessageLike(messageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }>;
   abstract getUserLikedMessageIds(userId: string): Promise<string[]>;
+  abstract createChatConversation(conv: InsertChatConversation): Promise<ChatConversation>;
+  abstract updateChatConversation(id: string, updates: Partial<Pick<ChatConversation, "title" | "orchestratorSessionId" | "orchestratorConversationId">>): Promise<ChatConversation | undefined>;
+  abstract getChatConversationsByUserId(userId: string): Promise<ChatConversation[]>;
+  abstract getChatConversation(id: string): Promise<ChatConversation | undefined>;
+  abstract createChatMessage(msg: InsertChatMessage): Promise<ChatMessage>;
+  abstract getChatMessagesByConversationId(conversationId: string): Promise<ChatMessage[]>;
 
   async getTodayScoresByUserId(userId: string): Promise<TodayScoresSnapshot> {
     const todayCheckIn = (await this.getCheckInsByUserIdAndDate(userId, getWorkdayDate(devNow()))).at(0);
@@ -532,6 +545,8 @@ export class MemStorage extends BaseStorage {
   private readonly teamContributionsMap: Map<string, TeamChallengeContribution>;
   private readonly communityMessagesMap: Map<string, CommunityMessage>;
   private readonly messageLikesMap: Map<string, MessageLike>;
+  private readonly chatConversationsMap: Map<string, ChatConversation>;
+  private readonly chatMessagesMap: Map<string, ChatMessage>;
 
   constructor() {
     super();
@@ -546,6 +561,8 @@ export class MemStorage extends BaseStorage {
     this.teamContributionsMap = new Map();
     this.communityMessagesMap = new Map();
     this.messageLikesMap = new Map();
+    this.chatConversationsMap = new Map();
+    this.chatMessagesMap = new Map();
     this.seedData();
   }
 
@@ -1097,6 +1114,63 @@ export class MemStorage extends BaseStorage {
     this.removeEntriesForUser(this.incidentReports, userId);
     this.removeEntriesForUser(this.teamContributionsMap, userId);
     this.removeEntriesForUser(this.communityMessagesMap, userId);
+  }
+
+  async createChatConversation(conv: InsertChatConversation): Promise<ChatConversation> {
+    const id = randomUUID();
+    const now = new Date();
+    const record: ChatConversation = {
+      id,
+      userId: conv.userId,
+      title: conv.title ?? null,
+      orchestratorSessionId: conv.orchestratorSessionId ?? null,
+      orchestratorConversationId: conv.orchestratorConversationId ?? null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.chatConversationsMap.set(id, record);
+    return record;
+  }
+
+  async updateChatConversation(id: string, updates: Partial<Pick<ChatConversation, "title" | "orchestratorSessionId" | "orchestratorConversationId">>): Promise<ChatConversation | undefined> {
+    const existing = this.chatConversationsMap.get(id);
+    if (!existing) return undefined;
+    const updated: ChatConversation = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.chatConversationsMap.set(id, updated);
+    return updated;
+  }
+
+  async getChatConversationsByUserId(userId: string): Promise<ChatConversation[]> {
+    return Array.from(this.chatConversationsMap.values())
+      .filter((c) => c.userId === userId)
+      .sort((a, b) => (b.updatedAt?.getTime() ?? 0) - (a.updatedAt?.getTime() ?? 0));
+  }
+
+  async getChatConversation(id: string): Promise<ChatConversation | undefined> {
+    return this.chatConversationsMap.get(id);
+  }
+
+  async createChatMessage(msg: InsertChatMessage): Promise<ChatMessage> {
+    const id = randomUUID();
+    const record: ChatMessage = {
+      id,
+      conversationId: msg.conversationId,
+      role: msg.role,
+      content: msg.content,
+      createdAt: new Date(),
+    };
+    this.chatMessagesMap.set(id, record);
+    return record;
+  }
+
+  async getChatMessagesByConversationId(conversationId: string): Promise<ChatMessage[]> {
+    return Array.from(this.chatMessagesMap.values())
+      .filter((m) => m.conversationId === conversationId)
+      .sort((a, b) => (a.createdAt?.getTime() ?? 0) - (b.createdAt?.getTime() ?? 0));
   }
 }
 

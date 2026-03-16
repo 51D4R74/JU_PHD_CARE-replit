@@ -23,6 +23,7 @@ const TeamChallengePage = lazy(() => import("@/pages/team-challenge"));
 const RHDashboardPage = lazy(() => import("@/pages/rh-dashboard"));
 const OnboardingPage = lazy(() => import("@/components/onboarding"));
 const SettingsPage = lazy(() => import("@/pages/settings"));
+const ChatPage = lazy(() => import("@/pages/chat-page"));
 
 // ── Loading skeleton ──────────────────────────────
 
@@ -95,6 +96,9 @@ function Router() {
       </Route>
       <Route path="/settings">
         {() => <ProtectedRoute component={SettingsPage} />}
+      </Route>
+      <Route path="/chat">
+        {() => <ProtectedRoute component={ChatPage} />}
       </Route>
       <Route path="/rh">
         {() => <ProtectedRoute component={RHDashboardPage} requireRole="rh" />}

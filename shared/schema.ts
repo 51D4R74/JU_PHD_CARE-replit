@@ -139,6 +139,26 @@ export const messageLikes = pgTable("message_likes", {
   primaryKey({ columns: [table.messageId, table.userId] }),
 ]);
 
+// ── Chat conversations & messages ────────────────
+
+export const chatConversations = pgTable("chat_conversations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  title: text("title"),
+  orchestratorSessionId: text("orchestrator_session_id"),
+  orchestratorConversationId: text("orchestrator_conversation_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const chatMessages = pgTable("chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").notNull(),
+  role: text("role").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // ── Insert schemas ────────────────────────────────
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -307,6 +327,19 @@ export const submitPulseResponseSchema = z.object({
   answers: z.array(pulseSubmissionAnswerSchema).min(1),
 });
 
+export const insertChatConversationSchema = createInsertSchema(chatConversations).pick({
+  userId: true,
+  title: true,
+  orchestratorSessionId: true,
+  orchestratorConversationId: true,
+});
+
+export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
+  conversationId: true,
+  role: true,
+  content: true,
+});
+
 // ── Type exports ──────────────────────────────────
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -335,6 +368,10 @@ export type InsertCommunityMessage = z.infer<typeof insertCommunityMessageSchema
 export type CommunityMessage = typeof communityMessages.$inferSelect;
 export type MessageLike = typeof messageLikes.$inferSelect;
 export type SubmitCommunityMessage = z.infer<typeof submitCommunityMessageSchema>;
+export type InsertChatConversation = z.infer<typeof insertChatConversationSchema>;
+export type ChatConversation = typeof chatConversations.$inferSelect;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
 export type IncidentReportMode = z.infer<typeof incidentReportModeSchema>;
 export type IncidentOccurrenceWindow = z.infer<typeof incidentOccurrenceWindowSchema>;
 export type IncidentSeverity = z.infer<typeof incidentSeveritySchema>;

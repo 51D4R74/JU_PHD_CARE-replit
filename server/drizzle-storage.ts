@@ -12,6 +12,8 @@ import {
   teamChallengeContributions,
   communityMessages,
   messageLikes,
+  chatConversations,
+  chatMessages,
 } from "@shared/schema";
 import type {
   User,
@@ -34,6 +36,10 @@ import type {
   CommunityMessage,
   InsertCommunityMessage,
   MessageLike,
+  ChatConversation,
+  InsertChatConversation,
+  ChatMessage as ChatMessageType,
+  InsertChatMessage,
 } from "@shared/schema";
 import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
@@ -418,5 +424,72 @@ export class DrizzleStorage extends BaseStorage {
     await db.delete(teamChallengeContributions).where(eq(teamChallengeContributions.userId, userId));
     await db.delete(messageLikes).where(eq(messageLikes.userId, userId));
     await db.delete(communityMessages).where(eq(communityMessages.userId, userId));
+  }
+
+  async createChatConversation(conv: InsertChatConversation): Promise<ChatConversation> {
+    const id = randomUUID();
+    const now = new Date();
+    const rows = await getDb()
+      .insert(chatConversations)
+      .values({
+        id,
+        userId: conv.userId,
+        title: conv.title ?? null,
+        orchestratorSessionId: conv.orchestratorSessionId ?? null,
+        orchestratorConversationId: conv.orchestratorConversationId ?? null,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
+    return rows[0];
+  }
+
+  async updateChatConversation(id: string, updates: Partial<Pick<ChatConversation, "title" | "orchestratorSessionId" | "orchestratorConversationId">>): Promise<ChatConversation | undefined> {
+    const rows = await getDb()
+      .update(chatConversations)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(chatConversations.id, id))
+      .returning();
+    return rows.at(0);
+  }
+
+  async getChatConversationsByUserId(userId: string): Promise<ChatConversation[]> {
+    return getDb()
+      .select()
+      .from(chatConversations)
+      .where(eq(chatConversations.userId, userId))
+      .orderBy(desc(chatConversations.updatedAt));
+  }
+
+  async getChatConversation(id: string): Promise<ChatConversation | undefined> {
+    const rows = await getDb()
+      .select()
+      .from(chatConversations)
+      .where(eq(chatConversations.id, id))
+      .limit(1);
+    return rows.at(0);
+  }
+
+  async createChatMessage(msg: InsertChatMessage): Promise<ChatMessageType> {
+    const id = randomUUID();
+    const rows = await getDb()
+      .insert(chatMessages)
+      .values({
+        id,
+        conversationId: msg.conversationId,
+        role: msg.role,
+        content: msg.content,
+        createdAt: new Date(),
+      })
+      .returning();
+    return rows[0];
+  }
+
+  async getChatMessagesByConversationId(conversationId: string): Promise<ChatMessageType[]> {
+    return getDb()
+      .select()
+      .from(chatMessages)
+      .where(eq(chatMessages.conversationId, conversationId))
+      .orderBy(chatMessages.createdAt);
   }
 }
