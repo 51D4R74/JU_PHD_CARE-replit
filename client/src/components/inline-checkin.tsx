@@ -9,7 +9,7 @@
  * After Q6 the component calls `onComplete` and the dashboard takes over.
  */
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Lock, ChatCircle } from "@phosphor-icons/react";
 import { devNow } from "@shared/dev-clock";
@@ -409,7 +409,10 @@ export default function InlineCheckin({
   onNavigateProtection,
 }: Readonly<InlineCheckinProps>) {
   const { toast } = useToast();
-  const steps = getTimeAwareSteps();
+  // Memoized so the array reference stays stable across re-renders (background
+  // query refetches would otherwise recreate it every render, causing handleAnswer
+  // to be a new function each time, which resets the multi3 auto-advance timer).
+  const steps = useMemo(() => getTimeAwareSteps(), []);
 
   // Track timing for confidence score: faster + consistent = higher confidence
   const startTime = useRef(Date.now());
@@ -541,7 +544,7 @@ export default function InlineCheckin({
         saveCheckIn(newAnswers);
       }
     },
-    [answers, currentStep, steps, saveCheckIn, isSaving],
+    [answers, currentStep, steps, saveCheckIn, isSaving, onNavigateProtection],
   );
 
   return (
