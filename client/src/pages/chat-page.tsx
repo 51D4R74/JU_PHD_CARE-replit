@@ -10,6 +10,8 @@ import {
   X,
 } from "@phosphor-icons/react";
 
+const LAST_CONV_KEY = "lumina_last_chat_conv";
+
 interface UiMessage {
   readonly id: string;
   readonly role: "user" | "assistant";
@@ -161,7 +163,10 @@ export default function ChatPage() {
 
         if (data.session_id) setSessionId(data.session_id);
         if (data.conversation_id) setConversationId(data.conversation_id);
-        if (data.db_conversation_id) setDbConversationId(data.db_conversation_id);
+        if (data.db_conversation_id) {
+          setDbConversationId(data.db_conversation_id);
+          localStorage.setItem(LAST_CONV_KEY, data.db_conversation_id);
+        }
 
         const reply =
           data.reply ?? "Desculpe, não consegui processar sua mensagem.";
@@ -195,6 +200,7 @@ export default function ChatPage() {
   }, [initialQuery, initialSent, sendMessage]);
 
   const startNewConversation = useCallback(() => {
+    localStorage.removeItem(LAST_CONV_KEY);
     setMessages([]);
     setSessionId(null);
     setConversationId(null);
@@ -229,6 +235,7 @@ export default function ChatPage() {
         setSessionId(data.conversation.orchestratorSessionId);
         setConversationId(data.conversation.orchestratorConversationId);
         setDbConversationId(conv.id);
+        localStorage.setItem(LAST_CONV_KEY, conv.id);
       } catch {
         setMessages([
           {
@@ -243,6 +250,40 @@ export default function ChatPage() {
     },
     [],
   );
+
+  useEffect(() => {
+    if (initialQuery) return;
+    const savedId = localStorage.getItem(LAST_CONV_KEY);
+    if (!savedId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/chat/conversations/${savedId}/messages`, {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Not found");
+        const data = (await res.json()) as {
+          conversation: {
+            orchestratorSessionId: string | null;
+            orchestratorConversationId: string | null;
+          };
+          messages: Array<{
+            id: string;
+            role: "user" | "assistant";
+            content: string;
+          }>;
+        };
+        if (cancelled) return;
+        setMessages(data.messages);
+        setSessionId(data.conversation.orchestratorSessionId);
+        setConversationId(data.conversation.orchestratorConversationId);
+        setDbConversationId(savedId);
+      } catch {
+        localStorage.removeItem(LAST_CONV_KEY);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const hasMessages = messages.length > 0;
 
