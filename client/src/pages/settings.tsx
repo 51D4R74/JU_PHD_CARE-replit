@@ -315,6 +315,26 @@ export default function SettingsPage() {
             Seus dados são protegidos e nunca compartilhados com sua empresa. Conforme NR-1 e LGPD.
           </div>
         </motion.section>
+
+        {/* Brand footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="flex flex-col items-center gap-2 pt-4 pb-2"
+        >
+          <img
+            src="/lumina-logo-circle.png"
+            alt="Lumina"
+            className="h-10 w-10 rounded-full opacity-70"
+          />
+          <p className="text-xs font-semibold tracking-widest text-muted-foreground/60 uppercase">
+            Lumina
+          </p>
+          <p className="text-[10px] text-muted-foreground/40">
+            Protegendo o que importa.
+          </p>
+        </motion.div>
       </main>
 
       <BottomNav />
