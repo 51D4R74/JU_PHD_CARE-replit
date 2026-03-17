@@ -148,7 +148,7 @@ function JuPHDAvatar() {
       >
         <img
           src="/juphd-icon.png"
-          alt="JuPHD — IA em Saúde Psicossocial"
+          alt="JuPHD Care — IA em Saúde Psicossocial"
           className="h-full w-full object-contain p-[8%]"
           style={{ filter: "drop-shadow(0 2px 8px rgba(42,166,166,0.18))" }}
         />

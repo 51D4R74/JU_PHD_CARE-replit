@@ -388,7 +388,7 @@ function ReminderActivationCard({ onEnable }: Readonly<{ onEnable: () => void }>
               Ative o lembrete do check-in
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Quando o check-in do dia abrir, a JuPHD pode te avisar sem você precisar caçar a tela.
+              Quando o check-in do dia abrir, o JuPHD Care pode te avisar sem você precisar caçar a tela.
             </p>
             <Button
               type="button"
@@ -419,10 +419,10 @@ function InstallAppCard({ onInstall }: Readonly<{ onInstall: () => void }>) {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-foreground">
-              Instale a JuPHD como app
+              Instale o Lumina como app
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Assim ela abre direto no celular, em tela cheia, com menos atrito no seu dia a dia.
+              Assim o Lumina abre direto no celular, em tela cheia, com menos atrito no seu dia a dia.
             </p>
             <Button type="button" variant="outline" onClick={onInstall} className="mt-3 rounded-xl border-brand-navy/20 text-brand-navy hover:bg-brand-navy/5">
               Instalar app
@@ -663,7 +663,7 @@ function useCheckinReminderNotification(
     }
 
     const reminder = new Notification("Seu check-in de hoje está pronto", {
-      body: "Leva menos de 1 minuto. Abra a JuPHD e responda no melhor momento do seu dia.",
+      body: "Leva menos de 1 minuto. Abra o Lumina e responda no melhor momento do seu dia.",
       icon: "/favicon.png",
       badge: "/favicon.png",
       tag: `checkin-${today}`,

@@ -158,7 +158,7 @@ export default function RHDashboardPage() {
               <ChartBar className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-foreground">JuPHD — Painel RH</h1>
+              <h1 className="text-sm font-bold text-foreground">Lumina — Painel RH</h1>
               <p className="text-xs text-muted-foreground">Visão Organizacional Agregada</p>
             </div>
           </div>

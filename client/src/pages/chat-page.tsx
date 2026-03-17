@@ -260,7 +260,7 @@ export default function ChatPage() {
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
           <img
             src="/juphd-icon.png"
-            alt="JuPHD"
+            alt="JuPHD Care"
             className="h-8 w-8 rounded-full object-contain"
           />
           <div className="flex flex-col min-w-0">
@@ -365,7 +365,7 @@ export default function ChatPage() {
             <div className="flex flex-col items-center gap-4 pt-16 text-center">
               <img
                 src="/juphd-icon.png"
-                alt="JuPHD"
+                alt="JuPHD Care"
                 className="h-16 w-16 rounded-full object-contain opacity-60"
               />
               <div>
