@@ -211,13 +211,13 @@ export default function ChatPage() {
     inputRef.current?.focus();
   }, [refetchConversations]);
 
-  const loadConversation = useCallback(
-    async (conv: ConversationSummary) => {
-      setShowHistory(false);
+  const loadConversationById = useCallback(
+    async (id: string, signal?: AbortSignal): Promise<boolean> => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/chat/conversations/${conv.id}/messages`, {
+        const res = await fetch(`/api/chat/conversations/${id}/messages`, {
           credentials: "include",
+          signal,
         });
         if (!res.ok) throw new Error("Failed to load");
         const data = (await res.json()) as {
@@ -234,16 +234,13 @@ export default function ChatPage() {
         setMessages(data.messages);
         setSessionId(data.conversation.orchestratorSessionId);
         setConversationId(data.conversation.orchestratorConversationId);
-        setDbConversationId(conv.id);
-        localStorage.setItem(LAST_CONV_KEY, conv.id);
-      } catch {
-        setMessages([
-          {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: "Não foi possível carregar essa conversa.",
-          },
-        ]);
+        setDbConversationId(id);
+        localStorage.setItem(LAST_CONV_KEY, id);
+        return true;
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return false;
+        localStorage.removeItem(LAST_CONV_KEY);
+        return false;
       } finally {
         setLoading(false);
       }
@@ -251,38 +248,30 @@ export default function ChatPage() {
     [],
   );
 
+  const loadConversation = useCallback(
+    async (conv: ConversationSummary) => {
+      setShowHistory(false);
+      const ok = await loadConversationById(conv.id);
+      if (!ok) {
+        setMessages([
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: "Não foi possível carregar essa conversa.",
+          },
+        ]);
+      }
+    },
+    [loadConversationById],
+  );
+
   useEffect(() => {
     if (initialQuery) return;
     const savedId = localStorage.getItem(LAST_CONV_KEY);
     if (!savedId) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(`/api/chat/conversations/${savedId}/messages`, {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Not found");
-        const data = (await res.json()) as {
-          conversation: {
-            orchestratorSessionId: string | null;
-            orchestratorConversationId: string | null;
-          };
-          messages: Array<{
-            id: string;
-            role: "user" | "assistant";
-            content: string;
-          }>;
-        };
-        if (cancelled) return;
-        setMessages(data.messages);
-        setSessionId(data.conversation.orchestratorSessionId);
-        setConversationId(data.conversation.orchestratorConversationId);
-        setDbConversationId(savedId);
-      } catch {
-        localStorage.removeItem(LAST_CONV_KEY);
-      }
-    })();
-    return () => { cancelled = true; };
+    const controller = new AbortController();
+    loadConversationById(savedId, controller.signal);
+    return () => controller.abort();
   }, []);
 
   const hasMessages = messages.length > 0;
