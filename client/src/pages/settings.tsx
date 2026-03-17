@@ -326,7 +326,7 @@ export default function SettingsPage() {
           <img
             src="/lumina-logo-circle.png"
             alt="Lumina"
-            className="h-10 w-10 rounded-full opacity-70"
+            className="h-10 w-10 object-contain opacity-70"
           />
           <p className="text-xs font-semibold tracking-widest text-muted-foreground/60 uppercase">
             Lumina
