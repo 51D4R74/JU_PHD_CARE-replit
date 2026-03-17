@@ -17,22 +17,23 @@ export default function AnimatedBrandLogo({
     return (
       <div className={"flex items-center gap-3" + (className ? " " + className : "")}>
         <motion.img
-          src="/juphd-avatar.png"
-          alt="JuPhD Care"
+          src="/lumina-logo-circle.png"
+          alt="Lumina"
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="w-10 h-10 rounded-full object-cover object-top shrink-0"
+          className="w-10 h-10 object-contain shrink-0"
         />
         {showWordmark && (
-          <motion.img
-            src="/juphd-nome.png"
-            alt="JuPhD Care"
+          <motion.span
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="h-6 w-auto object-contain"
-          />
+            className="text-lg font-bold tracking-tight"
+            style={{ color: "hsl(var(--brand-navy))" }}
+          >
+            Lumina
+          </motion.span>
         )}
       </div>
     );
@@ -41,26 +42,27 @@ export default function AnimatedBrandLogo({
   return (
     <div className={"flex flex-col items-center gap-4 text-center" + (className ? " " + className : "")}>
       <motion.img
-        src="/juphd-avatar.png"
-        alt="JuPhD Care"
+        src="/lumina-logo-circle.png"
+        alt="Lumina"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="w-28 h-28 rounded-full object-cover object-top"
-        style={{ boxShadow: "0 6px 24px rgba(10,18,40,0.22)" }}
+        className="w-28 h-28 object-contain"
+        style={{ filter: "drop-shadow(0 6px 24px rgba(10,18,40,0.18))" }}
       />
       {showWordmark && (
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col items-center gap-2"
+          className="flex flex-col items-center gap-1"
         >
-          <img
-            src="/juphd-nome.png"
-            alt="JuPhD Care"
-            className="h-9 w-auto object-contain"
-          />
+          <span
+            className="text-2xl font-bold tracking-tight"
+            style={{ color: "hsl(var(--brand-navy))" }}
+          >
+            Lumina
+          </span>
           <p
             className="text-[11px] font-semibold tracking-[0.12em] uppercase"
             style={{ color: "hsl(var(--brand-navy))", opacity: 0.72 }}
