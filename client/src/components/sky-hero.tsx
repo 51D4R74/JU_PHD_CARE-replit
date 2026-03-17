@@ -94,15 +94,7 @@ export default function SkyHero({
           transition={{ duration: 0.4 }}
           className="sky-controls-band flex items-center justify-between px-2 py-2"
         >
-          <div className="flex items-center gap-2">
-            <img
-              src="/lumina-logo-circle.png"
-              alt="Lumina"
-              className="h-7 w-7 rounded-full object-cover"
-              style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.18)" }}
-            />
-            <SolarPointsBadge points={solarPoints} compact />
-          </div>
+          <SolarPointsBadge points={solarPoints} compact />
           <div className="flex items-center gap-2">
             <NotificationBadge onClick={onOpenNotifications} />
             <button
