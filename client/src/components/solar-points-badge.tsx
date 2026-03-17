@@ -1,7 +1,7 @@
 /**
- * SolarPointsBadge — animated point counter for the dashboard header.
+ * LumensBadge — animated Lumens counter for the dashboard header.
  *
- * Shows today's Solar Points with a scale pop on increment.
+ * Shows today's Lumens with a scale pop on increment.
  * Points are computed by the parent from server data.
  * When points are 0 and user hasn't dismissed, shows an explanatory tooltip.
  */
@@ -36,7 +36,6 @@ export default function SolarPointsBadge({
     if (points > 0) return;
     const dismissed = localStorage.getItem(TOOLTIP_DISMISSED_KEY) ?? localStorage.getItem(LEGACY_TOOLTIP_DISMISSED_KEY);
     if (dismissed) return;
-    // Show after a short delay so the page settles
     const timer = setTimeout(() => setShowHint(true), 1200);
     return () => clearTimeout(timer);
   }, [points]);
@@ -57,8 +56,8 @@ export default function SolarPointsBadge({
     >
       <Sun className="w-3.5 h-3.5 text-brand-gold-dark" weight="fill" />
       {!compact && (
-        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-          Solar
+        <span className="text-[11px] font-semibold tracking-[0.04em] text-muted-foreground">
+          Lumens
         </span>
       )}
       <span className="text-sm font-bold text-foreground tabular-nums">
@@ -76,8 +75,8 @@ export default function SolarPointsBadge({
           {badge}
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-[220px] text-center text-xs leading-relaxed">
-          <p className="mb-0.5 font-semibold">Pontos Solares</p>
-          <p>Faça seu check-in diário e complete atividades do Pra Você para acumular pontos e ver seu halo brilhar.</p>
+          <p className="mb-0.5 font-semibold">Lumens</p>
+          <p>Faça seu check-in diário e complete atividades do Pra Você para acumular Lumens e ver seu halo brilhar.</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

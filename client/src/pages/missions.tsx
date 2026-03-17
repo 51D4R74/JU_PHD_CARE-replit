@@ -7,6 +7,7 @@ import BottomNav from "@/components/bottom-nav";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MissionMiniCard, MissionDetailDrawer, type MissionDef, type MissionStatus } from "@/components/mission-card";
 import SolarPointsBadge from "@/components/solar-points-badge";
+import { getTodayLumens } from "@/lib/solar-points";
 import ConstancyDots from "@/components/constancy-dots";
 import Microcheck from "@/components/microcheck";
 import JuPHDChatCard from "@/components/juphd-chat-card";
@@ -114,8 +115,7 @@ export default function MissionCenterPage() {
   const progress = totalMissions > 0 ? Math.round((completedCount / totalMissions) * 100) : 0;
 
   const missionPoints = completedMissions.reduce((sum, m) => sum + m.pointsEarned, 0);
-  const checkinPoints = scores.hasCheckedIn ? POINT_VALUES.checkin : 0;
-  const totalPoints = checkinPoints + missionPoints;
+  const totalPoints = getTodayLumens() + missionPoints;
 
   const justCompletedRef = useRef(false);
 

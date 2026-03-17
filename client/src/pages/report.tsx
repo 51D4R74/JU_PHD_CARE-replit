@@ -280,7 +280,7 @@ export default function ReportPage() {
           className="glass-card rounded-2xl p-4 mb-4"
         >
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-            Pontos Solares — hoje
+            Lumens — hoje
           </p>
           <div className="flex items-center gap-3">
             <span className="text-3xl font-bold text-brand-gold">{points}</span>

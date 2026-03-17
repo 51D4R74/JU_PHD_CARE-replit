@@ -83,7 +83,7 @@ const SCREENS: OnboardingScreen[] = [
   {
     id: "missions",
     title: "Cuidado real, no seu ritmo",
-    subtitle: "Cada dia aparecem atividades feitas pro seu momento. São curtas, práticas e rendem Pontos Solares ☀️ — a Lumina que cresce com você.",
+    subtitle: "Cada dia aparecem atividades feitas pro seu momento. São curtas, práticas e rendem Lumens ☀️ — a Lumina que cresce com você.",
     visual: (
       <div className="space-y-2">
         {[

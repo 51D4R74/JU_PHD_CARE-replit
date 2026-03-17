@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import SupportMessageCard from "@/components/support-message-card";
 import JuPHDChatCard from "@/components/juphd-chat-card";
 import SolarPointsBadge from "@/components/solar-points-badge";
+import { getTodayLumens } from "@/lib/solar-points";
 import CommunityFeed from "@/components/community-feed";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -57,7 +58,7 @@ export default function SupportCenterPage() {
   });
 
   const missionPointsToday = todayMissions.reduce((sum, m) => sum + m.pointsEarned, 0);
-  const solarPoints = (scores.hasCheckedIn ? POINT_VALUES.checkin : 0) + missionPointsToday;
+  const solarPoints = getTodayLumens() + missionPointsToday;
 
   const isRespiro = evaluateRespiro(scores);
 

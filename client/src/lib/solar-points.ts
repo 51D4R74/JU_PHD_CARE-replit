@@ -297,6 +297,17 @@ export function getSolarState(): SolarPointsState {
   return readState();
 }
 
+/**
+ * Get Lumens earned today (from dailyLog).
+ * Single source of truth — use this everywhere a badge/score shows today's points.
+ * Does NOT include mission points (tracked separately in mission-engine).
+ */
+export function getTodayLumens(): number {
+  const state = readState();
+  const today = todayISO();
+  return state.dailyLog.find((e) => e.date === today)?.points ?? 0;
+}
+
 /** Get current halo metrics (convenience wrapper). */
 export function getHaloMetrics(): HaloMetrics {
   return computeHaloMetrics(readState());
