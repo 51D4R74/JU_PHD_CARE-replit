@@ -23,6 +23,7 @@ export default function AnimatedBrandLogo({
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="w-10 h-10 object-contain shrink-0"
+          style={{ filter: "drop-shadow(0 3px 10px rgba(10,18,40,0.20))" }}
         />
         {showWordmark && (
           <motion.span

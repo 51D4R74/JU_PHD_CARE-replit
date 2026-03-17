@@ -326,7 +326,8 @@ export default function SettingsPage() {
           <img
             src="/lumina-logo-circle.png"
             alt="Lumina"
-            className="h-10 w-10 object-contain opacity-70"
+            className="h-12 w-12 object-contain"
+            style={{ filter: "drop-shadow(0 4px 12px rgba(10,18,40,0.22))" }}
           />
           <p className="text-xs font-semibold tracking-widest text-muted-foreground/60 uppercase">
             Lumina
