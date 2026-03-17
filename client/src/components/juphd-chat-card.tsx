@@ -118,9 +118,9 @@ export default function JuPHDChatCard({
 }
 
 function JuPHDAvatar() {
-  const size = 72;
+  const size = 90;
   const ringSpread = 3;
-  const outerSpread = 6;
+  const outerSpread = 5;
   const total = size + outerSpread * 2;
 
   return (
@@ -139,18 +139,16 @@ function JuPHDAvatar() {
         aria-hidden="true"
       />
       <div
-        className="absolute rounded-full overflow-hidden"
+        className="absolute rounded-full overflow-hidden shadow-md"
         style={{
           inset: outerSpread,
-          background:
-            "linear-gradient(145deg, hsl(183 41% 36% / 0.08) 0%, hsl(43 82% 58% / 0.06) 100%)",
+          boxShadow: "0 4px 16px rgba(42,166,166,0.22)",
         }}
       >
         <img
-          src="/juphd-icon.png"
+          src="/juphd-avatar.png"
           alt="JuPHD Care — IA em Saúde Psicossocial"
-          className="h-full w-full object-contain p-[8%]"
-          style={{ filter: "drop-shadow(0 2px 8px rgba(42,166,166,0.18))" }}
+          className="h-full w-full object-cover object-top"
         />
       </div>
     </div>

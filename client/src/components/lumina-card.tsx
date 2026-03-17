@@ -237,10 +237,9 @@ function LuminaAvatar({ size, showHalo = false }: Readonly<{ size: number; showH
         }}
       >
         <img
-          src="/juphd-icon.png"
+          src="/juphd-avatar.png"
           alt="JuPHD — IA em Saúde Psicossocial"
-          className="h-full w-full object-contain p-[8%]"
-          style={{ filter: "drop-shadow(0 2px 8px rgba(42,166,166,0.18))" }}
+          className="h-full w-full object-cover object-top"
         />
       </div>
     </div>

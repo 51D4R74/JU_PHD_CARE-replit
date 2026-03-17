@@ -259,9 +259,9 @@ export default function ChatPage() {
         </button>
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
           <img
-            src="/juphd-icon.png"
+            src="/juphd-avatar.png"
             alt="JuPHD Care"
-            className="h-8 w-8 rounded-full object-contain"
+            className="h-8 w-8 rounded-full object-cover object-top"
           />
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5">
@@ -364,9 +364,9 @@ export default function ChatPage() {
           {!hasMessages && !loading && (
             <div className="flex flex-col items-center gap-4 pt-16 text-center">
               <img
-                src="/juphd-icon.png"
+                src="/juphd-avatar.png"
                 alt="JuPHD Care"
-                className="h-16 w-16 rounded-full object-contain opacity-60"
+                className="h-16 w-16 rounded-full object-cover object-top opacity-80"
               />
               <div>
                 <p className="text-base font-semibold text-foreground/80">
@@ -387,9 +387,9 @@ export default function ChatPage() {
             >
               {msg.role === "assistant" && (
                 <img
-                  src="/juphd-icon.png"
+                  src="/juphd-avatar.png"
                   alt=""
-                  className="mr-2 mt-1 h-7 w-7 flex-shrink-0 rounded-full object-contain"
+                  className="mr-2 mt-1 h-7 w-7 flex-shrink-0 rounded-full object-cover object-top"
                 />
               )}
               <div

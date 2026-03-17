@@ -2,7 +2,8 @@
  * SkyHero — fullbleed dashboard hero with progressive sky photography.
  *
  * Shows a sky photo (SOL_01–SOL_06) reflecting the user's composite score.
- * Top bar: compact solar badge (left) + Bell/Gear (right).
+ * Top bar: Lumina logo (left) + compact solar badge · Bell/Gear (right).
+ * Bottom third: greeting headline + constancy dots.
  * Bottom bar: domain indicator pills overlapping the lower edge of the photo.
  */
 
@@ -93,7 +94,15 @@ export default function SkyHero({
           transition={{ duration: 0.4 }}
           className="sky-controls-band flex items-center justify-between px-2 py-2"
         >
-          <SolarPointsBadge points={solarPoints} compact />
+          <div className="flex items-center gap-2">
+            <img
+              src="/lumina-logo-circle.png"
+              alt="Lumina"
+              className="h-7 w-7 rounded-full object-cover"
+              style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.18)" }}
+            />
+            <SolarPointsBadge points={solarPoints} compact />
+          </div>
           <div className="flex items-center gap-2">
             <NotificationBadge onClick={onOpenNotifications} />
             <button
@@ -108,16 +117,16 @@ export default function SkyHero({
         </motion.div>
       </div>
 
-      {/* Hero content — headline + constancy dots */}
+      {/* Hero content — headline + constancy dots, anchored to lower third */}
       <div
-        className="relative z-10 flex flex-col items-center px-4 pb-16 pt-6 sm:pb-20"
+        className="relative z-10 flex flex-col items-center justify-end px-4 pb-14 sm:pb-18"
         style={{ minHeight: "calc(40svh - 60px)" }}
       >
         <motion.h1
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, duration: 0.5 }}
-          className="text-sky-readable mt-4 text-center text-3xl font-semibold leading-tight tracking-tight"
+          className="text-sky-readable text-center text-3xl font-semibold leading-tight tracking-tight"
         >
           {headline}
         </motion.h1>
@@ -126,7 +135,7 @@ export default function SkyHero({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.34, duration: 0.45 }}
-          className="mt-5"
+          className="mt-4"
         >
           <ConstancyDots checkedInDates={checkedInDates} days={7} variant="hero" />
         </motion.div>
