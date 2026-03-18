@@ -40,8 +40,11 @@ export default function BottomNav({ variant = "light" }: BottomNavProps) {
   const isDark = variant === "dark";
 
   return (
-    <nav className={isDark ? "fixed bottom-0 inset-x-0 z-20 glass-nav-dark" : "fixed bottom-0 inset-x-0 z-20 glass-card border-t border-border/30"}>
-      <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-around">
+    <nav
+      className={isDark ? "fixed bottom-0 inset-x-0 z-20 glass-nav-dark" : "fixed bottom-0 inset-x-0 z-20 glass-card border-t border-border/30"}
+      style={{ paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}
+    >
+      <div className="max-w-lg mx-auto px-2 pt-3 pb-0 flex items-center justify-around">
         {NAV_ITEMS.map((item) => {
           const active = isActive(item.path);
 
@@ -52,12 +55,12 @@ export default function BottomNav({ variant = "light" }: BottomNavProps) {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`flex flex-col items-center gap-1 -mt-7 ${active ? (isDark ? "text-white" : "text-brand-navy") : (isDark ? "text-white/60 hover:text-white" : "text-muted-foreground hover:text-foreground")} transition-colors`}
+                className={`flex flex-col items-center gap-1.5 -mt-8 ${active ? (isDark ? "text-white" : "text-brand-navy") : (isDark ? "text-white/60 hover:text-white" : "text-muted-foreground hover:text-foreground")} transition-colors`}
               >
-                <span className={`flex items-center justify-center w-12 h-12 rounded-full bg-brand-navy shadow-lg border-4 ${burstBorder}`}>
+                <span className={`flex items-center justify-center w-14 h-14 rounded-full bg-brand-navy shadow-lg border-4 ${burstBorder}`}>
                   <Icon className="w-7 h-7 text-white" weight="bold" />
                 </span>
-                <span className={`text-[10px] leading-tight ${active ? "font-medium" : ""}`}>{item.label}</span>
+                <span className={`text-[10px] leading-tight ${active ? "font-semibold" : ""}`}>{item.label}</span>
               </button>
             );
           }
@@ -73,7 +76,7 @@ export default function BottomNav({ variant = "light" }: BottomNavProps) {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`flex flex-col items-center gap-1 transition-colors ${
+                className={`flex min-w-[56px] flex-col items-center gap-1.5 px-2 py-1 transition-colors ${
                   active
                     ? isDark ? "text-white" : "text-foreground"
                     : isDark ? "text-white/60 hover:text-white" : "text-muted-foreground hover:text-foreground"
@@ -82,10 +85,10 @@ export default function BottomNav({ variant = "light" }: BottomNavProps) {
                 <img
                   src={item.imageSrc}
                   alt={item.label}
-                  className="w-5 h-5 object-contain"
+                  className="w-6 h-6 object-contain"
                   style={{ filter: imgFilter }}
                 />
-                <span className={`text-xs ${active ? "font-medium" : ""}`}>{item.label}</span>
+                <span className={`text-[11px] leading-tight ${active ? "font-semibold" : ""}`}>{item.label}</span>
               </button>
             );
           }
@@ -96,10 +99,10 @@ export default function BottomNav({ variant = "light" }: BottomNavProps) {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`flex flex-col items-center gap-1 ${active ? (isDark ? "text-white" : "text-foreground") : (isDark ? "text-white/60 hover:text-white" : "text-muted-foreground hover:text-foreground")} transition-colors`}
+                className={`flex min-w-[56px] flex-col items-center gap-1.5 px-2 py-1 ${active ? (isDark ? "text-white" : "text-foreground") : (isDark ? "text-white/60 hover:text-white" : "text-muted-foreground hover:text-foreground")} transition-colors`}
               >
-                <Icon className="w-5 h-5" weight={active ? "fill" : "regular"} />
-                <span className={`text-xs ${active ? "font-medium" : ""}`}>{item.label}</span>
+                <Icon className="w-6 h-6" weight={active ? "fill" : "regular"} />
+                <span className={`text-[11px] leading-tight ${active ? "font-semibold" : ""}`}>{item.label}</span>
               </button>
             );
           }
