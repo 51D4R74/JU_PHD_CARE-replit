@@ -937,22 +937,6 @@ export default function DashboardPage() {
           transition={{ delay: 0.38 }}
           className={checkedIn ? "mt-5" : "mt-5 rounded-[30px] ring-2 ring-brand-gold/20 ring-offset-4 ring-offset-background"}
         >
-          {checkedIn ? null : (
-            <div className="mb-3 flex items-center gap-3 rounded-2xl border border-brand-gold/20 bg-brand-gold/8 px-4 py-2.5">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand-gold-dark">
-                  Check-in do dia
-                </p>
-                <p className="text-sm text-foreground">
-                  Sono, humor, energia e relações. Seis perguntas que atualizam seu céu.
-                </p>
-              </div>
-              <span className="flex-shrink-0 rounded-full bg-white/70 px-2.5 py-1 text-[11px] font-semibold text-brand-navy">
-                Menos de 1 min
-              </span>
-            </div>
-          )}
-
           {checkedIn ? (
             <CheckedInCard justCompleted={justCompleted} statusCopy={checkInStatusCopy} />
           ) : (
