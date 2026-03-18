@@ -48,7 +48,7 @@ export default function AnimatedBrandLogo({
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="w-28 h-28 object-contain"
+        className="w-20 h-20 object-contain"
         style={{ filter: "drop-shadow(0 6px 24px rgba(10,18,40,0.18))" }}
       />
       {showWordmark && (
@@ -64,12 +64,6 @@ export default function AnimatedBrandLogo({
           >
             Lumina
           </span>
-          <p
-            className="text-[11px] font-semibold tracking-[0.12em] uppercase"
-            style={{ color: "hsl(var(--brand-navy))", opacity: 0.72 }}
-          >
-            protegendo o que importa.
-          </p>
         </motion.div>
       )}
     </div>

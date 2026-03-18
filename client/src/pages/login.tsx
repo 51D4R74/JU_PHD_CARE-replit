@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeSlash, Envelope, Lock, ArrowRight, Check, X, Sparkle, User, Buildings } from "@phosphor-icons/react";
+import { Eye, EyeSlash, Envelope, Lock, ArrowRight, ArrowLeft, Check, X, Sparkle, User, Buildings, ShieldCheck } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +25,18 @@ function PasswordCriteria({ label, met }: Readonly<{ label: string; met: boolean
 
 type ViewMode = "login" | "register" | "forgot";
 
+const SKY_PHOTOS = [
+  "/sky/sol-01.webp",
+  "/sky/sol-02.webp",
+  "/sky/sol-03.webp",
+  "/sky/sol-04.webp",
+  "/sky/sol-05.webp",
+  "/sky/sol-06.webp",
+];
+
+const ctaHover = { scale: 1.02, boxShadow: "0 8px 24px rgba(30,58,95,0.25)" };
+const ctaTap = { scale: 0.98 };
+
 const resetCodeSlots = [
   { key: "slot-0", index: 0 },
   { key: "slot-1", index: 1 },
@@ -46,6 +58,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [resetCode, setResetCode] = useState(["", "", "", "", "", ""]);
+  const [forgotStep, setForgotStep] = useState<"email" | "code">("email");
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [registerStep, setRegisterStep] = useState<1 | 2>(1);
+
+  const skyPhoto = useMemo(() => SKY_PHOTOS[Math.floor(Math.random() * SKY_PHOTOS.length)], []);
 
   const criteria = {
     length: password.length >= 8,
@@ -121,6 +138,13 @@ export default function LoginPage() {
     }
   }
 
+  function handleForgotSendCode(e: React.FormEvent) {
+    e.preventDefault();
+    if (!forgotEmail) return;
+    toast({ title: "Código enviado!", description: "Verifique sua caixa de entrada." });
+    setForgotStep("code");
+  }
+
   function switchView(newView: ViewMode) {
     setView(newView);
     setEmail("");
@@ -128,13 +152,25 @@ export default function LoginPage() {
     setName("");
     setDepartment("");
     setShowPassword(false);
+    setRegisterStep(1);
+    setForgotStep("email");
+    setForgotEmail("");
+    setResetCode(["", "", "", "", "", ""]);
   }
 
+  const inputFocusClass = "pl-10 bg-background/50 border-border/50 focus:border-brand-navy/50 focus:ring-2 focus:ring-brand-navy/15 h-11 transition-shadow";
+
   return (
-    <div className="min-h-screen gradient-sunrise flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* P3: sky photo background */}
+      <div className="absolute inset-0">
+        <img src={skyPhoto} alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/72 via-white/52 to-surface-warm/82 backdrop-blur-[2px]" />
+      </div>
+
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-brand-gold/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[300px] bg-brand-teal/8 rounded-full blur-[100px]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-brand-gold/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[300px] bg-brand-teal/15 rounded-full blur-[100px]" />
       </div>
 
       <motion.div
@@ -143,7 +179,7 @@ export default function LoginPage() {
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-md relative z-10"
       >
-        <div className="text-center mb-10">
+        <div className="text-center mb-6">
           <AnimatedBrandLogo className="mx-auto" />
         </div>
 
@@ -158,14 +194,15 @@ export default function LoginPage() {
               className="glass-card rounded-2xl p-8"
             >
               <div className="mb-6">
-                <h2 className="text-xl font-semibold text-foreground">Como você está hoje?</h2>
+                <h2 className="text-xl font-semibold text-foreground">Acessar sua conta</h2>
+                <p className="text-sm text-muted-foreground mt-1">Que bom ter você de volta.</p>
               </div>
 
               <form onSubmit={handleLogin} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm text-muted-foreground">E-mail</Label>
                   <div className="relative">
-                    <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
                     <Input
                       id="email"
                       type="email"
@@ -173,7 +210,7 @@ export default function LoginPage() {
                       placeholder="seu@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 bg-background/50 border-border/50 focus:border-brand-navy/50 h-11"
+                      className={inputFocusClass}
                       data-testid="input-email"
                     />
                   </div>
@@ -182,7 +219,7 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-sm text-muted-foreground">Senha</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
@@ -190,43 +227,47 @@ export default function LoginPage() {
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 pr-10 bg-background/50 border-border/50 focus:border-brand-navy/50 h-11"
+                      className={inputFocusClass + " pr-10"}
                       data-testid="input-password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       data-testid="button-toggle-password"
                     >
-                      {showPassword ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? <EyeSlash className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
                     </button>
                   </div>
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={isLoading || !email || !password}
-                  className="w-full h-11 bg-brand-navy hover:bg-brand-navy-hover text-white font-medium rounded-xl border-0"
-                  data-testid="button-login"
-                >
-                  {isLoading ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                    />
-                  ) : (
-                    <>
-                      Entrar
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </>
-                  )}
-                </Button>
+                <motion.div whileHover={ctaHover} whileTap={ctaTap} className="rounded-xl">
+                  <Button
+                    type="submit"
+                    disabled={isLoading || !email || !password}
+                    className="w-full h-11 bg-brand-navy hover:bg-brand-navy-hover text-white font-medium rounded-xl border-0"
+                    data-testid="button-login"
+                  >
+                    {isLoading ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                      />
+                    ) : (
+                      <>
+                        Entrar
+                        <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
+                      </>
+                    )}
+                  </Button>
+                </motion.div>
               </form>
 
               <div className="flex items-center justify-between mt-4">
                 <button
+                  type="button"
                   onClick={() => switchView("forgot")}
                   className="text-sm text-muted-foreground hover:text-brand-navy transition-colors"
                   data-testid="link-forgot-password"
@@ -250,8 +291,14 @@ export default function LoginPage() {
               </div>
 
               <div className="privacy-note mt-5">
-                <Lock className="w-3 h-3 inline mr-1 opacity-60" />
+                <Lock className="w-3 h-3 inline mr-1 opacity-60" aria-hidden="true" />
                 Seus dados são protegidos e nunca compartilhados com sua empresa. Conforme NR-1 e LGPD.
+              </div>
+
+              {/* P3: Social proof */}
+              <div className="flex items-center justify-center gap-2 mt-4 text-xs text-muted-foreground/70">
+                <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Cuidando da saúde mental de quem faz sua empresa acontecer</span>
               </div>
             </motion.div>
           )}
@@ -265,123 +312,180 @@ export default function LoginPage() {
               transition={{ duration: 0.3 }}
               className="glass-card rounded-2xl p-8"
             >
-              <div className="flex items-center gap-2 mb-6">
-                <Sparkle className="w-4 h-4 text-brand-gold" weight="fill" />
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkle className="w-4 h-4 text-brand-gold" weight="fill" aria-hidden="true" />
                 <h2 className="text-lg font-semibold text-foreground">Criar sua conta</h2>
               </div>
 
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="reg-name" className="text-sm text-muted-foreground">Nome completo</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="reg-name"
-                      type="text"
-                      autoComplete="name"
-                      placeholder="Maria Silva"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="pl-10 bg-background/50 border-border/50 focus:border-brand-navy/50 h-11"
-                      data-testid="input-reg-name"
-                    />
-                  </div>
-                </div>
+              {/* P2: step indicator */}
+              <div className="flex items-center gap-2 mb-6">
+                <div className={`h-1 flex-1 rounded-full transition-colors ${registerStep >= 1 ? "bg-brand-navy" : "bg-border/50"}`} />
+                <div className={`h-1 flex-1 rounded-full transition-colors ${registerStep >= 2 ? "bg-brand-navy" : "bg-border/50"}`} />
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="reg-email" className="text-sm text-muted-foreground">E-mail</Label>
-                  <div className="relative">
-                    <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="reg-email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="seu@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 bg-background/50 border-border/50 focus:border-brand-navy/50 h-11"
-                      data-testid="input-reg-email"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="reg-department" className="text-sm text-muted-foreground">Departamento (opcional)</Label>
-                  <div className="relative">
-                    <Buildings className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="reg-department"
-                      type="text"
-                      placeholder="Ex: Marketing, TI, Vendas..."
-                      value={department}
-                      onChange={(e) => setDepartment(e.target.value)}
-                      className="pl-10 bg-background/50 border-border/50 focus:border-brand-navy/50 h-11"
-                      data-testid="input-reg-department"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="reg-password" className="text-sm text-muted-foreground">Senha</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="reg-password"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="new-password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 pr-10 bg-background/50 border-border/50 focus:border-brand-navy/50 h-11"
-                      data-testid="input-reg-password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showPassword ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                {password.length > 0 && (
+              <AnimatePresence mode="wait">
+                {registerStep === 1 && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    className="grid grid-cols-2 gap-1.5 p-3 rounded-lg bg-background/30"
+                    key="reg-step-1"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-4"
                   >
-                    <PasswordCriteria label="8+ caracteres" met={criteria.length} />
-                    <PasswordCriteria label="Maiúscula" met={criteria.upper} />
-                    <PasswordCriteria label="Minúscula" met={criteria.lower} />
-                    <PasswordCriteria label="Número" met={criteria.number} />
-                    <PasswordCriteria label="Especial (!@#)" met={criteria.special} />
+                    <p className="text-sm text-muted-foreground">Primeiro, nos conte sobre você.</p>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="reg-name" className="text-sm text-muted-foreground">Nome completo</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                        <Input
+                          id="reg-name"
+                          type="text"
+                          autoComplete="name"
+                          placeholder="Maria Silva"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className={inputFocusClass}
+                          data-testid="input-reg-name"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="reg-email" className="text-sm text-muted-foreground">E-mail</Label>
+                      <div className="relative">
+                        <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                        <Input
+                          id="reg-email"
+                          type="email"
+                          autoComplete="email"
+                          placeholder="seu@email.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className={inputFocusClass}
+                          data-testid="input-reg-email"
+                        />
+                      </div>
+                    </div>
+
+                    <motion.div whileHover={ctaHover} whileTap={ctaTap} className="rounded-xl">
+                      <Button
+                        type="button"
+                        disabled={!name || !email}
+                        onClick={() => setRegisterStep(2)}
+                        className="w-full h-11 bg-brand-navy hover:bg-brand-navy-hover text-white font-medium rounded-xl border-0"
+                        data-testid="button-reg-next"
+                      >
+                        Continuar
+                        <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
+                      </Button>
+                    </motion.div>
                   </motion.div>
                 )}
 
-                <Button
-                  type="submit"
-                  disabled={isLoading || !email || !password || !name || !allCriteriaMet}
-                  className="w-full h-11 bg-brand-navy hover:bg-brand-navy-hover text-white font-medium rounded-xl border-0"
-                  data-testid="button-register"
-                >
-                  {isLoading ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                    />
-                  ) : (
-                    <>
-                      Criar conta
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </>
-                  )}
-                </Button>
-              </form>
+                {registerStep === 2 && (
+                  <motion.div
+                    key="reg-step-2"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setRegisterStep(1)}
+                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-brand-navy transition-colors mb-4"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
+                      Voltar
+                    </button>
+
+                    <form onSubmit={handleRegister} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="reg-department" className="text-sm text-muted-foreground">Departamento (opcional)</Label>
+                        <div className="relative">
+                          <Buildings className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                          <Input
+                            id="reg-department"
+                            type="text"
+                            placeholder="Ex: Marketing, TI, Vendas..."
+                            value={department}
+                            onChange={(e) => setDepartment(e.target.value)}
+                            className={inputFocusClass}
+                            data-testid="input-reg-department"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="reg-password" className="text-sm text-muted-foreground">Senha</Label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                          <Input
+                            id="reg-password"
+                            type={showPassword ? "text" : "password"}
+                            autoComplete="new-password"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className={inputFocusClass + " pr-10"}
+                            data-testid="input-reg-password"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {showPassword ? <EyeSlash className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {password.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          className="grid grid-cols-2 gap-1.5 p-3 rounded-lg bg-background/30"
+                        >
+                          <PasswordCriteria label="8+ caracteres" met={criteria.length} />
+                          <PasswordCriteria label="Maiúscula" met={criteria.upper} />
+                          <PasswordCriteria label="Minúscula" met={criteria.lower} />
+                          <PasswordCriteria label="Número" met={criteria.number} />
+                          <PasswordCriteria label="Especial (!@#)" met={criteria.special} />
+                        </motion.div>
+                      )}
+
+                      <motion.div whileHover={ctaHover} whileTap={ctaTap} className="rounded-xl">
+                        <Button
+                          type="submit"
+                          disabled={isLoading || !email || !password || !name || !allCriteriaMet}
+                          className="w-full h-11 bg-brand-navy hover:bg-brand-navy-hover text-white font-medium rounded-xl border-0"
+                          data-testid="button-register"
+                        >
+                          {isLoading ? (
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                              className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                            />
+                          ) : (
+                            <>
+                              Criar conta
+                              <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
+                            </>
+                          )}
+                        </Button>
+                      </motion.div>
+                    </form>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <div className="mt-5 pt-4 border-t border-border/30 text-center">
                 <button
+                  type="button"
                   onClick={() => switchView("login")}
                   className="text-sm text-muted-foreground hover:text-brand-navy transition-colors"
                   data-testid="link-back-to-login"
@@ -402,39 +506,108 @@ export default function LoginPage() {
               className="glass-card rounded-2xl p-8"
             >
               <h2 className="text-lg font-semibold mb-2">Recuperar senha</h2>
-              <p className="text-sm text-muted-foreground mb-6">
-                Digite o código de 6 dígitos enviado para o seu e-mail.
-              </p>
 
-              <div className="flex gap-2 justify-center mb-6">
-                {resetCodeSlots.map((slot) => (
-                  <Input
-                    key={slot.key}
-                    id={`code-${slot.index}`}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={resetCode[slot.index]}
-                    onChange={(e) => handleCodeInput(slot.index, e.target.value)}
-                    className="w-12 h-14 text-center text-xl font-bold bg-background/50 border-border/50 focus:border-brand-navy/50"
-                    data-testid={`input-code-${slot.index}`}
-                  />
-                ))}
-              </div>
+              <AnimatePresence mode="wait">
+                {/* P0: step 1 — collect email first */}
+                {forgotStep === "email" && (
+                  <motion.div
+                    key="forgot-email"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <p className="text-sm text-muted-foreground mb-6">
+                      Informe seu e-mail para receber o código de recuperação.
+                    </p>
+                    <form onSubmit={handleForgotSendCode} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="forgot-email" className="text-sm text-muted-foreground">E-mail</Label>
+                        <div className="relative">
+                          <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                          <Input
+                            id="forgot-email"
+                            type="email"
+                            autoComplete="email"
+                            placeholder="seu@email.com"
+                            value={forgotEmail}
+                            onChange={(e) => setForgotEmail(e.target.value)}
+                            className={inputFocusClass}
+                            data-testid="input-forgot-email"
+                          />
+                        </div>
+                      </div>
+                      <motion.div whileHover={ctaHover} whileTap={ctaTap} className="rounded-xl">
+                        <Button
+                          type="submit"
+                          disabled={!forgotEmail}
+                          className="w-full h-11 bg-brand-navy hover:bg-brand-navy-hover text-white font-medium rounded-xl border-0"
+                          data-testid="button-send-code"
+                        >
+                          Enviar código
+                          <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
+                        </Button>
+                      </motion.div>
+                    </form>
+                  </motion.div>
+                )}
 
-              <Button
-                onClick={() => {
-                  toast({ title: "Código verificado!", description: "Sua senha foi redefinida (simulação)." });
-                  switchView("login");
-                  setResetCode(["", "", "", "", "", ""]);
-                }}
-                className="w-full h-11 bg-brand-navy hover:bg-brand-navy-hover text-white font-medium rounded-xl border-0"
-                data-testid="button-verify-code"
-              >
-                Verificar código
-              </Button>
+                {/* P0: step 2 — enter code */}
+                {forgotStep === "code" && (
+                  <motion.div
+                    key="forgot-code"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <p className="text-sm text-muted-foreground mb-6">
+                      Digite o código de 6 dígitos enviado para{" "}
+                      <span className="font-medium text-foreground">{forgotEmail}</span>.
+                    </p>
+                    <div className="flex gap-2 justify-center mb-6">
+                      {resetCodeSlots.map((slot) => (
+                        <Input
+                          key={slot.key}
+                          id={`code-${slot.index}`}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={1}
+                          aria-label={`Dígito ${slot.index + 1}`}
+                          value={resetCode[slot.index]}
+                          onChange={(e) => handleCodeInput(slot.index, e.target.value)}
+                          className="w-12 h-14 text-center text-xl font-bold bg-background/50 border-border/50 focus:border-brand-navy/50 focus:ring-2 focus:ring-brand-navy/15 transition-shadow"
+                          data-testid={`input-code-${slot.index}`}
+                        />
+                      ))}
+                    </div>
+                    <motion.div whileHover={ctaHover} whileTap={ctaTap} className="rounded-xl">
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          toast({ title: "Código verificado!", description: "Sua senha foi redefinida (simulação)." });
+                          switchView("login");
+                        }}
+                        className="w-full h-11 bg-brand-navy hover:bg-brand-navy-hover text-white font-medium rounded-xl border-0"
+                        data-testid="button-verify-code"
+                      >
+                        Verificar código
+                      </Button>
+                    </motion.div>
+                    <button
+                      type="button"
+                      onClick={() => setForgotStep("email")}
+                      className="flex items-center justify-center gap-1 w-full mt-3 text-sm text-muted-foreground hover:text-brand-navy transition-colors"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
+                      Alterar e-mail
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <button
+                type="button"
                 onClick={() => switchView("login")}
                 className="w-full text-center mt-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 data-testid="link-back-from-forgot"
