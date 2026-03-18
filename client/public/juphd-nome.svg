@@ -1,0 +1,10 @@
+<svg width="900" height="180" viewBox="0 0 900 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="180" rx="32" fill="transparent"/>
+  <g transform="translate(24 20)">
+    <rect x="0" y="0" width="56" height="56" rx="10" fill="#FF7A00"/>
+    <rect x="56" y="38" width="56" height="56" rx="10" fill="#FF7A00"/>
+    <rect x="0" y="76" width="56" height="56" rx="10" fill="#FF7A00"/>
+  </g>
+  <text x="172" y="84" fill="#17324D" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="56" font-weight="800" letter-spacing="0.02em">JuPhD Care</text>
+  <text x="172" y="126" fill="#4D6A79" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="24" font-weight="600" letter-spacing="0.18em">SAUDE PSICOSSOCIAL</text>
+</svg>

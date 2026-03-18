@@ -4,6 +4,8 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+.env
+.env.local
 
 # Playwright MCP browser automation artifacts
 .playwright-mcp/

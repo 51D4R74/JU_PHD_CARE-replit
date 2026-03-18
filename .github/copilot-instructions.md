@@ -3,7 +3,7 @@
 ## Scope
 
 - Stack: Vite + React 18 + Express 5 + Drizzle ORM + PostgreSQL.
-- Runtime: Node 22, NPM, dev server port 8000.
+- Runtime: Node 22, NPM, dev server port 5000.
 - Structure: `client/` (React SPA), `server/` (Express API), `shared/` (schema + types).
 - Phase: Early development — build features on solid foundation, don't over-engineer.
 

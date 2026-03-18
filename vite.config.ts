@@ -1,13 +1,18 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { VitePWA } from "vite-plugin-pwa";
+
+const isReplit = process.env.REPL_ID !== undefined;
 
 export default defineConfig({
   plugins: [
     react(),
-    runtimeErrorOverlay(),
+    ...(isReplit
+      ? [
+          (await import("@replit/vite-plugin-runtime-error-modal")).default(),
+        ]
+      : []),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.png", "logoCARE.png"],
@@ -68,8 +73,7 @@ export default defineConfig({
         type: "module",
       },
     }),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
+    ...(process.env.NODE_ENV !== "production" && isReplit
       ? [
           await import("@replit/vite-plugin-cartographer").then((m) =>
             m.cartographer(),

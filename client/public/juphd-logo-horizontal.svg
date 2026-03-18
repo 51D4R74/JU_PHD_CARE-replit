@@ -1,0 +1,13 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#F7F8FA"/>
+  <circle cx="1020" cy="118" r="150" fill="#2BA4B5" fill-opacity="0.08"/>
+  <circle cx="148" cy="520" r="180" fill="#F5C542" fill-opacity="0.10"/>
+  <g transform="translate(112 174)">
+    <rect x="0" y="0" width="124" height="124" rx="22" fill="#FF7A00"/>
+    <rect x="124" y="84" width="124" height="124" rx="22" fill="#FF7A00"/>
+    <rect x="0" y="168" width="124" height="124" rx="22" fill="#FF7A00"/>
+  </g>
+  <text x="416" y="290" fill="#17324D" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="106" font-weight="800" letter-spacing="0.01em">JuPhD Care</text>
+  <text x="418" y="368" fill="#2BA4B5" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="0.18em">INTELIGENCIA EM SAUDE PSICOSSOCIAL</text>
+  <text x="418" y="438" fill="#4D6A79" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="30" font-weight="500">Plataforma de cuidado continuo e apoio a decisao para empresas.</text>
+</svg>
