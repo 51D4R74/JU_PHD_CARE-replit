@@ -80,10 +80,11 @@ function HeroConstancyClouds({
                 {day.weekdayInitial}
               </span>
               <div className="relative flex h-5 w-5 items-center justify-center">
-                <Cloud className={`h-4 w-4 fill-current ${itemClass}`} />
                 {day.active ? (
-                  <span className="absolute bottom-[3px] h-1.5 w-1.5 rounded-full bg-brand-gold" />
-                ) : null}
+                  <Sun className="h-4 w-4 text-brand-gold" weight="fill" />
+                ) : (
+                  <Cloud className="h-4 w-4 fill-current text-muted-foreground/40" />
+                )}
               </div>
             </motion.div>
           );
