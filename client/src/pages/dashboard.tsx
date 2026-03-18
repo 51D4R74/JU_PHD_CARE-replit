@@ -935,8 +935,13 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.38 }}
-          className={checkedIn ? "mt-5" : "mt-5 rounded-[30px] ring-2 ring-brand-gold/20 ring-offset-4 ring-offset-background"}
+          className="mt-5"
         >
+          {!checkedIn && (
+            <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-widest text-brand-gold">
+              Check-in do dia
+            </p>
+          )}
           {checkedIn ? (
             <CheckedInCard justCompleted={justCompleted} statusCopy={checkInStatusCopy} />
           ) : (
