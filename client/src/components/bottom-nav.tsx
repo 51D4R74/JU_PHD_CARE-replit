@@ -15,7 +15,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { path: "/missions",    label: "Pra Você",     icon: Sparkle },
   { path: "/denuncia",    label: "Riscos",        icon: ShieldWarning, burst: true },
   { path: "/support",     label: "Apoio",         icon: Heart },
-  { path: "/meu-cuidado", label: "Sua Jornada",  imageSrc: "/icon-jornada.png" },
+  { path: "/meu-cuidado", label: "Sua Jornada",  imageSrc: "/icon-jornada-transparent.png" },
 ];
 
 interface BottomNavProps {
@@ -69,8 +69,8 @@ export default function BottomNav({ variant = "light" }: BottomNavProps) {
             const imgFilter = isDark
               ? "brightness(0) invert(1)"
               : active
-                ? "brightness(0)"
-                : "brightness(0) opacity(0.35)";
+                ? undefined
+                : "opacity(0.35)";
 
             return (
               <button
@@ -85,8 +85,8 @@ export default function BottomNav({ variant = "light" }: BottomNavProps) {
                 <img
                   src={item.imageSrc}
                   alt={item.label}
-                  className="w-6 h-6 object-contain"
-                  style={{ filter: imgFilter }}
+                  className="w-7 h-7 object-contain"
+                  style={imgFilter ? { filter: imgFilter } : undefined}
                 />
                 <span className={`text-[11px] leading-tight ${active ? "font-semibold" : ""}`}>{item.label}</span>
               </button>
