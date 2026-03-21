@@ -68,8 +68,12 @@ export const RESPIRO_AUTO_EXIT_DAYS = 2;
 
 // ── Pulse Survey ──────────────────────────────────
 
-/** Days between pulse surveys. */
-export const PULSE_SURVEY_INTERVAL_DAYS = 30;
+/**
+ * Days between pulse surveys.
+ * PRD SoT são 45 dias — Goldilocks balance: 30d gera fadiga, 60d perde sinal.
+ * Ref: PRD v2.0 §4.5.
+ */
+export const PULSE_SURVEY_INTERVAL_DAYS = 45;
 
 /** Days a pulse response window stays open once available. */
 export const PULSE_RESPONSE_WINDOW_DAYS = 7;

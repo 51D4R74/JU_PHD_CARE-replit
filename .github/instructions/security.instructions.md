@@ -8,12 +8,15 @@ applyTo: "server/**,client/src/lib/auth.ts,shared/schema.ts"
 ## Current auth model
 
 - Login: `POST /api/auth/login` compares with `bcrypt.compare`. Passwords hashed on registration.
-- Session: `express-session` with httpOnly, sameSite=lax cookies. `SESSION_SECRET` env var in production.
-- Session validation: `GET /api/auth/me` — client validates on mount via `validateSession()`.
-- Logout: `POST /api/auth/logout` destroys server session + clears client localStorage.
+- Token: HS256 JWT signed with `JWT_SECRET`, stored in httpOnly + sameSite=lax cookie `lumina.token`. **Stateless — no server store.**
+- Token expiry: 7 days; issued by `issueToken(res, userId, role)` in `server/middleware.ts`.
+- Token validation: `requireAuth` middleware reads cookie via `cookie-parser`, verifies JWT, attaches `req.userId` + `req.userRole`.
+- Session validation: `GET /api/auth/me` — client validates on mount via `validateSession()`. Returns 401 if token is absent/expired.
+- Logout: `POST /api/auth/logout` clears the JWT cookie via `clearToken(res)` + clears client localStorage.
 - Roles: `collaborator`, `rh`. Enforced server-side via `requireRole()` middleware.
 - All user-specific routes protected by `requireAuth` + `requireOwner` (or `requireRole("rh")` for admin routes).
-- Rate limiting: `express-rate-limit` on auth endpoints (20 attempts / 15 min window).
+- Rate limiting: `express-rate-limit` on auth endpoints (20 attempts / 15 min window); chat limited to 10 req/min per user.
+- Product decision: remain on first-party JWT auth for the current roadmap. Cognito is intentionally out of scope unless a future delivery adds a hard external IAM requirement.
 
 ## Known vulnerabilities (tracked debt)
 

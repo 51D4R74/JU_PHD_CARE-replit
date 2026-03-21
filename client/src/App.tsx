@@ -21,6 +21,7 @@ const MeuCuidadoPage = lazy(() => import("@/pages/meu-cuidado"));
 const ReportPage = lazy(() => import("@/pages/report"));
 const TeamChallengePage = lazy(() => import("@/pages/team-challenge"));
 const RHDashboardPage = lazy(() => import("@/pages/rh-dashboard"));
+const AdminPage = lazy(() => import("@/pages/admin"));
 const OnboardingPage = lazy(() => import("@/components/onboarding"));
 const SettingsPage = lazy(() => import("@/pages/settings"));
 const ChatPage = lazy(() => import("@/pages/chat-page"));
@@ -35,10 +36,28 @@ function PageSkeleton() {
   );
 }
 
-function ProtectedRoute({ component: Component, requireRole }: Readonly<{ component: React.LazyExoticComponent<() => JSX.Element>; requireRole?: string }>) {
+function canAccessCapability(user: { role: string; capabilities: string[] } | null, capability: string | undefined): boolean {
+  if (!capability) {
+    return true;
+  }
+  return user?.role === "rh" || user?.capabilities.includes(capability) === true;
+}
+
+function defaultAuthenticatedPath(user: { role: string; capabilities: string[] } | null): string {
+  if (user?.role === "rh") {
+    return "/rh";
+  }
+  if (canAccessCapability(user, "control_plane:read")) {
+    return "/admin";
+  }
+  return "/dashboard";
+}
+
+function ProtectedRoute({ component: Component, requireRole, requireCapability }: Readonly<{ component: React.LazyExoticComponent<() => JSX.Element>; requireRole?: string; requireCapability?: string }>) {
   const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated) return <Redirect to="/" />;
   if (requireRole && user?.role !== requireRole) return <Redirect to="/dashboard" />;
+  if (!canAccessCapability(user ?? null, requireCapability)) return <Redirect to="/dashboard" />;
   return (
     <Suspense fallback={<PageSkeleton />}>
       <Component />
@@ -54,7 +73,7 @@ function AuthRoute({ component: Component }: Readonly<{ component: React.LazyExo
     if (!hasCompletedOnboarding() && user?.role !== "rh") {
       return <Redirect to="/onboarding" />;
     }
-    return <Redirect to={user?.role === "rh" ? "/rh" : "/dashboard"} />;
+    return <Redirect to={defaultAuthenticatedPath(user ?? null)} />;
   }
   return (
     <Suspense fallback={<PageSkeleton />}>
@@ -102,6 +121,9 @@ function Router() {
       </Route>
       <Route path="/rh">
         {() => <ProtectedRoute component={RHDashboardPage} requireRole="rh" />}
+      </Route>
+      <Route path="/admin">
+        {() => <ProtectedRoute component={AdminPage} requireCapability="control_plane:read" />}
       </Route>
       <Route>
         <Redirect to="/" />

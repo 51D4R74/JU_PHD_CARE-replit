@@ -11,12 +11,14 @@ import { motion } from "framer-motion";
 import {
   GearSix, Bell, Moon, CaretLeft,
   Drop, Sparkle, ChatCircleDots, SunHorizon, Handshake,
+  Lock, Eye, EyeSlash,
   type Icon as PhosphorIcon,
 } from "@phosphor-icons/react";
 import BottomNav from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -154,6 +156,44 @@ export default function SettingsPage() {
       },
     }));
   };
+
+  // ── Change-password form state ──────────────────
+  const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "", showCurrent: false, showNext: false, showConfirm: false });
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwSuccess, setPwSuccess] = useState(false);
+
+  const { mutate: changePassword, isPending: changingPw } = useMutation({
+    mutationFn: (body: { currentPassword: string; newPassword: string }) =>
+      apiRequest("POST", "/api/auth/change-password", body),
+    onSuccess: () => {
+      setPwSuccess(true);
+      setPwError(null);
+      setPwForm({ current: "", next: "", confirm: "", showCurrent: false, showNext: false, showConfirm: false });
+    },
+    onError: async (err: unknown) => {
+      const msg = err instanceof Error ? err.message : "Erro ao alterar senha";
+      setPwError(msg);
+      setPwSuccess(false);
+    },
+  });
+
+  function handleChangePassword() {
+    setPwError(null);
+    setPwSuccess(false);
+    if (pwForm.next.length < 8 || pwForm.next.length > 128) {
+      setPwError("A nova senha deve ter entre 8 e 128 caracteres");
+      return;
+    }
+    if (pwForm.next === pwForm.current) {
+      setPwError("A nova senha deve ser diferente da atual");
+      return;
+    }
+    if (pwForm.next !== pwForm.confirm) {
+      setPwError("As senhas não coincidem");
+      return;
+    }
+    changePassword({ currentPassword: pwForm.current, newPassword: pwForm.next });
+  }
 
   const firstName = user?.name?.split(" ")[0] || "Colaborador";
 
@@ -295,6 +335,113 @@ export default function SettingsPage() {
             )}
           </motion.section>
         )}
+
+        {/* Security — change password */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="glass-card rounded-2xl p-4"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Lock className="w-4 h-4 text-muted-foreground" />
+            <h2 className="text-xs font-semibold text-muted-foreground">Segurança</h2>
+          </div>
+
+          <div className="space-y-3">
+            {/* Current password */}
+            <div>
+              <Label htmlFor="pw-current" className="text-[10px] text-muted-foreground">
+                Senha atual
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  id="pw-current"
+                  type={pwForm.showCurrent ? "text" : "password"}
+                  value={pwForm.current}
+                  autoComplete="current-password"
+                  onChange={(e) => setPwForm((p) => ({ ...p, current: e.target.value }))}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setPwForm((p) => ({ ...p, showCurrent: !p.showCurrent }))}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={pwForm.showCurrent ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {pwForm.showCurrent ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* New password */}
+            <div>
+              <Label htmlFor="pw-next" className="text-[10px] text-muted-foreground">
+                Nova senha <span className="text-muted-foreground/60">(mín. 8 caracteres)</span>
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  id="pw-next"
+                  type={pwForm.showNext ? "text" : "password"}
+                  value={pwForm.next}
+                  autoComplete="new-password"
+                  onChange={(e) => setPwForm((p) => ({ ...p, next: e.target.value }))}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setPwForm((p) => ({ ...p, showNext: !p.showNext }))}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={pwForm.showNext ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {pwForm.showNext ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm new password */}
+            <div>
+              <Label htmlFor="pw-confirm" className="text-[10px] text-muted-foreground">
+                Confirmar nova senha
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  id="pw-confirm"
+                  type={pwForm.showConfirm ? "text" : "password"}
+                  value={pwForm.confirm}
+                  autoComplete="new-password"
+                  onChange={(e) => setPwForm((p) => ({ ...p, confirm: e.target.value }))}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setPwForm((p) => ({ ...p, showConfirm: !p.showConfirm }))}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={pwForm.showConfirm ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {pwForm.showConfirm ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Feedback */}
+            {pwError && (
+              <p className="text-xs text-score-critical" role="alert">{pwError}</p>
+            )}
+            {pwSuccess && (
+              <p className="text-xs text-score-good" role="status">Senha alterada com sucesso</p>
+            )}
+
+            <Button
+              type="button"
+              onClick={handleChangePassword}
+              disabled={changingPw || !pwForm.current || !pwForm.next || !pwForm.confirm}
+              className="w-full rounded-xl text-sm"
+            >
+              {changingPw ? "Alterando..." : "Alterar senha"}
+            </Button>
+          </div>
+        </motion.section>
 
         {/* Logout */}
         <motion.section

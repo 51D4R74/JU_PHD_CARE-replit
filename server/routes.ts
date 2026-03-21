@@ -1,13 +1,13 @@
-import type { Express, Request } from "express";
+import type { Express, NextFunction, Request, Response } from "express";
 import type { Server } from "node:http";
 import path from "node:path";
 import fs from "node:fs";
 import bcrypt from "bcryptjs";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import multer from "multer";
 import type { IStorage } from "./storage";
-import { requireAuth, requireOwner, requireRole } from "./middleware";
-import { insertCheckInSchema, insertMomentCheckInSchema, insertUserMissionSchema, submitIncidentReportSchema, submitPulseResponseSchema, submitCommunityMessageSchema, type PulseResponse } from "@shared/schema";
+import { requireAuth, requireOwner, requireRole, issueToken, clearToken } from "./middleware";
+import { createTenantPlanSchema, createTenantSchema, createTenantMembershipSchema, createBillingPeriodSchema, updateBillingPeriodUsageSchema, insertCheckInSchema, insertMomentCheckInSchema, insertUserMissionSchema, submitIncidentReportSchema, submitPulseResponseSchema, submitCommunityMessageSchema, type PulseResponse, type TenantCapability, updateTenantMembershipSchema, updateTenantPlanSchema, updateTenantSchema } from "@shared/schema";
 import { getWorkday, getWorkdayDate, POINT_VALUES } from "@shared/constants";
 import { selectMonthlyChallenge, getMonthBounds } from "@shared/challenges";
 import { buildCurrentPulseState, getPulseDefinitionByKey, hasCompletePulseAnswerSet, parsePulseScoreSummary, scorePulseAnswers, toPulseAnswerRecord, type LatestPulseSnapshot } from "@shared/pulse-survey";
@@ -36,6 +36,39 @@ function mapPulseResponse(record: PulseResponse): LatestPulseSnapshot | null {
   };
 }
 
+async function buildSafeAuthUser(storage: IStorage, userId: string) {
+  const user = await storage.getUser(userId);
+  if (!user) {
+    return null;
+  }
+  const capabilities = await storage.getUserCapabilities(user.id);
+  const { password: _, ...safeUser } = user;
+  return {
+    ...safeUser,
+    capabilities,
+  };
+}
+
+function requireCapability(storage: IStorage, capability: TenantCapability) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    if (req.userRole === "rh") {
+      return next();
+    }
+    if (!req.userId) {
+      return res.status(401).json({ message: "Autenticação necessária" });
+    }
+    const capabilities = await storage.getUserCapabilities(req.userId);
+    if (capabilities.includes(capability)) {
+      return next();
+    }
+    return res.status(403).json({ message: "Acesso não autorizado" });
+  };
+}
+
+function isPlanCompatibleWithTenant(plan: { code: string; audience: string; active: boolean }, tenantAudience: string, planCode: string): boolean {
+  return plan.code === planCode && plan.active && plan.audience === tenantAudience;
+}
+
 // ---------------------------------------------------------------------------
 // Rate limiters
 // ---------------------------------------------------------------------------
@@ -46,6 +79,18 @@ const authLimiter = rateLimit({
   standardHeaders: "draft-7",
   legacyHeaders: false,
   message: { message: "Muitas tentativas. Espere alguns minutos e tente de novo." },
+});
+
+const chatLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 min
+  limit: 10, // max 10 messages per minute per IP
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    // req.userId is set by requireAuth middleware, which runs before chatLimiter
+    return req.userId ?? ipKeyGenerator(req.ip ?? "127.0.0.1");
+  },
+  message: { message: "Muitas mensagens. Aguarde um momento antes de continuar." },
 });
 
 // ---------------------------------------------------------------------------
@@ -82,10 +127,8 @@ export async function registerRoutes(
     if (!isValid) {
       return res.status(401).json({ message: "Credenciais inválidas" });
     }
-    // Establish server session
-    req.session.userId = user.id;
-    req.session.userRole = user.role;
-    const { password: _, ...safeUser } = user;
+    issueToken(res, user.id, user.role);
+    const safeUser = await buildSafeAuthUser(storage, user.id);
     return res.json(safeUser);
   });
 
@@ -101,6 +144,17 @@ export async function registerRoutes(
     if (!emailRegex.test(username)) {
       return res.status(400).json({ message: "Email inválido" });
     }
+    // Domain allowlist: ALLOWED_EMAIL_DOMAINS=company.com,empresa.com.br
+    // If the env var is unset the registration is open (dev / demo mode).
+    const allowedDomains = process.env.ALLOWED_EMAIL_DOMAINS;
+    if (allowedDomains) {
+      const domains = allowedDomains.split(",").map((d) => d.trim().toLowerCase());
+      const emailDomain = username.split("@")[1]?.toLowerCase() ?? "";
+      const isDomainAllowed = domains.includes(emailDomain);
+      if (!isDomainAllowed) {
+        return res.status(403).json({ message: "Cadastro disponível apenas para domínios autorizados" });
+      }
+    }
     if (password.length < 8) {
       return res.status(400).json({ message: "A senha precisa ter pelo menos 8 caracteres" });
     }
@@ -115,33 +169,304 @@ export async function registerRoutes(
       role: "collaborator",
       department: department || null,
     });
-    // Establish server session
-    req.session.userId = user.id;
-    req.session.userRole = user.role;
-    const { password: _, ...safeUser } = user;
+    issueToken(res, user.id, user.role);
+    const safeUser = await buildSafeAuthUser(storage, user.id);
     return res.json(safeUser);
   });
 
-  app.post("/api/auth/logout", (req, res) => {
-    req.session.destroy(() => {
-      res.clearCookie("lumina.sid");
-      res.clearCookie("juphd.sid");
-      return res.json({ message: "Sessão encerrada. Até logo!" });
+  app.post("/api/auth/logout", (_req, res) => {
+    clearToken(res);
+    return res.json({ message: "Sessão encerrada. Até logo!" });
+  });
+
+  /**
+   * Change password — requires authentication + current password verification.
+   * Issues a fresh JWT on success so the new credential is immediately reflected.
+   */
+  app.post("/api/auth/change-password", requireAuth, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    if (
+      !currentPassword ||
+      typeof currentPassword !== "string" ||
+      !newPassword ||
+      typeof newPassword !== "string"
+    ) {
+      return res.status(400).json({ message: "Informe a senha atual e a nova senha" });
+    }
+    if (newPassword.length < 8 || newPassword.length > 128) {
+      return res.status(400).json({ message: "A nova senha deve ter entre 8 e 128 caracteres" });
+    }
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ message: "A nova senha deve ser diferente da atual" });
+    }
+    const user = await storage.getUser(req.userId!);
+    if (!user) {
+      clearToken(res);
+      return res.status(401).json({ message: "Sessão inválida" });
+    }
+    const isCurrentValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isCurrentValid) {
+      return res.status(401).json({ message: "Senha atual incorreta" });
+    }
+    await storage.updateUserPassword(user.id, newPassword);
+    // Re-issue token so the client immediately reflects the new credential epoch.
+    issueToken(res, user.id, user.role);
+    return res.json({ message: "Senha alterada com sucesso" });
+  });
+
+  app.get("/api/auth/me", requireAuth, async (req, res) => {
+    const safeUser = await buildSafeAuthUser(storage, req.userId!);
+    if (!safeUser) {
+      clearToken(res);
+      return res.status(401).json({ message: "Usuário não encontrado" });
+    }
+    return res.json(safeUser);
+  });
+
+  // ── Admin control plane (capability-aware foundation) ────────────────
+
+  app.get("/api/admin/overview", requireAuth, requireCapability(storage, "control_plane:read"), async (_req, res) => {
+    const [tenants, plans, users] = await Promise.all([
+      storage.getAllTenants(),
+      storage.getAllTenantPlans(),
+      storage.getAllUsers(),
+    ]);
+
+    return res.json({
+      totalTenants: tenants.length,
+      activeTenants: tenants.filter((tenant) => tenant.status === "active").length,
+      totalPlans: plans.length,
+      totalUsers: users.length,
+      btcTenants: tenants.filter((tenant) => tenant.audience === "btc").length,
+      btbTenants: tenants.filter((tenant) => tenant.audience === "btb").length,
+      btgTenants: tenants.filter((tenant) => tenant.audience === "btg").length,
     });
   });
 
-  app.get("/api/auth/me", async (req, res) => {
-    if (!req.session?.userId) {
-      return res.status(401).json({ message: "Você precisa estar logado" });
+  app.get("/api/admin/tenant-plans", requireAuth, requireCapability(storage, "control_plane:read"), async (_req, res) => {
+    const plans = await storage.getAllTenantPlans();
+    return res.json(plans);
+  });
+
+  app.post("/api/admin/tenant-plans", requireAuth, requireCapability(storage, "control_plane:write"), async (req, res) => {
+    try {
+      const data = createTenantPlanSchema.parse(req.body);
+      const plans = await storage.getAllTenantPlans();
+      const codeTaken = plans.some((plan) => plan.code === data.code);
+      if (codeTaken) {
+        return res.status(409).json({ message: "Esse código de plano já está em uso" });
+      }
+      const plan = await storage.createTenantPlan({
+        code: data.code,
+        name: data.name,
+        audience: data.audience,
+        description: data.description,
+        isolationProfile: data.isolationProfile,
+        monthlyActiveUserLimit: data.monthlyActiveUserLimit ?? null,
+        active: data.active,
+      });
+      return res.status(201).json(plan);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Dados inválidos";
+      return res.status(400).json({ message });
     }
-    const user = await storage.getUser(req.session.userId);
-    if (!user) {
-      req.session.destroy(() => {});
-      res.clearCookie("lumina.sid");
-      return res.status(401).json({ message: "Usuário não encontrado" });
+  });
+
+  app.get("/api/admin/tenants", requireAuth, requireCapability(storage, "control_plane:read"), async (_req, res) => {
+    const tenants = await storage.getAllTenants();
+    return res.json(tenants);
+  });
+
+  app.get("/api/admin/users", requireAuth, requireCapability(storage, "control_plane:read"), async (_req, res) => {
+    const users = await storage.getAllUsers();
+    return res.json(users.map(({ password: _, ...safeUser }) => safeUser));
+  });
+
+  app.get("/api/admin/memberships", requireAuth, requireCapability(storage, "control_plane:read"), async (_req, res) => {
+    const [memberships, users, tenants] = await Promise.all([
+      storage.getAllTenantMemberships(),
+      storage.getAllUsers(),
+      storage.getAllTenants(),
+    ]);
+    const usersById = new Map(users.map(({ password: _, ...safeUser }) => [safeUser.id, safeUser]));
+    const tenantsById = new Map(tenants.map((tenant) => [tenant.id, tenant]));
+
+    return res.json(memberships.map((membership) => ({
+      ...membership,
+      user: usersById.get(membership.userId) ?? null,
+      tenant: tenantsById.get(membership.tenantId) ?? null,
+    })));
+  });
+
+  app.post("/api/admin/tenants", requireAuth, requireCapability(storage, "control_plane:write"), async (req, res) => {
+    try {
+      const data = createTenantSchema.parse(req.body);
+      const [plans, tenants] = await Promise.all([
+        storage.getAllTenantPlans(),
+        storage.getAllTenants(),
+      ]);
+
+      const selectedPlan = plans.find((plan) => isPlanCompatibleWithTenant(plan, data.audience, data.planCode));
+      if (!selectedPlan) {
+        return res.status(400).json({ message: "Plano de tenant inválido" });
+      }
+
+      const slugTaken = tenants.some((tenant) => tenant.slug === data.slug);
+      if (slugTaken) {
+        return res.status(409).json({ message: "Esse slug já está em uso" });
+      }
+
+      const tenant = await storage.createTenant({
+        slug: data.slug,
+        name: data.name,
+        audience: data.audience,
+        planCode: data.planCode,
+        status: data.status,
+        billingEmail: data.billingEmail ?? null,
+        dataResidency: data.dataResidency ?? null,
+      });
+
+      return res.status(201).json(tenant);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Dados inválidos";
+      return res.status(400).json({ message });
     }
-    const { password: _, ...safeUser } = user;
-    return res.json(safeUser);
+  });
+
+  app.post("/api/admin/memberships", requireAuth, requireCapability(storage, "tenant_memberships:write"), async (req, res) => {
+    try {
+      const data = createTenantMembershipSchema.parse(req.body);
+      const [user, tenant] = await Promise.all([
+        storage.getUser(data.userId),
+        storage.getTenant(data.tenantId),
+      ]);
+
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      if (!tenant) {
+        return res.status(404).json({ message: "Tenant não encontrado" });
+      }
+
+      const membership = await storage.upsertTenantMembership(data);
+      return res.status(201).json(membership);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Dados inválidos";
+      return res.status(400).json({ message });
+    }
+  });
+
+  app.patch("/api/admin/tenants/:id", requireAuth, requireCapability(storage, "control_plane:write"), async (req, res) => {
+    try {
+      const id = param(req, "id");
+      const data = updateTenantSchema.parse(req.body);
+      const currentTenant = await storage.getTenant(id);
+      if (!currentTenant) {
+        return res.status(404).json({ message: "Tenant não encontrado" });
+      }
+      if (data.planCode) {
+          const selectedPlanCode = data.planCode;
+        const plans = await storage.getAllTenantPlans();
+          const planExists = plans.find((plan) => isPlanCompatibleWithTenant(plan, currentTenant.audience, selectedPlanCode));
+        if (!planExists) {
+          return res.status(400).json({ message: "Plano de tenant inválido" });
+        }
+      }
+
+      const tenant = await storage.updateTenant(id, data);
+      return res.json(tenant);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Dados inválidos";
+      return res.status(400).json({ message });
+    }
+  });
+
+  app.patch("/api/admin/tenant-plans/:id", requireAuth, requireCapability(storage, "control_plane:write"), async (req, res) => {
+    try {
+      const id = param(req, "id");
+      const data = updateTenantPlanSchema.parse(req.body);
+      const currentPlan = await storage.getTenantPlan(id);
+      if (!currentPlan) {
+        return res.status(404).json({ message: "Plano de tenant não encontrado" });
+      }
+      if (data.active === false) {
+        const tenants = await storage.getAllTenants();
+        const hasActiveTenantUsingPlan = tenants.some((tenant) => tenant.planCode === currentPlan.code && tenant.status === "active");
+        if (hasActiveTenantUsingPlan) {
+          return res.status(409).json({ message: "Não é possível despublicar um plano em uso por tenant ativo" });
+        }
+      }
+      const plan = await storage.updateTenantPlan(id, data);
+      return res.json(plan);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Dados inválidos";
+      return res.status(400).json({ message });
+    }
+  });
+
+  app.patch("/api/admin/memberships/:tenantId/:userId", requireAuth, requireCapability(storage, "tenant_memberships:write"), async (req, res) => {
+    try {
+      const tenantId = param(req, "tenantId");
+      const userId = param(req, "userId");
+      const data = updateTenantMembershipSchema.parse(req.body);
+      const membership = await storage.updateTenantMembership(userId, tenantId, data);
+      if (!membership) {
+        return res.status(404).json({ message: "Membership não encontrado" });
+      }
+      return res.json(membership);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Dados inválidos";
+      return res.status(400).json({ message });
+    }
+  });
+
+  // ── Billing period contract management ──────────────────────────────
+
+  app.get("/api/admin/billing-periods", requireAuth, requireCapability(storage, "control_plane:read"), async (req, res) => {
+    const tenantId = typeof req.query["tenantId"] === "string" ? req.query["tenantId"] : undefined;
+    if (tenantId) {
+      const periods = await storage.getTenantBillingPeriods(tenantId);
+      return res.json(periods);
+    }
+    // Without a filter, return the active period for every tenant
+    const tenants = await storage.getAllTenants();
+    const activePeriods = await Promise.all(tenants.map((t) => storage.getActiveBillingPeriod(t.id)));
+    return res.json(activePeriods.filter(Boolean));
+  });
+
+  app.post("/api/admin/billing-periods", requireAuth, requireCapability(storage, "control_plane:write"), async (req, res) => {
+    try {
+      const data = createBillingPeriodSchema.parse(req.body);
+      const tenant = await storage.getTenant(data.tenantId);
+      if (!tenant) {
+        return res.status(404).json({ message: "Tenant não encontrado" });
+      }
+      // Only one active period per tenant — close the current one first
+      const current = await storage.getActiveBillingPeriod(data.tenantId);
+      if (current) {
+        await storage.updateBillingPeriodUsage(current.id, { mauUsed: current.mauUsed, status: "closed" });
+      }
+      const period = await storage.createBillingPeriod(data);
+      return res.status(201).json(period);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Dados inválidos";
+      return res.status(400).json({ message });
+    }
+  });
+
+  app.patch("/api/admin/billing-periods/:id/usage", requireAuth, requireCapability(storage, "control_plane:write"), async (req, res) => {
+    try {
+      const id = param(req, "id");
+      const data = updateBillingPeriodUsageSchema.parse(req.body);
+      const period = await storage.updateBillingPeriodUsage(id, data);
+      if (!period) {
+        return res.status(404).json({ message: "Período de cobrança não encontrado" });
+      }
+      return res.json(period);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Dados inválidos";
+      return res.status(400).json({ message });
+    }
   });
 
   // ── User routes (authenticated + owner) ──────────────────────────────
@@ -182,7 +507,7 @@ export async function registerRoutes(
   app.post("/api/checkins", requireAuth, async (req, res) => {
     try {
       const data = insertCheckInSchema.parse(req.body);
-      // Enforce: userId in body must match session user
+      // Enforce: userId in body must match JWT-authenticated user
       if (data.userId !== req.userId) {
         return res.status(403).json({ message: "Acesso não autorizado" });
       }
@@ -304,6 +629,11 @@ export async function registerRoutes(
 
   app.get("/api/rh/aggregate", requireAuth, requireRole("rh"), async (_req, res) => {
     const aggregate = await storage.getRhAggregate();
+    return res.json(aggregate);
+  });
+
+  app.get("/api/rh/pulses/aggregate", requireAuth, requireRole("rh"), async (_req, res) => {
+    const aggregate = await storage.getRhPulseAggregate();
     return res.json(aggregate);
   });
 
@@ -438,9 +768,7 @@ export async function registerRoutes(
   app.delete("/api/my-data", requireAuth, async (req, res) => {
     const userId = req.userId!;
     await storage.deleteUserData(userId);
-    req.session.destroy(() => {
-      res.clearCookie("juphd.sid");
-    });
+    clearToken(res);
     return res.json({ message: "Seus dados foram removidos com sucesso" });
   });
 
@@ -471,15 +799,18 @@ export async function registerRoutes(
   // returned by the orchestrator back to the client, which re-sends them
   // on every subsequent turn.
 
-  const CHAT_ORCHESTRATOR_URL =
-    process.env.CHAT_ORCHESTRATOR_URL ||
-    process.env.CHATBOT_API_URL ||
-    "https://tmh2e2ojppixtgl3fcs56um74y0ilkpx.lambda-url.us-east-1.on.aws/";
+  // URL must be set via CHAT_ORCHESTRATOR_URL env var.
+  // In production (ECS/Lambda), inject via Secrets Manager / task env.
+  // Never hardcode this URL in source code.
+  const CHAT_ORCHESTRATOR_URL = process.env.CHAT_ORCHESTRATOR_URL ?? process.env.CHATBOT_API_URL;
+  if (!CHAT_ORCHESTRATOR_URL) {
+    console.warn("[chat] CHAT_ORCHESTRATOR_URL not set — /api/chat will return 503");
+  }
 
   const CHATBOT_ID = "juphd-pro";
   const CLIENT_ID = "juphd-care";
 
-  app.post("/api/chat", requireAuth, async (req, res) => {
+  app.post("/api/chat", requireAuth, chatLimiter, async (req, res) => {
     const { message, sessionId, conversationId, dbConversationId } = req.body as {
       message: unknown;
       sessionId?: string;
@@ -489,6 +820,10 @@ export async function registerRoutes(
 
     if (!message || typeof message !== "string" || message.trim().length === 0 || message.length > 2000) {
       return res.status(400).json({ message: "Mensagem inválida" });
+    }
+
+    if (!CHAT_ORCHESTRATOR_URL) {
+      return res.status(503).json({ message: "Serviço de chat indisponível. Tente novamente mais tarde." });
     }
 
     const userId = req.userId!;
@@ -530,7 +865,7 @@ export async function registerRoutes(
       try {
         if (convId) {
           const existingConv = await storage.getChatConversation(convId);
-          if (!existingConv || existingConv.userId !== userId) {
+          if (existingConv?.userId !== userId) {
             convId = null;
           }
         }
@@ -630,11 +965,13 @@ export async function registerRoutes(
       if (sessionId) payload.session_id = sessionId;
       if (conversationId) payload.conversationId = conversationId;
 
-      await fetch(CHAT_ORCHESTRATOR_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      if (CHAT_ORCHESTRATOR_URL) {
+        await fetch(CHAT_ORCHESTRATOR_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      }
     } catch (e: unknown) {
       console.error("Chat close session error:", e);
     }
@@ -853,7 +1190,7 @@ export async function registerRoutes(
     });
 
     app.post("/api/dev/reset", requireAuth, async (req, res) => {
-      const userId = req.session?.userId;
+      const userId = req.userId;
       if (!userId) {
         return res.status(401).json({ message: "Não autenticado." });
       }

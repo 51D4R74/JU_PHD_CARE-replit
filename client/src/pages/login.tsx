@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeSlash, Envelope, Lock, ArrowRight, ArrowLeft, Check, X, Sparkle, User, Buildings, ShieldCheck } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, Building2, Check, Eye, EyeOff, Lock, Mail, ShieldCheck, Sparkles, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +23,7 @@ function PasswordCriteria({ label, met }: Readonly<{ label: string; met: boolean
   );
 }
 
-type ViewMode = "login" | "register" | "forgot";
+type ViewMode = "login" | "register";
 
 const SKY_PHOTOS = [
   "/sky/sol-01.webp",
@@ -37,14 +37,15 @@ const SKY_PHOTOS = [
 const ctaHover = { scale: 1.02, boxShadow: "0 8px 24px rgba(30,58,95,0.25)" };
 const ctaTap = { scale: 0.98 };
 
-const resetCodeSlots = [
-  { key: "slot-0", index: 0 },
-  { key: "slot-1", index: 1 },
-  { key: "slot-2", index: 2 },
-  { key: "slot-3", index: 3 },
-  { key: "slot-4", index: 4 },
-  { key: "slot-5", index: 5 },
-] as const;
+function nextPathForUser(user: { role: string; capabilities?: string[] }): string {
+  if (user.role === "rh") {
+    return "/rh";
+  }
+  if (user.capabilities?.includes("control_plane:read")) {
+    return "/admin";
+  }
+  return "/dashboard";
+}
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
@@ -57,9 +58,6 @@ export default function LoginPage() {
   const [department, setDepartment] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [resetCode, setResetCode] = useState(["", "", "", "", "", ""]);
-  const [forgotStep, setForgotStep] = useState<"email" | "code">("email");
-  const [forgotEmail, setForgotEmail] = useState("");
   const [registerStep, setRegisterStep] = useState<1 | 2>(1);
 
   const skyPhoto = useMemo(() => SKY_PHOTOS[Math.floor(Math.random() * SKY_PHOTOS.length)], []);
@@ -83,11 +81,7 @@ export default function LoginPage() {
       const user = await res.json();
       setUser(user);
       toast({ title: "Boas-vindas!", description: "Que bom ter você por aqui." });
-      if (user.role === "rh") {
-        navigate("/rh");
-      } else {
-        navigate("/dashboard");
-      }
+      navigate(nextPathForUser(user));
     } catch (error: unknown) {
       console.warn("Login failed:", error);
       toast({ title: "Algo deu errado", description: "Verifique seu email e senha.", variant: "destructive" });
@@ -117,7 +111,7 @@ export default function LoginPage() {
       const user = await res.json();
       setUser(user);
       toast({ title: "Conta criada!", description: "Boas-vindas, " + user.name + "!" });
-      navigate("/dashboard");
+      navigate(nextPathForUser(user));
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : "";
       const msg = errMsg.includes("409") ? "Esse email já está cadastrado." : "Não conseguimos criar a conta. Tente de novo.";
@@ -125,24 +119,6 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  }
-
-  function handleCodeInput(index: number, value: string) {
-    if (value.length > 1) value = value.at(-1) ?? value;
-    const newCode = [...resetCode];
-    newCode[index] = value;
-    setResetCode(newCode);
-    if (value && index < 5) {
-      const next = document.getElementById(`code-${index + 1}`);
-      next?.focus();
-    }
-  }
-
-  function handleForgotSendCode(e: React.FormEvent) {
-    e.preventDefault();
-    if (!forgotEmail) return;
-    toast({ title: "Código enviado!", description: "Verifique sua caixa de entrada." });
-    setForgotStep("code");
   }
 
   function switchView(newView: ViewMode) {
@@ -153,9 +129,6 @@ export default function LoginPage() {
     setDepartment("");
     setShowPassword(false);
     setRegisterStep(1);
-    setForgotStep("email");
-    setForgotEmail("");
-    setResetCode(["", "", "", "", "", ""]);
   }
 
   const inputFocusClass = "pl-10 bg-background/50 border-border/50 focus:border-brand-navy/50 focus:ring-2 focus:ring-brand-navy/15 h-11 transition-shadow";
@@ -202,7 +175,7 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm text-muted-foreground">E-mail</Label>
                   <div className="relative">
-                    <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
                     <Input
                       id="email"
                       type="email"
@@ -237,7 +210,7 @@ export default function LoginPage() {
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       data-testid="button-toggle-password"
                     >
-                      {showPassword ? <EyeSlash className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+                      {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
                     </button>
                   </div>
                 </div>
@@ -264,17 +237,6 @@ export default function LoginPage() {
                   </Button>
                 </motion.div>
               </form>
-
-              <div className="flex items-center justify-between mt-4">
-                <button
-                  type="button"
-                  onClick={() => switchView("forgot")}
-                  className="text-sm text-muted-foreground hover:text-brand-navy transition-colors"
-                  data-testid="link-forgot-password"
-                >
-                  Esqueci minha senha
-                </button>
-              </div>
 
               <div className="mt-6 pt-4 border-t border-border/30">
                 <p className="text-sm text-center text-muted-foreground mb-3">Ainda não tem conta?</p>
@@ -313,7 +275,7 @@ export default function LoginPage() {
               className="glass-card rounded-2xl p-8"
             >
               <div className="flex items-center gap-2 mb-2">
-                <Sparkle className="w-4 h-4 text-brand-gold" weight="fill" aria-hidden="true" />
+                <Sparkles className="w-4 h-4 text-brand-gold" aria-hidden="true" />
                 <h2 className="text-lg font-semibold text-foreground">Criar sua conta</h2>
               </div>
 
@@ -355,7 +317,7 @@ export default function LoginPage() {
                     <div className="space-y-2">
                       <Label htmlFor="reg-email" className="text-sm text-muted-foreground">E-mail</Label>
                       <div className="relative">
-                        <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
                         <Input
                           id="reg-email"
                           type="email"
@@ -405,7 +367,7 @@ export default function LoginPage() {
                       <div className="space-y-2">
                         <Label htmlFor="reg-department" className="text-sm text-muted-foreground">Departamento (opcional)</Label>
                         <div className="relative">
-                          <Buildings className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                          <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
                           <Input
                             id="reg-department"
                             type="text"
@@ -438,7 +400,7 @@ export default function LoginPage() {
                             aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            {showPassword ? <EyeSlash className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+                            {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
                           </button>
                         </div>
                       </div>
@@ -496,126 +458,6 @@ export default function LoginPage() {
             </motion.div>
           )}
 
-          {view === "forgot" && (
-            <motion.div
-              key="forgot"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="glass-card rounded-2xl p-8"
-            >
-              <h2 className="text-lg font-semibold mb-2">Recuperar senha</h2>
-
-              <AnimatePresence mode="wait">
-                {/* P0: step 1 — collect email first */}
-                {forgotStep === "email" && (
-                  <motion.div
-                    key="forgot-email"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <p className="text-sm text-muted-foreground mb-6">
-                      Informe seu e-mail para receber o código de recuperação.
-                    </p>
-                    <form onSubmit={handleForgotSendCode} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="forgot-email" className="text-sm text-muted-foreground">E-mail</Label>
-                        <div className="relative">
-                          <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-                          <Input
-                            id="forgot-email"
-                            type="email"
-                            autoComplete="email"
-                            placeholder="seu@email.com"
-                            value={forgotEmail}
-                            onChange={(e) => setForgotEmail(e.target.value)}
-                            className={inputFocusClass}
-                            data-testid="input-forgot-email"
-                          />
-                        </div>
-                      </div>
-                      <motion.div whileHover={ctaHover} whileTap={ctaTap} className="rounded-xl">
-                        <Button
-                          type="submit"
-                          disabled={!forgotEmail}
-                          className="w-full h-11 bg-brand-navy hover:bg-brand-navy-hover text-white font-medium rounded-xl border-0"
-                          data-testid="button-send-code"
-                        >
-                          Enviar código
-                          <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
-                        </Button>
-                      </motion.div>
-                    </form>
-                  </motion.div>
-                )}
-
-                {/* P0: step 2 — enter code */}
-                {forgotStep === "code" && (
-                  <motion.div
-                    key="forgot-code"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <p className="text-sm text-muted-foreground mb-6">
-                      Digite o código de 6 dígitos enviado para{" "}
-                      <span className="font-medium text-foreground">{forgotEmail}</span>.
-                    </p>
-                    <div className="flex gap-2 justify-center mb-6">
-                      {resetCodeSlots.map((slot) => (
-                        <Input
-                          key={slot.key}
-                          id={`code-${slot.index}`}
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={1}
-                          aria-label={`Dígito ${slot.index + 1}`}
-                          value={resetCode[slot.index]}
-                          onChange={(e) => handleCodeInput(slot.index, e.target.value)}
-                          className="w-12 h-14 text-center text-xl font-bold bg-background/50 border-border/50 focus:border-brand-navy/50 focus:ring-2 focus:ring-brand-navy/15 transition-shadow"
-                          data-testid={`input-code-${slot.index}`}
-                        />
-                      ))}
-                    </div>
-                    <motion.div whileHover={ctaHover} whileTap={ctaTap} className="rounded-xl">
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          toast({ title: "Código verificado!", description: "Sua senha foi redefinida (simulação)." });
-                          switchView("login");
-                        }}
-                        className="w-full h-11 bg-brand-navy hover:bg-brand-navy-hover text-white font-medium rounded-xl border-0"
-                        data-testid="button-verify-code"
-                      >
-                        Verificar código
-                      </Button>
-                    </motion.div>
-                    <button
-                      type="button"
-                      onClick={() => setForgotStep("email")}
-                      className="flex items-center justify-center gap-1 w-full mt-3 text-sm text-muted-foreground hover:text-brand-navy transition-colors"
-                    >
-                      <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
-                      Alterar e-mail
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <button
-                type="button"
-                onClick={() => switchView("login")}
-                className="w-full text-center mt-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                data-testid="link-back-from-forgot"
-              >
-                Voltar ao login
-              </button>
-            </motion.div>
-          )}
         </AnimatePresence>
       </motion.div>
     </div>

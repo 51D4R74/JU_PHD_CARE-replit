@@ -1,5 +1,6 @@
-import { type User, type InsertUser, type CheckIn, type InsertCheckIn, type MomentCheckIn, type InsertMomentCheckIn, type IncidentReport, type InsertIncidentReport, type UserMission, type InsertUserMission, type UserSettings, type CheckInHistoryRecord, type SolarPoints, type InsertSolarPoints, type TeamChallengeContribution, type InsertTeamChallengeContribution, type PulseResponse, type InsertPulseResponse, type CommunityMessage, type InsertCommunityMessage, type MessageLike, type ChatConversation, type InsertChatConversation, type ChatMessage, type InsertChatMessage } from "@shared/schema";
-import { ANONYMITY_THRESHOLD, getWorkdayDate } from "@shared/constants";
+import { type User, type InsertUser, type TenantPlan, type InsertTenantPlan, type UpdateTenantPlan, type Tenant, type InsertTenant, type UpdateTenant, type TenantMembership, type CreateTenantMembership, type UpdateTenantMembership, type TenantCapability, type BillingPeriod, type CreateBillingPeriod, type UpdateBillingPeriodUsage, type CheckIn, type InsertCheckIn, type MomentCheckIn, type InsertMomentCheckIn, type IncidentReport, type InsertIncidentReport, type UserMission, type InsertUserMission, type UserSettings, type CheckInHistoryRecord, type SolarPoints, type InsertSolarPoints, type TeamChallengeContribution, type InsertTeamChallengeContribution, type PulseResponse, type InsertPulseResponse, type CommunityMessage, type InsertCommunityMessage, type MessageLike, type ChatConversation, type InsertChatConversation, type ChatMessage, type InsertChatMessage, type RhPulseAggregate, type RhPulseDimensionScores, getDefaultTenantCapabilities } from "@shared/schema";
+import { ANONYMITY_THRESHOLD, PULSE_SURVEY_INTERVAL_DAYS, getWorkdayDate } from "@shared/constants";
+import { parsePulseScoreSummary, type PulseDimension } from "@shared/pulse-survey";
 import { devNow } from "@shared/dev-clock";
 import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
@@ -51,6 +52,8 @@ interface MoodSlice {
   value: number;
   color: string;
 }
+
+type ChatConversationUpdates = Partial<Pick<ChatConversation, "title" | "orchestratorSessionId" | "orchestratorConversationId">>;
 
 export interface TodayScoresSnapshot {
   domainScores: DomainScores;
@@ -245,6 +248,23 @@ function categorizeMood(record: CheckIn): string {
 }
 
 export interface IStorage {
+  getAllTenantPlans(): Promise<TenantPlan[]>;
+  getTenantPlan(id: string): Promise<TenantPlan | undefined>;
+  getAllTenants(): Promise<Tenant[]>;
+  getTenant(id: string): Promise<Tenant | undefined>;
+  getAllTenantMemberships(): Promise<TenantMembership[]>;
+  getTenantMembershipsByUserId(userId: string): Promise<TenantMembership[]>;
+  createTenantPlan(plan: InsertTenantPlan): Promise<TenantPlan>;
+  updateTenantPlan(id: string, updates: UpdateTenantPlan): Promise<TenantPlan | undefined>;
+  createTenant(tenant: InsertTenant): Promise<Tenant>;
+  upsertTenantMembership(membership: CreateTenantMembership): Promise<TenantMembership>;
+  updateTenantMembership(userId: string, tenantId: string, updates: UpdateTenantMembership): Promise<TenantMembership | undefined>;
+  updateTenant(id: string, updates: UpdateTenant): Promise<Tenant | undefined>;
+  // Billing period contract tracking
+  getTenantBillingPeriods(tenantId: string): Promise<BillingPeriod[]>;
+  getActiveBillingPeriod(tenantId: string): Promise<BillingPeriod | undefined>;
+  createBillingPeriod(data: CreateBillingPeriod): Promise<BillingPeriod>;
+  updateBillingPeriodUsage(id: string, updates: UpdateBillingPeriodUsage): Promise<BillingPeriod | undefined>;
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
@@ -271,6 +291,7 @@ export interface IStorage {
   createPulseResponse(response: InsertPulseResponse): Promise<PulseResponse>;
   getPulseResponsesByUserId(userId: string, pulseKey?: string): Promise<PulseResponse[]>;
   getLatestPulseResponseByUserId(userId: string, pulseKey: string): Promise<PulseResponse | undefined>;
+  getRhPulseAggregate(): Promise<RhPulseAggregate>;
   deleteUserData(userId: string): Promise<void>;
   resetUserActivity(userId: string): Promise<void>;
   // ── Team challenges ───────────────────────────────
@@ -285,15 +306,35 @@ export interface IStorage {
   getUserLikedMessageIds(userId: string): Promise<string[]>;
   // ── Chat conversations ─────────────────────────────
   createChatConversation(conv: InsertChatConversation): Promise<ChatConversation>;
-  updateChatConversation(id: string, updates: Partial<Pick<ChatConversation, "title" | "orchestratorSessionId" | "orchestratorConversationId">>): Promise<ChatConversation | undefined>;
+  updateChatConversation(id: string, updates: ChatConversationUpdates): Promise<ChatConversation | undefined>;
   getChatConversationsByUserId(userId: string): Promise<ChatConversation[]>;
   getChatConversation(id: string): Promise<ChatConversation | undefined>;
   createChatMessage(msg: InsertChatMessage): Promise<ChatMessage>;
   getChatMessagesByConversationId(conversationId: string): Promise<ChatMessage[]>;
+  getUserCapabilities(userId: string): Promise<TenantCapability[]>;
+  // ── Auth ────────────────────────────────────────────────
+  /** Hash newPassword and persist it. Does NOT verify the old password — caller is responsible. */
+  updateUserPassword(userId: string, newPassword: string): Promise<void>;
 }
 
 /** Algorithm-heavy computed methods shared across all storage backends. */
 export abstract class BaseStorage implements IStorage {
+  abstract getAllTenantPlans(): Promise<TenantPlan[]>;
+  abstract getTenantPlan(id: string): Promise<TenantPlan | undefined>;
+  abstract getAllTenants(): Promise<Tenant[]>;
+  abstract getTenant(id: string): Promise<Tenant | undefined>;
+  abstract getAllTenantMemberships(): Promise<TenantMembership[]>;
+  abstract getTenantMembershipsByUserId(userId: string): Promise<TenantMembership[]>;
+  abstract createTenantPlan(plan: InsertTenantPlan): Promise<TenantPlan>;
+  abstract updateTenantPlan(id: string, updates: UpdateTenantPlan): Promise<TenantPlan | undefined>;
+  abstract createTenant(tenant: InsertTenant): Promise<Tenant>;
+  abstract upsertTenantMembership(membership: CreateTenantMembership): Promise<TenantMembership>;
+  abstract updateTenantMembership(userId: string, tenantId: string, updates: UpdateTenantMembership): Promise<TenantMembership | undefined>;
+  abstract updateTenant(id: string, updates: UpdateTenant): Promise<Tenant | undefined>;
+  abstract getTenantBillingPeriods(tenantId: string): Promise<BillingPeriod[]>;
+  abstract getActiveBillingPeriod(tenantId: string): Promise<BillingPeriod | undefined>;
+  abstract createBillingPeriod(data: CreateBillingPeriod): Promise<BillingPeriod>;
+  abstract updateBillingPeriodUsage(id: string, updates: UpdateBillingPeriodUsage): Promise<BillingPeriod | undefined>;
   abstract getAllUsers(): Promise<User[]>;
   abstract getUser(id: string): Promise<User | undefined>;
   abstract getUserByUsername(username: string): Promise<User | undefined>;
@@ -317,6 +358,7 @@ export abstract class BaseStorage implements IStorage {
   abstract createPulseResponse(response: InsertPulseResponse): Promise<PulseResponse>;
   abstract getPulseResponsesByUserId(userId: string, pulseKey?: string): Promise<PulseResponse[]>;
   abstract getLatestPulseResponseByUserId(userId: string, pulseKey: string): Promise<PulseResponse | undefined>;
+  abstract getRhPulseAggregate(): Promise<RhPulseAggregate>;
   abstract deleteUserData(userId: string): Promise<void>;
   abstract resetUserActivity(userId: string): Promise<void>;
   abstract createTeamContribution(data: InsertTeamChallengeContribution): Promise<TeamChallengeContribution>;
@@ -328,11 +370,19 @@ export abstract class BaseStorage implements IStorage {
   abstract toggleMessageLike(messageId: string, userId: string): Promise<{ liked: boolean; likeCount: number }>;
   abstract getUserLikedMessageIds(userId: string): Promise<string[]>;
   abstract createChatConversation(conv: InsertChatConversation): Promise<ChatConversation>;
-  abstract updateChatConversation(id: string, updates: Partial<Pick<ChatConversation, "title" | "orchestratorSessionId" | "orchestratorConversationId">>): Promise<ChatConversation | undefined>;
+  abstract updateChatConversation(id: string, updates: ChatConversationUpdates): Promise<ChatConversation | undefined>;
   abstract getChatConversationsByUserId(userId: string): Promise<ChatConversation[]>;
   abstract getChatConversation(id: string): Promise<ChatConversation | undefined>;
   abstract createChatMessage(msg: InsertChatMessage): Promise<ChatMessage>;
   abstract getChatMessagesByConversationId(conversationId: string): Promise<ChatMessage[]>;
+  abstract updateUserPassword(userId: string, newPassword: string): Promise<void>;
+
+  async getUserCapabilities(userId: string): Promise<TenantCapability[]> {
+    const capabilities = (await this.getTenantMembershipsByUserId(userId))
+      .filter((membership) => membership.active)
+      .flatMap((membership) => membership.capabilities as TenantCapability[]);
+    return [...new Set(capabilities)].toSorted((left, right) => left.localeCompare(right));
+  }
 
   async getTodayScoresByUserId(userId: string): Promise<TodayScoresSnapshot> {
     const todayCheckIn = (await this.getCheckInsByUserIdAndDate(userId, getWorkdayDate(devNow()))).at(0);
@@ -534,6 +584,10 @@ export abstract class BaseStorage implements IStorage {
 }
 
 export class MemStorage extends BaseStorage {
+  private readonly tenantPlansMap: Map<string, TenantPlan>;
+  private readonly tenantsMap: Map<string, Tenant>;
+  private readonly tenantMembershipsMap: Map<string, TenantMembership>;
+  private readonly billingPeriodsMap: Map<string, BillingPeriod>;
   private readonly users: Map<string, User>;
   private readonly checkIns: Map<string, CheckIn>;
   private readonly momentCheckIns: Map<string, MomentCheckIn>;
@@ -550,6 +604,10 @@ export class MemStorage extends BaseStorage {
 
   constructor() {
     super();
+    this.tenantPlansMap = new Map();
+    this.tenantsMap = new Map();
+    this.tenantMembershipsMap = new Map();
+    this.billingPeriodsMap = new Map();
     this.users = new Map();
     this.checkIns = new Map();
     this.momentCheckIns = new Map();
@@ -566,6 +624,10 @@ export class MemStorage extends BaseStorage {
     this.seedData();
   }
 
+  private tenantMembershipKey(userId: string, tenantId: string): string {
+    return `${userId}:${tenantId}`;
+  }
+
   private removeEntriesForUser<T extends { userId: string | null }>(
     store: Map<string, T>,
     userId: string,
@@ -578,6 +640,81 @@ export class MemStorage extends BaseStorage {
   }
 
   private seedData() {
+    const defaultPlans: TenantPlan[] = [
+      {
+        id: "plan-btc-starter",
+        code: "btc-starter",
+        name: "BTC Starter",
+        audience: "btc",
+        description: "Plano de consumo com isolamento lógico e limites moderados.",
+        isolationProfile: "pooled",
+        monthlyActiveUserLimit: 50000,
+        priceMonthlyUsdCents: 14900, // $149/mês
+        billingCycle: "monthly",
+        active: true,
+        createdAt: devNow(),
+      },
+      {
+        id: "plan-btb-scale",
+        code: "btb-scale",
+        name: "BTB Scale",
+        audience: "btb",
+        description: "Plano corporativo com controles ampliados e isolamento reforçado.",
+        isolationProfile: "isolated-schema",
+        monthlyActiveUserLimit: 250000,
+        priceMonthlyUsdCents: 49900, // $499/mês
+        billingCycle: "monthly",
+        active: true,
+        createdAt: devNow(),
+      },
+      {
+        id: "plan-btg-sovereign",
+        code: "btg-sovereign",
+        name: "BTG Sovereign",
+        audience: "btg",
+        description: "Plano soberano com isolamento dedicado para operação crítica.",
+        isolationProfile: "dedicated-account",
+        monthlyActiveUserLimit: null,
+        priceMonthlyUsdCents: null, // contrato enterprise personalizado
+        billingCycle: null,
+        active: true,
+        createdAt: devNow(),
+      },
+    ];
+
+    defaultPlans.forEach((plan) => {
+      this.tenantPlansMap.set(plan.id, plan);
+    });
+
+    const defaultTenant: Tenant = {
+      id: "tenant-lumina-demo",
+      slug: "lumina-demo",
+      name: "Lumina Demo",
+      audience: "btb",
+      planCode: "btb-scale",
+      status: "active",
+      billingEmail: "billing@lumina.demo",
+      dataResidency: "br-south-1",
+      createdAt: devNow(),
+      updatedAt: devNow(),
+    };
+    this.tenantsMap.set(defaultTenant.id, defaultTenant);
+
+    // Seed billing period — active contract for the demo tenant
+    const seedPeriod: BillingPeriod = {
+      id: "bp-lumina-demo-2026-q1",
+      tenantId: "tenant-lumina-demo",
+      planCode: "btb-scale",
+      periodStart: "2026-01-01",
+      periodEnd: "2026-03-31",
+      mauLimit: 250000,
+      mauUsed: 14820,
+      status: "active",
+      createdAt: devNow(),
+      updatedAt: devNow(),
+    };
+    this.billingPeriodsMap.set(seedPeriod.id, seedPeriod);
+
     // Seed passwords are hashed at startup. Plain-text only in this comment for dev reference: "Senha@123"
     const seedHash = bcrypt.hashSync("Senha@123", 10);
     const departmentProfiles: Record<string, DomainScores> = {
@@ -642,6 +779,28 @@ export class MemStorage extends BaseStorage {
     };
     this.users.set(rhUser.id, rhUser);
 
+    const rhMembership: TenantMembership = {
+      userId: rhUser.id,
+      tenantId: defaultTenant.id,
+      membershipRole: "tenant_admin",
+      capabilities: getDefaultTenantCapabilities("tenant_admin"),
+      active: true,
+      createdAt: devNow(),
+      updatedAt: devNow(),
+    };
+    this.tenantMembershipsMap.set(this.tenantMembershipKey(rhMembership.userId, rhMembership.tenantId), rhMembership);
+
+    const demoMembership: TenantMembership = {
+      userId: demoUser.id,
+      tenantId: defaultTenant.id,
+      membershipRole: "tenant_viewer",
+      capabilities: getDefaultTenantCapabilities("tenant_viewer"),
+      active: true,
+      createdAt: devNow(),
+      updatedAt: devNow(),
+    };
+    this.tenantMembershipsMap.set(this.tenantMembershipKey(demoMembership.userId, demoMembership.tenantId), demoMembership);
+
     const departments = ["Vendas", "TI", "Marketing", "Financeiro", "Operações"];
 
     for (let i = 0; i < 50; i++) {
@@ -686,6 +845,175 @@ export class MemStorage extends BaseStorage {
     return Array.from(this.users.values());
   }
 
+  async getAllTenantPlans(): Promise<TenantPlan[]> {
+    return Array.from(this.tenantPlansMap.values()).toSorted((left, right) => left.name.localeCompare(right.name));
+  }
+
+  async getTenantPlan(id: string): Promise<TenantPlan | undefined> {
+    return this.tenantPlansMap.get(id);
+  }
+
+  async getAllTenants(): Promise<Tenant[]> {
+    return Array.from(this.tenantsMap.values()).toSorted((left, right) => left.name.localeCompare(right.name));
+  }
+
+  async getTenant(id: string): Promise<Tenant | undefined> {
+    return this.tenantsMap.get(id);
+  }
+
+  async getAllTenantMemberships(): Promise<TenantMembership[]> {
+    return Array.from(this.tenantMembershipsMap.values()).toSorted((left, right) => {
+      const tenantSort = left.tenantId.localeCompare(right.tenantId);
+      if (tenantSort === 0) {
+        return left.userId.localeCompare(right.userId);
+      }
+      return tenantSort;
+    });
+  }
+
+  async getTenantMembershipsByUserId(userId: string): Promise<TenantMembership[]> {
+    return Array.from(this.tenantMembershipsMap.values())
+      .filter((membership) => membership.userId === userId)
+      .toSorted((left, right) => left.tenantId.localeCompare(right.tenantId));
+  }
+
+  async createTenantPlan(insertPlan: InsertTenantPlan): Promise<TenantPlan> {
+    const id = randomUUID();
+    const plan: TenantPlan = {
+      id,
+      code: insertPlan.code,
+      name: insertPlan.name,
+      audience: insertPlan.audience,
+      description: insertPlan.description,
+      isolationProfile: insertPlan.isolationProfile,
+      monthlyActiveUserLimit: insertPlan.monthlyActiveUserLimit ?? null,
+      priceMonthlyUsdCents: insertPlan.priceMonthlyUsdCents ?? null,
+      billingCycle: insertPlan.billingCycle ?? null,
+      active: insertPlan.active ?? true,
+      createdAt: devNow(),
+    };
+    this.tenantPlansMap.set(id, plan);
+    return plan;
+  }
+
+  async updateTenantPlan(id: string, updates: UpdateTenantPlan): Promise<TenantPlan | undefined> {
+    const existing = this.tenantPlansMap.get(id);
+    if (!existing) return undefined;
+    const updated: TenantPlan = {
+      ...existing,
+      ...updates,
+    };
+    this.tenantPlansMap.set(id, updated);
+    return updated;
+  }
+
+  async getTenantBillingPeriods(tenantId: string): Promise<BillingPeriod[]> {
+    return Array.from(this.billingPeriodsMap.values())
+      .filter((bp) => bp.tenantId === tenantId)
+      .toSorted((a, b) => b.periodStart.localeCompare(a.periodStart)); // newest first
+  }
+
+  async getActiveBillingPeriod(tenantId: string): Promise<BillingPeriod | undefined> {
+    return Array.from(this.billingPeriodsMap.values()).find(
+      (bp) => bp.tenantId === tenantId && bp.status === "active",
+    );
+  }
+
+  async createBillingPeriod(data: CreateBillingPeriod): Promise<BillingPeriod> {
+    const id = randomUUID();
+    const now = devNow();
+    const period: BillingPeriod = {
+      id,
+      tenantId: data.tenantId,
+      planCode: data.planCode,
+      periodStart: data.periodStart,
+      periodEnd: data.periodEnd,
+      mauLimit: data.mauLimit ?? null,
+      mauUsed: 0,
+      status: "active",
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.billingPeriodsMap.set(id, period);
+    return period;
+  }
+
+  async updateBillingPeriodUsage(id: string, updates: UpdateBillingPeriodUsage): Promise<BillingPeriod | undefined> {
+    const existing = this.billingPeriodsMap.get(id);
+    if (!existing) return undefined;
+    const updated: BillingPeriod = {
+      ...existing,
+      mauUsed: updates.mauUsed,
+      status: updates.status ?? existing.status,
+      updatedAt: devNow(),
+    };
+    this.billingPeriodsMap.set(id, updated);
+    return updated;
+  }
+
+  async createTenant(insertTenant: InsertTenant): Promise<Tenant> {
+    const id = randomUUID();
+    const tenant: Tenant = {
+      id,
+      slug: insertTenant.slug,
+      name: insertTenant.name,
+      audience: insertTenant.audience,
+      planCode: insertTenant.planCode,
+      status: insertTenant.status ?? "draft",
+      billingEmail: insertTenant.billingEmail ?? null,
+      dataResidency: insertTenant.dataResidency ?? null,
+      createdAt: devNow(),
+      updatedAt: devNow(),
+    };
+    this.tenantsMap.set(id, tenant);
+    return tenant;
+  }
+
+  async upsertTenantMembership(membership: CreateTenantMembership): Promise<TenantMembership> {
+    const key = this.tenantMembershipKey(membership.userId, membership.tenantId);
+    const existing = this.tenantMembershipsMap.get(key);
+    const now = devNow();
+    const nextMembership: TenantMembership = {
+      userId: membership.userId,
+      tenantId: membership.tenantId,
+      membershipRole: membership.membershipRole,
+      capabilities: getDefaultTenantCapabilities(membership.membershipRole),
+      active: membership.active,
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
+    };
+    this.tenantMembershipsMap.set(key, nextMembership);
+    return nextMembership;
+  }
+
+  async updateTenantMembership(userId: string, tenantId: string, updates: UpdateTenantMembership): Promise<TenantMembership | undefined> {
+    const key = this.tenantMembershipKey(userId, tenantId);
+    const existing = this.tenantMembershipsMap.get(key);
+    if (!existing) return undefined;
+    const membershipRole = updates.membershipRole ?? existing.membershipRole;
+    const updated: TenantMembership = {
+      ...existing,
+      ...updates,
+      membershipRole,
+      capabilities: getDefaultTenantCapabilities(membershipRole),
+      updatedAt: devNow(),
+    };
+    this.tenantMembershipsMap.set(key, updated);
+    return updated;
+  }
+
+  async updateTenant(id: string, updates: UpdateTenant): Promise<Tenant | undefined> {
+    const existing = this.tenantsMap.get(id);
+    if (!existing) return undefined;
+    const updated: Tenant = {
+      ...existing,
+      ...updates,
+      updatedAt: devNow(),
+    };
+    this.tenantsMap.set(id, updated);
+    return updated;
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
   }
@@ -702,6 +1030,13 @@ export class MemStorage extends BaseStorage {
     const user: User = { ...insertUser, id, password: hashedPassword, role: insertUser.role || "collaborator", department: insertUser.department || null };
     this.users.set(id, user);
     return user;
+  }
+
+  async updateUserPassword(userId: string, newPassword: string): Promise<void> {
+    const user = this.users.get(userId);
+    if (!user) throw new Error("Usuário não encontrado");
+    const hashed = await bcrypt.hash(newPassword, 10);
+    this.users.set(userId, { ...user, password: hashed });
   }
 
   async createCheckIn(insertCheckIn: InsertCheckIn): Promise<CheckIn> {
@@ -1015,6 +1350,83 @@ export class MemStorage extends BaseStorage {
 
   async getLatestPulseResponseByUserId(userId: string, pulseKey: string): Promise<PulseResponse | undefined> {
     return (await this.getPulseResponsesByUserId(userId, pulseKey)).at(0);
+  }
+
+  async getRhPulseAggregate(): Promise<RhPulseAggregate> {
+    const now = devNow();
+    const windowStart = new Date(now);
+    windowStart.setDate(now.getDate() - PULSE_SURVEY_INTERVAL_DAYS);
+
+    const prevWindowStart = new Date(windowStart);
+    prevWindowStart.setDate(windowStart.getDate() - PULSE_SURVEY_INTERVAL_DAYS);
+
+    const allResponses = Array.from(this.pulseResponsesMap.values());
+
+    const currentResponses = allResponses.filter((r) => {
+      const ts = r.submittedAt?.getTime() ?? 0;
+      return ts >= windowStart.getTime() && ts <= now.getTime();
+    });
+
+    const prevResponses = allResponses.filter((r) => {
+      const ts = r.submittedAt?.getTime() ?? 0;
+      return ts >= prevWindowStart.getTime() && ts < windowStart.getTime();
+    });
+
+    const totalCollaborators = Array.from(this.users.values()).filter((u) => u.role === "collaborator").length;
+    const respondentCount = new Set(currentResponses.map((r) => r.userId)).size;
+    const participationRate = totalCollaborators === 0 ? 0 : Math.round((respondentCount / totalCollaborators) * 100);
+    const eligible = respondentCount >= ANONYMITY_THRESHOLD;
+
+    const windowDates = currentResponses.map((r) => r.submittedAt?.toISOString().slice(0, 10) ?? "");
+    const windowStartIso = windowDates.length > 0 ? [...windowDates].toSorted()[0] : windowStart.toISOString().slice(0, 10);
+    const windowEndIso = windowDates.length > 0 ? [...windowDates].toSorted().at(-1) ?? windowStartIso : now.toISOString().slice(0, 10);
+
+    function aggregateDimensions(responses: PulseResponse[]): { overall: number; dims: RhPulseDimensionScores } | null {
+      if (responses.length === 0) return null;
+      const dimBuckets: Record<PulseDimension, number[]> = {
+        pressure_predictability: [],
+        support_care: [],
+        peer_relations: [],
+        role_clarity: [],
+      };
+      for (const resp of responses) {
+        const summary = parsePulseScoreSummary(resp.scoreSummary);
+        if (!summary) continue;
+        for (const [dim, score] of Object.entries(summary.dimensionScores) as [PulseDimension, number][]) {
+          dimBuckets[dim].push(score);
+        }
+      }
+      const dims: RhPulseDimensionScores = {
+        pressure_predictability: dimBuckets.pressure_predictability.length > 0 ? Math.round(dimBuckets.pressure_predictability.reduce((s, v) => s + v, 0) / dimBuckets.pressure_predictability.length) : null,
+        support_care: dimBuckets.support_care.length > 0 ? Math.round(dimBuckets.support_care.reduce((s, v) => s + v, 0) / dimBuckets.support_care.length) : null,
+        peer_relations: dimBuckets.peer_relations.length > 0 ? Math.round(dimBuckets.peer_relations.reduce((s, v) => s + v, 0) / dimBuckets.peer_relations.length) : null,
+        role_clarity: dimBuckets.role_clarity.length > 0 ? Math.round(dimBuckets.role_clarity.reduce((s, v) => s + v, 0) / dimBuckets.role_clarity.length) : null,
+      };
+      const validScores = Object.values(dims).filter((v): v is number => v !== null);
+      const overall = validScores.length > 0 ? Math.round(validScores.reduce((s, v) => s + v, 0) / validScores.length) : 0;
+      return { overall, dims };
+    }
+
+    const currentAgg = eligible ? aggregateDimensions(currentResponses) : null;
+    const prevRespondentCount = new Set(prevResponses.map((r) => r.userId)).size;
+    const prevAgg = prevRespondentCount >= ANONYMITY_THRESHOLD ? aggregateDimensions(prevResponses) : null;
+
+    const overallScore = currentAgg?.overall ?? null;
+    const previousOverallScore = prevAgg?.overall ?? null;
+    const trendDelta = overallScore !== null && previousOverallScore !== null ? overallScore - previousOverallScore : null;
+
+    return {
+      windowStart: windowStartIso,
+      windowEnd: windowEndIso,
+      respondentCount,
+      totalCollaborators,
+      participationRate,
+      eligible,
+      overallScore,
+      dimensionScores: eligible ? (currentAgg?.dims ?? null) : null,
+      previousOverallScore,
+      trendDelta,
+    };
   }
 
   async createTeamContribution(data: InsertTeamChallengeContribution): Promise<TeamChallengeContribution> {

@@ -356,7 +356,7 @@ export default function ReportPage() {
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
             Constância — seus últimos 10 dias
           </p>
-          <ConstancyDots days={10} checkedInDates={allHistory.map((r) => r.date)} />
+          <ConstancyDots days={10} checkedInHistory={allHistory} />
         </motion.section>
 
         {/* ── Top tags ── */}

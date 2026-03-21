@@ -111,7 +111,7 @@ export default function LuminaCard({
 
             <div className="flex flex-col gap-1 min-w-0">
               <div className="flex items-center gap-2">
-                <img src="/juphd-nome.png" alt="JuPHD" className="h-5 object-contain" />
+                <img src="/logoNOMECareTransp.png" alt="JuPHD" className="h-5 object-contain" />
                 <SealCheck className="w-4 h-4 text-brand-teal flex-shrink-0" weight="fill" />
               </div>
               <span className="text-[11px] font-medium text-muted-foreground tracking-wide">
@@ -236,10 +236,14 @@ function LuminaAvatar({ size, showHalo = false }: Readonly<{ size: number; showH
           background: "linear-gradient(145deg, hsl(183 41% 36% / 0.08) 0%, hsl(43 82% 58% / 0.06) 100%)",
         }}
       >
-        <img
-          src="/juphd-avatar.png"
-          alt="JuPHD — IA em Saúde Psicossocial"
+        <video
+          src="/juphd.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
           className="h-full w-full object-cover object-top"
+          aria-label="JuPHD — IA em Saúde Psicossocial"
         />
       </div>
     </div>

@@ -14,7 +14,7 @@ applyTo: "server/**,shared/**,client/src/pages/**,client/src/lib/**,client/src/h
 | Server | Express 5 + tsx (dev) + esbuild (prod) |
 | Database | PostgreSQL + Drizzle ORM |
 | Validation | Zod via drizzle-zod |
-| Auth | Custom (localStorage + username/password) |
+| Auth | First-party JWT in httpOnly cookie + safe user mirror in localStorage |
 
 ## Layer responsibilities
 

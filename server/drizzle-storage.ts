@@ -1,5 +1,11 @@
 import { eq, and, gte, lte, desc, sql } from "drizzle-orm";
+import { ANONYMITY_THRESHOLD, PULSE_SURVEY_INTERVAL_DAYS } from "@shared/constants";
+import { parsePulseScoreSummary, type PulseDimension } from "@shared/pulse-survey";
 import {
+  tenantPlans,
+  tenants,
+  tenantMemberships,
+  billingPeriods,
   users,
   checkIns,
   momentCheckIns,
@@ -14,8 +20,22 @@ import {
   messageLikes,
   chatConversations,
   chatMessages,
+  getDefaultTenantCapabilities,
 } from "@shared/schema";
 import type {
+  TenantPlan,
+  InsertTenantPlan,
+  UpdateTenantPlan,
+  Tenant,
+  InsertTenant,
+  UpdateTenant,
+  TenantMembership,
+  CreateTenantMembership,
+  UpdateTenantMembership,
+  TenantCapability,
+  BillingPeriod,
+  CreateBillingPeriod,
+  UpdateBillingPeriodUsage,
   User,
   InsertUser,
   CheckIn,
@@ -31,11 +51,12 @@ import type {
   InsertSolarPoints,
   PulseResponse,
   InsertPulseResponse,
+  RhPulseAggregate,
+  RhPulseDimensionScores,
   TeamChallengeContribution,
   InsertTeamChallengeContribution,
   CommunityMessage,
   InsertCommunityMessage,
-  MessageLike,
   ChatConversation,
   InsertChatConversation,
   ChatMessage as ChatMessageType,
@@ -47,6 +68,204 @@ import { BaseStorage } from "./storage";
 import { getDb } from "./db";
 
 export class DrizzleStorage extends BaseStorage {
+  async getAllTenantPlans(): Promise<TenantPlan[]> {
+    return getDb().select().from(tenantPlans).orderBy(tenantPlans.name);
+  }
+
+  async getTenantPlan(id: string): Promise<TenantPlan | undefined> {
+    const rows = await getDb().select().from(tenantPlans).where(eq(tenantPlans.id, id)).limit(1);
+    return rows.at(0);
+  }
+
+  async getAllTenants(): Promise<Tenant[]> {
+    return getDb().select().from(tenants).orderBy(tenants.name);
+  }
+
+  async getTenant(id: string): Promise<Tenant | undefined> {
+    const rows = await getDb().select().from(tenants).where(eq(tenants.id, id)).limit(1);
+    return rows.at(0);
+  }
+
+  async getAllTenantMemberships(): Promise<TenantMembership[]> {
+    return getDb().select().from(tenantMemberships).orderBy(tenantMemberships.tenantId, tenantMemberships.userId);
+  }
+
+  async getTenantMembershipsByUserId(userId: string): Promise<TenantMembership[]> {
+    return getDb()
+      .select()
+      .from(tenantMemberships)
+      .where(eq(tenantMemberships.userId, userId))
+      .orderBy(tenantMemberships.tenantId);
+  }
+
+  async createTenantPlan(insertPlan: InsertTenantPlan): Promise<TenantPlan> {
+    const rows = await getDb()
+      .insert(tenantPlans)
+      .values({
+        id: randomUUID(),
+        code: insertPlan.code,
+        name: insertPlan.name,
+        audience: insertPlan.audience,
+        description: insertPlan.description,
+        isolationProfile: insertPlan.isolationProfile,
+        monthlyActiveUserLimit: insertPlan.monthlyActiveUserLimit ?? null,
+        active: insertPlan.active ?? true,
+      })
+      .returning();
+    const plan = rows.at(0);
+    if (!plan) throw new Error("Falha ao criar plano de tenant");
+    return plan;
+  }
+
+  async updateTenantPlan(id: string, updates: UpdateTenantPlan): Promise<TenantPlan | undefined> {
+    const rows = await getDb()
+      .update(tenantPlans)
+      .set(updates)
+      .where(eq(tenantPlans.id, id))
+      .returning();
+    return rows.at(0);
+  }
+
+  async getTenantBillingPeriods(tenantId: string): Promise<BillingPeriod[]> {
+    return getDb()
+      .select()
+      .from(billingPeriods)
+      .where(eq(billingPeriods.tenantId, tenantId))
+      .orderBy(desc(billingPeriods.periodStart));
+  }
+
+  async getActiveBillingPeriod(tenantId: string): Promise<BillingPeriod | undefined> {
+    const rows = await getDb()
+      .select()
+      .from(billingPeriods)
+      .where(and(eq(billingPeriods.tenantId, tenantId), eq(billingPeriods.status, "active")))
+      .limit(1);
+    return rows.at(0);
+  }
+
+  async createBillingPeriod(data: CreateBillingPeriod): Promise<BillingPeriod> {
+    const now = new Date();
+    const rows = await getDb()
+      .insert(billingPeriods)
+      .values({
+        id: randomUUID(),
+        tenantId: data.tenantId,
+        planCode: data.planCode,
+        periodStart: data.periodStart,
+        periodEnd: data.periodEnd,
+        mauLimit: data.mauLimit ?? null,
+        mauUsed: 0,
+        status: "active",
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
+    const period = rows.at(0);
+    if (!period) throw new Error("Falha ao criar período de cobrança");
+    return period;
+  }
+
+  async updateBillingPeriodUsage(id: string, updates: UpdateBillingPeriodUsage): Promise<BillingPeriod | undefined> {
+    const rows = await getDb()
+      .update(billingPeriods)
+      .set({ mauUsed: updates.mauUsed, status: updates.status, updatedAt: new Date() })
+      .where(eq(billingPeriods.id, id))
+      .returning();
+    return rows.at(0);
+  }
+
+  async createTenant(insertTenant: InsertTenant): Promise<Tenant> {
+    const now = new Date();
+    const rows = await getDb()
+      .insert(tenants)
+      .values({
+        id: randomUUID(),
+        slug: insertTenant.slug,
+        name: insertTenant.name,
+        audience: insertTenant.audience,
+        planCode: insertTenant.planCode,
+        status: insertTenant.status ?? "draft",
+        billingEmail: insertTenant.billingEmail ?? null,
+        dataResidency: insertTenant.dataResidency ?? null,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
+    const tenant = rows.at(0);
+    if (!tenant) throw new Error("Falha ao criar tenant");
+    return tenant;
+  }
+
+  async upsertTenantMembership(membership: CreateTenantMembership): Promise<TenantMembership> {
+    const now = new Date();
+    const rows = await getDb()
+      .insert(tenantMemberships)
+      .values({
+        userId: membership.userId,
+        tenantId: membership.tenantId,
+        membershipRole: membership.membershipRole,
+        capabilities: getDefaultTenantCapabilities(membership.membershipRole),
+        active: membership.active,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .onConflictDoUpdate({
+        target: [tenantMemberships.userId, tenantMemberships.tenantId],
+        set: {
+          membershipRole: membership.membershipRole,
+          capabilities: getDefaultTenantCapabilities(membership.membershipRole),
+          active: membership.active,
+          updatedAt: now,
+        },
+      })
+      .returning();
+    const tenantMembership = rows.at(0);
+    if (!tenantMembership) throw new Error("Falha ao salvar membership do tenant");
+    return tenantMembership;
+  }
+
+  async updateTenantMembership(userId: string, tenantId: string, updates: UpdateTenantMembership): Promise<TenantMembership | undefined> {
+    const existingRows = await getDb()
+      .select()
+      .from(tenantMemberships)
+      .where(and(eq(tenantMemberships.userId, userId), eq(tenantMemberships.tenantId, tenantId)))
+      .limit(1);
+    const existing = existingRows.at(0);
+    if (!existing) return undefined;
+    const membershipRole = updates.membershipRole ?? existing.membershipRole;
+    const rows = await getDb()
+      .update(tenantMemberships)
+      .set({
+        membershipRole,
+        capabilities: getDefaultTenantCapabilities(membershipRole),
+        active: updates.active ?? existing.active,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(tenantMemberships.userId, userId), eq(tenantMemberships.tenantId, tenantId)))
+      .returning();
+    return rows.at(0);
+  }
+
+  async getUserCapabilities(userId: string): Promise<TenantCapability[]> {
+    const memberships = await this.getTenantMembershipsByUserId(userId);
+    const capabilities = memberships
+      .filter((membership) => membership.active)
+      .flatMap((membership) => membership.capabilities as TenantCapability[]);
+    return [...new Set(capabilities)].toSorted((left, right) => left.localeCompare(right));
+  }
+
+  async updateTenant(id: string, updates: UpdateTenant): Promise<Tenant | undefined> {
+    const rows = await getDb()
+      .update(tenants)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(tenants.id, id))
+      .returning();
+    return rows.at(0);
+  }
+
   async getAllUsers(): Promise<User[]> {
     return getDb().select().from(users);
   }
@@ -299,6 +518,71 @@ export class DrizzleStorage extends BaseStorage {
     return rows.at(0);
   }
 
+  async getRhPulseAggregate(): Promise<RhPulseAggregate> {
+    const now = new Date();
+    const windowStart = new Date(now);
+    windowStart.setDate(now.getDate() - PULSE_SURVEY_INTERVAL_DAYS);
+    const prevWindowStart = new Date(windowStart);
+    prevWindowStart.setDate(windowStart.getDate() - PULSE_SURVEY_INTERVAL_DAYS);
+
+    const [currentResponses, prevResponses, collaboratorRows] = await Promise.all([
+      getDb().select().from(pulseResponses).where(gte(pulseResponses.submittedAt, windowStart)),
+      getDb().select().from(pulseResponses).where(and(gte(pulseResponses.submittedAt, prevWindowStart), lte(pulseResponses.submittedAt, windowStart))),
+      getDb().select({ id: users.id }).from(users).where(eq(users.role, "collaborator")),
+    ]);
+
+    const totalCollaborators = collaboratorRows.length;
+    const respondentCount = new Set(currentResponses.map((r) => r.userId)).size;
+    const participationRate = totalCollaborators === 0 ? 0 : Math.round((respondentCount / totalCollaborators) * 100);
+    const eligible = respondentCount >= ANONYMITY_THRESHOLD;
+
+    const windowDates = currentResponses.map((r) => r.submittedAt?.toISOString().slice(0, 10) ?? "");
+    const windowStartIso = windowDates.length > 0 ? [...windowDates].toSorted()[0] : windowStart.toISOString().slice(0, 10);
+    const windowEndIso = windowDates.length > 0 ? ([...windowDates].toSorted().at(-1) ?? windowStartIso) : now.toISOString().slice(0, 10);
+
+    function aggregateDimensions(responses: PulseResponse[]): { overall: number; dims: RhPulseDimensionScores } | null {
+      if (responses.length === 0) return null;
+      const dimBuckets: Record<PulseDimension, number[]> = { pressure_predictability: [], support_care: [], peer_relations: [], role_clarity: [] };
+      for (const resp of responses) {
+        const summary = parsePulseScoreSummary(resp.scoreSummary);
+        if (!summary) continue;
+        for (const [dim, score] of Object.entries(summary.dimensionScores) as [PulseDimension, number][]) {
+          dimBuckets[dim].push(score);
+        }
+      }
+      const avg = (arr: number[]): number | null => arr.length === 0 ? null : Math.round(arr.reduce((s, v) => s + v, 0) / arr.length);
+      const dims: RhPulseDimensionScores = {
+        pressure_predictability: avg(dimBuckets.pressure_predictability),
+        support_care: avg(dimBuckets.support_care),
+        peer_relations: avg(dimBuckets.peer_relations),
+        role_clarity: avg(dimBuckets.role_clarity),
+      };
+      const validScores = Object.values(dims).filter((v): v is number => v !== null);
+      const overall = validScores.length > 0 ? Math.round(validScores.reduce((s, v) => s + v, 0) / validScores.length) : 0;
+      return { overall, dims };
+    }
+
+    const prevRespondentCount = new Set(prevResponses.map((r) => r.userId)).size;
+    const currentAgg = eligible ? aggregateDimensions(currentResponses) : null;
+    const prevAgg = prevRespondentCount >= ANONYMITY_THRESHOLD ? aggregateDimensions(prevResponses) : null;
+
+    const overallScore = currentAgg?.overall ?? null;
+    const previousOverallScore = prevAgg?.overall ?? null;
+
+    return {
+      windowStart: windowStartIso,
+      windowEnd: windowEndIso,
+      respondentCount,
+      totalCollaborators,
+      participationRate,
+      eligible,
+      overallScore,
+      dimensionScores: eligible ? (currentAgg?.dims ?? null) : null,
+      previousOverallScore,
+      trendDelta: overallScore !== null && previousOverallScore !== null ? overallScore - previousOverallScore : null,
+    };
+  }
+
   async createTeamContribution(data: InsertTeamChallengeContribution): Promise<TeamChallengeContribution> {
     const rows = await getDb()
       .insert(teamChallengeContributions)
@@ -501,5 +785,13 @@ export class DrizzleStorage extends BaseStorage {
       .from(chatMessages)
       .where(eq(chatMessages.conversationId, conversationId))
       .orderBy(chatMessages.createdAt);
+  }
+
+  async updateUserPassword(userId: string, newPassword: string): Promise<void> {
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await getDb()
+      .update(users)
+      .set({ password: hashed })
+      .where(eq(users.id, userId));
   }
 }

@@ -733,8 +733,6 @@ export default function DashboardPage() {
     enabled: !!userId,
   });
 
-  const checkedInDates = history.map((h) => h.date);
-
   const checkedIn = scores.hasCheckedIn || justCompleted;
   const CRISIS_THRESHOLD = 25;
   const hasCrisisSignal = checkedIn && Object.values(scores.domainScores).some(
@@ -909,7 +907,7 @@ export default function DashboardPage() {
         firstName={firstName}
         scores={scores}
         solarPoints={solarPoints}
-        checkedInDates={checkedInDates}
+        checkedInHistory={history}
         onOpenNotifications={() => setDrawerOpen(true)}
         onOpenSettings={() => navigate("/settings")}
         onNavigateDomains={() => navigate("/meu-cuidado?section=domains")}

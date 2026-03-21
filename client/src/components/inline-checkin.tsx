@@ -255,8 +255,11 @@ function InlineStepView({
     previousAnswer ?? (isMultiType ? [] : ""),
   );
   const [projAnswer, setProjAnswer] = useState<ProjectionOption | null>(null);
+  const tapped = useRef(false);
 
   const handleSingle = (opt: StepOption) => {
+    if (tapped.current) return;
+    tapped.current = true;
     setSelected(opt.id);
     // Auto-advance after brief visual feedback
     setTimeout(() => onAnswer(step.id, opt.id, projAnswer), 300);
@@ -418,6 +421,7 @@ export default function InlineCheckin({
   const startTime = useRef(Date.now());
   const abandoned = useRef(false);
   const latestStep = useRef(0);
+  const isProcessing = useRef(false);
 
   // Restore partial progress
   const partial = useRef(loadPartial());
@@ -525,7 +529,9 @@ export default function InlineCheckin({
       answer: string | string[],
       projAnswer?: ProjectionOption | null,
     ) => {
-      if (isSaving) return;
+      if (isSaving || isProcessing.current) return;
+      isProcessing.current = true;
+
       const newAnswers = { ...answers, [stepId]: answer };
       setAnswers(newAnswers);
 
@@ -533,6 +539,7 @@ export default function InlineCheckin({
       const trigger = detectChatTrigger(stepId, answer, steps, projAnswer);
       if (trigger) {
         savePartial({ date: todayISO(), answers: newAnswers, step: currentStep });
+        isProcessing.current = false;
         onNavigateProtection();
         return;
       }
@@ -540,8 +547,12 @@ export default function InlineCheckin({
       if (currentStep < steps.length - 1) {
         setDirection(1);
         setCurrentStep((s) => s + 1);
+        // Release guard after slide animation settles (prevents stale-closure overshoot)
+        setTimeout(() => { isProcessing.current = false; }, 380);
       } else {
         saveCheckIn(newAnswers);
+        // isSaving=true will guard further calls while saving; reset ref for error path
+        isProcessing.current = false;
       }
     },
     [answers, currentStep, steps, saveCheckIn, isSaving, onNavigateProtection],
@@ -577,8 +588,7 @@ export default function InlineCheckin({
         )}
       </AnimatePresence>
 
-      {/* Question area */}
-      <AnimatePresence mode="wait" custom={direction}>
+        <AnimatePresence mode="wait" custom={direction}>
         {isSaving ? (
           <motion.div
             key="inline-saving"
@@ -595,7 +605,7 @@ export default function InlineCheckin({
             />
             <p className="text-sm text-muted-foreground">Registrando seu check-in…</p>
           </motion.div>
-        ) : (
+        ) : steps[currentStep] != null ? (
           <motion.div
             key={`inline-step-${currentStep}`}
             custom={direction}
@@ -611,8 +621,8 @@ export default function InlineCheckin({
               previousAnswer={answers[steps[currentStep].id]}
             />
           </motion.div>
-        )}
-      </AnimatePresence>
+        ) : null}
+        </AnimatePresence>
 
       {/* Privacy note — show only on first question */}
       {currentStep === 0 && (

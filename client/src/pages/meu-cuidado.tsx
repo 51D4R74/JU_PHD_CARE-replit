@@ -339,7 +339,7 @@ export default function MeuCuidadoPage() {
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
             Constância — seus últimos 10 dias
           </p>
-          <ConstancyDots days={10} checkedInDates={allHistory.map((r) => r.date)} />
+          <ConstancyDots days={10} checkedInHistory={allHistory} />
           <p className="text-xs text-muted-foreground mt-2">
             {allHistory.length === 0
               ? "Faça seu primeiro check-in pra começar."

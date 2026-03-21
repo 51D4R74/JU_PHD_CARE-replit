@@ -6,6 +6,7 @@ interface AuthUser {
   readonly name: string;
   readonly role: string;
   readonly department: string | null;
+  readonly capabilities: string[];
 }
 
 let currentUser: AuthUser | null = null;
@@ -69,6 +70,7 @@ function getSnapshot() {
 
 export function useAuth() {
   const authUser = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const capabilities = authUser?.capabilities ?? [];
 
   return {
     user: authUser,
@@ -77,5 +79,7 @@ export function useAuth() {
     validateSession,
     isAuthenticated: !!authUser,
     isRH: authUser?.role === "rh",
+    capabilities,
+    hasCapability: (capability: string) => authUser?.role === "rh" || capabilities.includes(capability),
   };
 }

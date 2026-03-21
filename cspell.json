@@ -126,7 +126,34 @@
     "resguardo", "Resguardo",
 
     // cSpell itself
-    "streetsidesoftware"
+    "streetsidesoftware",
+
+    // JWT + auth (S27)
+    "jsonwebtoken",
+    "cookieparser",
+    "bcryptjs",
+    "allowlist",
+    "Authenticacao",
+    "CODEOWNERS",
+
+    // Billing + metering (S30)
+    "cobranca", "Cobranca",
+    "mauLimit", "mauUsed",
+    "billingCycle", "billingcycle",
+    "periodStart", "periodEnd",
+    "overdue",
+    "metering",
+    "estorono",
+
+    // Pulse aggregate + RH dashboard (S31)
+    "respondentCount",
+    "trendDelta",
+    "dimensionScores",
+    "overallScore",
+    "participationRate",
+    "anonimato",
+    "predictability",
+    "anonymity"
   ],
   "ignoreWords": [],
   "ignorePaths": [

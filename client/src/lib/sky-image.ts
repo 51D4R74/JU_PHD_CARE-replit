@@ -29,12 +29,12 @@ interface SkyHeroTier {
 
 /** Descending order — first match wins. */
 export const SKY_HERO_TIERS: readonly SkyHeroTier[] = [
-  { min: 80, src: "/sky/sol-06.png", alt: "Céu azul límpido com sol radiante", label: "Dia Radiante", dimOverlay: 0.60 },
-  { min: 65, src: "/sky/sol-05.png", alt: "Sol brilhante com céu azul e raios dourados", label: "Dia Luminoso", dimOverlay: 0.55 },
-  { min: 50, src: "/sky/sol-04.png", alt: "Sol dourado dominante com nuvens nas bordas", label: "Dia Equilibrado", dimOverlay: 0.45 },
-  { min: 34, src: "/sky/sol-03.png", alt: "Nuvens se abrindo com sol ao centro", label: "Dia de Cuidado", dimOverlay: 0.40 },
-  { min: 17, src: "/sky/sol-02.png", alt: "Nuvens escuras com raios dourados surgindo", label: "Dia Sensível", dimOverlay: 0.35 },
-  { min: 0,  src: "/sky/sol-01.png", alt: "Nuvens carregadas com sol tentando surgir", label: "Dia de Resguardo", dimOverlay: 0.32 },
+  { min: 80, src: "/sky/sol-06.webp", alt: "Céu azul límpido com sol radiante", label: "Dia Radiante", dimOverlay: 0.60 },
+  { min: 65, src: "/sky/sol-05.webp", alt: "Sol brilhante com céu azul e raios dourados", label: "Dia Luminoso", dimOverlay: 0.55 },
+  { min: 50, src: "/sky/sol-04.webp", alt: "Sol dourado dominante com nuvens nas bordas", label: "Dia Equilibrado", dimOverlay: 0.45 },
+  { min: 34, src: "/sky/sol-03.webp", alt: "Nuvens se abrindo com sol ao centro", label: "Dia de Cuidado", dimOverlay: 0.40 },
+  { min: 17, src: "/sky/sol-02.webp", alt: "Nuvens escuras com raios dourados surgindo", label: "Dia Sensível", dimOverlay: 0.35 },
+  { min: 0,  src: "/sky/sol-01.webp", alt: "Nuvens carregadas com sol tentando surgir", label: "Dia de Resguardo", dimOverlay: 0.32 },
 ] as const;
 
 const DEFAULT_TIER = SKY_HERO_TIERS[2]; // SOL_04 — warm, neutral welcome

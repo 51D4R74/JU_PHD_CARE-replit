@@ -14,13 +14,14 @@ import SolarPointsBadge from "@/components/solar-points-badge";
 import NotificationBadge from "@/components/notification-badge";
 import { type TodayScores } from "@/lib/score-engine";
 import { getSkyHero, getDefaultSkyHero, getCompositeScore, type SkyHeroData } from "@/lib/sky-image";
+import type { CheckInHistoryRecord } from "@shared/schema";
 import { devNow } from "@shared/dev-clock";
 
 type SkyHeroProps = Readonly<{
   firstName: string;
   scores: TodayScores;
   solarPoints: number;
-  checkedInDates: ReadonlyArray<string>;
+  checkedInHistory: ReadonlyArray<CheckInHistoryRecord>;
   onOpenNotifications: () => void;
   onOpenSettings: () => void;
   onNavigateDomains: () => void;
@@ -56,7 +57,7 @@ export default function SkyHero({
   firstName,
   scores,
   solarPoints,
-  checkedInDates,
+  checkedInHistory,
   onOpenNotifications,
   onOpenSettings,
   onNavigateDomains,
@@ -129,7 +130,7 @@ export default function SkyHero({
           transition={{ delay: 0.34, duration: 0.45 }}
           className="mt-4"
         >
-          <ConstancyDots checkedInDates={checkedInDates} days={7} variant="hero" />
+          <ConstancyDots checkedInHistory={checkedInHistory} days={7} variant="hero" />
         </motion.div>
       </div>
 

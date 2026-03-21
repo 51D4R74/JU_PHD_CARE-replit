@@ -1,0 +1,12 @@
+# CODEOWNERS — require review for security-sensitive paths.
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Auth + middleware: any change to the auth layer needs explicit approval.
+server/middleware.ts @juphd/backend-leads
+server/routes.ts     @juphd/backend-leads
+
+# Schema: structural DB changes affect every feature.
+shared/schema.ts     @juphd/backend-leads
+
+# CI / governance: pipeline changes need lead approval.
+.github/             @juphd/backend-leads

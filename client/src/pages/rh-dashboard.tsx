@@ -13,6 +13,7 @@ import {
 import { useAuth } from "@/lib/auth";
 import RHAggregateCard from "@/components/rh-aggregate-card";
 import { fetchCurrentChallenge, buildOfflineSnapshot, type TeamChallengeSnapshot } from "@/lib/team-challenge-engine";
+import { PULSE_DIMENSION_LABELS } from "@shared/pulse-survey";
 
 // ── Aggregate data types (match API contract) ─────
 
@@ -52,6 +53,28 @@ interface RHAggregateData {
   moodDistribution: { name: string; value: number; color: string }[];
 }
 
+// ── Pulse aggregate types (match /api/rh/pulses/aggregate contract) ─────
+
+interface RhPulseDimensionScores {
+  readonly pressure_predictability: number | null;
+  readonly support_care: number | null;
+  readonly peer_relations: number | null;
+  readonly role_clarity: number | null;
+}
+
+interface RhPulseAggregateData {
+  readonly windowStart: string;
+  readonly windowEnd: string;
+  readonly respondentCount: number;
+  readonly totalCollaborators: number;
+  readonly participationRate: number;
+  readonly eligible: boolean;
+  readonly overallScore: number | null;
+  readonly dimensionScores: RhPulseDimensionScores | null;
+  readonly previousOverallScore: number | null;
+  readonly trendDelta: number | null;
+}
+
 // ── Helpers ────────────────────────────────────────
 
 function participationColor(rate: number) {
@@ -83,6 +106,25 @@ function getSeverityBorder(s: string) {
   if (s === "high") return "border-l-score-critical";
   if (s === "medium") return "border-l-score-moderate";
   return "border-l-score-good";
+}
+
+function pulseTierClass(score: number) {
+  if (score >= 75) return "bg-score-good/15 text-score-good border-score-good/20";
+  if (score >= 50) return "bg-score-moderate/15 text-score-moderate border-score-moderate/20";
+  if (score >= 25) return "bg-score-attention/15 text-score-attention border-score-attention/20";
+  return "bg-score-critical/15 text-score-critical border-score-critical/20";
+}
+
+function trendDeltaLabel(delta: number) {
+  if (delta > 0) return `↑ +${delta.toFixed(1)} pts vs. ciclo anterior`;
+  if (delta < 0) return `↓ ${delta.toFixed(1)} pts vs. ciclo anterior`;
+  return "→ Estável vs. ciclo anterior";
+}
+
+function trendDeltaClass(delta: number) {
+  if (delta > 0) return "text-score-good";
+  if (delta < 0) return "text-score-critical";
+  return "text-muted-foreground";
 }
 
 function ChartTooltip({
@@ -118,6 +160,9 @@ export default function RHDashboardPage() {
   const { data: teamChallenge = buildOfflineSnapshot() } = useQuery<TeamChallengeSnapshot>({
     queryKey: ["/api/team-challenges/current"],
     queryFn: fetchCurrentChallenge,
+  });
+  const { data: pulseAggregate } = useQuery<RhPulseAggregateData>({
+    queryKey: ["/api/rh/pulses/aggregate"],
   });
 
   if (isPending) {
@@ -524,6 +569,125 @@ export default function RHDashboardPage() {
               </div>
             ))}
           </div>
+        </motion.div>
+
+        {/* Pulse formal aggregate */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="rounded-xl border border-border-soft bg-white p-6 mb-8"
+          data-testid="pulse-aggregate-panel"
+        >
+          <h3 className="text-sm font-semibold mb-1 flex items-center gap-2">
+            <Pulse className="w-4 h-4 text-brand-navy" />
+            Pulse Formal — Psicossocial Relacional
+          </h3>
+          <p className="text-xs text-muted-foreground mb-5">
+            Instrumento estruturado NR-1: 4 dimensões, 8 itens validados · Ciclo 45 dias
+          </p>
+
+          {!pulseAggregate ? (
+            <div className="space-y-3">
+              <div className="h-6 rounded-lg bg-surface-warm animate-pulse w-1/3" />
+              <div className="h-4 rounded-lg bg-surface-warm animate-pulse w-1/2" />
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="h-16 rounded-lg bg-surface-warm animate-pulse" />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div>
+              {/* Participation row */}
+              <div className="flex items-center gap-6 mb-5">
+                <div>
+                  <p className="text-2xl font-bold">
+                    {pulseAggregate.participationRate.toFixed(0)}%
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    participação ({pulseAggregate.respondentCount}/{pulseAggregate.totalCollaborators} respondentes)
+                  </p>
+                </div>
+                <div className="flex-1 h-2 bg-surface-warm rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pulseAggregate.participationRate}%` }}
+                    transition={{ duration: 1, delay: 0.6 }}
+                    className={`h-full rounded-full ${
+                      pulseAggregate.participationRate >= 85
+                        ? "bg-score-good"
+                        : pulseAggregate.participationRate >= 70
+                        ? "bg-score-moderate"
+                        : "bg-score-attention"
+                    }`}
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground text-right">
+                  {new Date(pulseAggregate.windowStart).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
+                  &nbsp;→&nbsp;
+                  {new Date(pulseAggregate.windowEnd).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+                </p>
+              </div>
+
+              {/* Anonymity gate */}
+              {!pulseAggregate.eligible ? (
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-score-moderate/10 border border-score-moderate/20">
+                  <Shield className="w-4 h-4 text-score-moderate mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-score-moderate">Dados protegidos — k-anonimato ativo</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      São necessários pelo menos 5 respondentes para exibir escores.
+                      Aguarde mais respostas neste ciclo.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  {/* Overall score + trend */}
+                  <div className="flex items-center gap-4 mb-5">
+                    {pulseAggregate.overallScore !== null && (
+                      <div
+                        className={`rounded-xl border px-5 py-3 text-center ${pulseTierClass(pulseAggregate.overallScore)}`}
+                        data-testid="pulse-overall-score"
+                      >
+                        <p className="text-2xl font-bold">{pulseAggregate.overallScore.toFixed(1)}</p>
+                        <p className="text-[11px] font-medium">score geral (0–100)</p>
+                      </div>
+                    )}
+                    {pulseAggregate.trendDelta !== null && (
+                      <p className={`text-xs font-medium ${trendDeltaClass(pulseAggregate.trendDelta)}`}>
+                        {trendDeltaLabel(pulseAggregate.trendDelta)}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Dimension breakdown */}
+                  {pulseAggregate.dimensionScores !== null && (
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      {(Object.keys(PULSE_DIMENSION_LABELS) as Array<keyof typeof PULSE_DIMENSION_LABELS>).map((dim) => {
+                        const score = pulseAggregate.dimensionScores![dim];
+                        return (
+                          <div
+                            key={dim}
+                            className={`rounded-xl border px-3 py-3 text-center ${
+                              score !== null ? pulseTierClass(score) : "bg-surface-warm border-border-soft text-muted-foreground"
+                            }`}
+                            data-testid={`pulse-dim-${dim}`}
+                          >
+                            <p className="text-[11px] font-medium mb-1">{PULSE_DIMENSION_LABELS[dim]}</p>
+                            <p className="text-xl font-bold">
+                              {score !== null ? score.toFixed(1) : "—"}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </motion.div>
 
         {/* Privacy footer */}

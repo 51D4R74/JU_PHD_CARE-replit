@@ -54,11 +54,6 @@ export default function MissionCenterPage() {
     enabled: !!userId,
   });
 
-  const checkedInDates = useMemo(
-    () => historyRecords.map((r) => r.date),
-    [historyRecords],
-  );
-
   const completedIds = useMemo(
     () => completedMissions.map((m) => m.missionId),
     [completedMissions],
@@ -290,7 +285,7 @@ export default function MissionCenterPage() {
           <p className="text-xs font-semibold text-muted-foreground mb-2">
             Constância — seus últimos 10 dias
           </p>
-          <ConstancyDots days={10} checkedInDates={checkedInDates} />
+          <ConstancyDots days={10} checkedInHistory={historyRecords} />
         </motion.section>
       </main>
 

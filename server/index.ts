@@ -1,7 +1,7 @@
-import crypto from "node:crypto";
 import path from "node:path";
 import express, { type Request, Response, NextFunction } from "express";
-import session from "express-session";
+import cookieParser from "cookie-parser";
+import helmet from "helmet";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "node:http";
@@ -12,8 +12,29 @@ import type { IStorage } from "./storage";
 const app = express();
 const httpServer = createServer(app);
 
-// Trust the proxy (Replit uses X-Forwarded-For headers)
+// Trust the proxy (Replit / ALB uses X-Forwarded-For headers)
 app.set("trust proxy", 1);
+
+// Security headers — OWASP best practices
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"], // Vite HMR in dev; tighten in prod
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        imgSrc: ["'self'", "data:", "blob:"],
+        connectSrc: ["'self'", "wss:", "https:"],
+        // Inter + JetBrains Mono + Plus Jakarta Sans loaded from Google Fonts CDN.
+        // fonts.gstatic.com serves the actual font binaries; googleapis.com is the CSS resolver.
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+    crossOriginEmbedderPolicy: false, // PWA audio needs relaxed COEP
+  }),
+);
 
 const storage: IStorage = process.env.DATABASE_URL ? new DrizzleStorage() : new MemStorage();
 
@@ -45,24 +66,7 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 app.use("/uploads", express.static(path.resolve("uploads")));
-
-const isProd = process.env.NODE_ENV === "production";
-const sessionSecret = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
-
-app.use(
-  session({
-    secret: sessionSecret,
-    name: "lumina.sid",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    },
-  }),
-);
+app.use(cookieParser());
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
