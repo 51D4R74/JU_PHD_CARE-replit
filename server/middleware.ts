@@ -110,3 +110,14 @@ export function requireRole(role: string) {
     return res.status(403).json({ message: "Acesso não autorizado" });
   };
 }
+
+/**
+ * Inline ownership assertion for POST routes where userId comes from the
+ * Zod-parsed request body (not a URL param). Call after Zod validation.
+ * Returns true if the caller owns the resource; sends 403 and returns false otherwise.
+ */
+export function assertBodyOwner(req: Request, res: Response, bodyUserId: string): boolean {
+  if (bodyUserId === req.userId) return true;
+  res.status(403).json({ message: "Acesso não autorizado" });
+  return false;
+}

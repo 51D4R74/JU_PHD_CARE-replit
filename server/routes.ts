@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import multer from "multer";
 import type { IStorage } from "./storage";
-import { requireAuth, requireOwner, requireRole, issueToken, clearToken } from "./middleware";
+import { requireAuth, requireOwner, requireRole, assertBodyOwner, issueToken, clearToken } from "./middleware";
 import { createTenantPlanSchema, createTenantSchema, createTenantMembershipSchema, createBillingPeriodSchema, updateBillingPeriodUsageSchema, insertCheckInSchema, insertMomentCheckInSchema, insertUserMissionSchema, submitIncidentReportSchema, submitPulseResponseSchema, submitCommunityMessageSchema, type PulseResponse, type TenantCapability, updateTenantMembershipSchema, updateTenantPlanSchema, updateTenantSchema } from "@shared/schema";
 import { getWorkday, getWorkdayDate, POINT_VALUES } from "@shared/constants";
 import { selectMonthlyChallenge, getMonthBounds } from "@shared/challenges";
@@ -91,6 +91,17 @@ const chatLimiter = rateLimit({
     return req.userId ?? ipKeyGenerator(req.ip ?? "127.0.0.1");
   },
   message: { message: "Muitas mensagens. Aguarde um momento antes de continuar." },
+});
+
+// SEC-08: General write-endpoint limiter — protects community messages, incidents,
+// solar points and escalations from abuse without impacting normal usage.
+const writeLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 min
+  limit: 30, // max 30 write operations per minute per authenticated user
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  keyGenerator: (req) => req.userId ?? ipKeyGenerator(req.ip ?? "127.0.0.1"),
+  message: { message: "Muitas ações em pouco tempo. Aguarde um momento." },
 });
 
 // ---------------------------------------------------------------------------
@@ -507,10 +518,8 @@ export async function registerRoutes(
   app.post("/api/checkins", requireAuth, async (req, res) => {
     try {
       const data = insertCheckInSchema.parse(req.body);
-      // Enforce: userId in body must match JWT-authenticated user
-      if (data.userId !== req.userId) {
-        return res.status(403).json({ message: "Acesso não autorizado" });
-      }
+      // SEC-07: body userId must match JWT-authenticated user
+      if (!assertBodyOwner(req, res, data.userId)) return;
       const checkIn = await storage.createCheckIn(data);
       return res.json(checkIn);
     } catch (e: unknown) {
@@ -564,9 +573,8 @@ export async function registerRoutes(
   app.post("/api/pulses", requireAuth, async (req, res) => {
     try {
       const data = submitPulseResponseSchema.parse(req.body);
-      if (data.userId !== req.userId) {
-        return res.status(403).json({ message: "Acesso não autorizado" });
-      }
+      // SEC-07: body userId must match JWT-authenticated user
+      if (!assertBodyOwner(req, res, data.userId)) return;
 
       const definition = getPulseDefinitionByKey(data.pulseKey);
       if (data.pulseVersion !== definition?.version) {
@@ -667,9 +675,8 @@ export async function registerRoutes(
   app.post("/api/moment-checkins", requireAuth, async (req, res) => {
     try {
       const data = insertMomentCheckInSchema.parse(req.body);
-      if (data.userId !== req.userId) {
-        return res.status(403).json({ message: "Acesso não autorizado" });
-      }
+      // SEC-07: body userId must match JWT-authenticated user
+      if (!assertBodyOwner(req, res, data.userId)) return;
       const checkIn = await storage.createMomentCheckIn(data);
       return res.json(checkIn);
     } catch (e: unknown) {
@@ -697,7 +704,7 @@ export async function registerRoutes(
 
   // ── Incidents (authenticated, creation owner-enforced, list RH-only) ─
 
-  app.post("/api/incidents", requireAuth, async (req, res) => {
+  app.post("/api/incidents", requireAuth, writeLimiter, async (req, res) => {
     try {
       const data = submitIncidentReportSchema.parse(req.body);
       // Allow anonymous (userId can be null) but if set, must match session
@@ -719,7 +726,7 @@ export async function registerRoutes(
 
   // ── Solar points ─────────────────────────────────────────────────────
 
-  app.post("/api/solar/award", requireAuth, async (req, res) => {
+  app.post("/api/solar/award", requireAuth, writeLimiter, async (req, res) => {
     const { action, points } = req.body;
     if (!action || typeof action !== "string" || typeof points !== "number") {
       return res.status(400).json({ message: "Ação e pontos são necessários" });
@@ -774,7 +781,7 @@ export async function registerRoutes(
 
   // ── Support escalation (PRD v2.0 S8) ────────────────────────────────
 
-  app.post("/api/support/escalate", requireAuth, async (req, res) => {
+  app.post("/api/support/escalate", requireAuth, writeLimiter, async (req, res) => {
     const { level } = req.body;
     if (typeof level !== "number" || level < 1 || level > 3) {
       return res.status(400).json({ message: "Nível de escalação inválido" });
@@ -1109,7 +1116,7 @@ export async function registerRoutes(
     return res.json({ audioUrl });
   });
 
-  app.post("/api/community-messages", requireAuth, async (req, res) => {
+  app.post("/api/community-messages", requireAuth, writeLimiter, async (req, res) => {
     try {
       const data = submitCommunityMessageSchema.parse(req.body);
       const userId = req.userId!;

@@ -153,7 +153,14 @@
     "participationRate",
     "anonimato",
     "predictability",
-    "anonymity"
+    "anonymity",
+
+    // Governance board + security hardening (S32)
+    "assertBodyOwner",
+    "writeLimiter",
+    "governanca", "Governanca",
+    "tranche", "tranches",
+    "closeout"
   ],
   "ignoreWords": [],
   "ignorePaths": [
